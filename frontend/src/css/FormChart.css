@@ -1,0 +1,25 @@
+.form-chart-container {
+  width: 100%;
+  min-height: 300px;
+  height: 500px;
+  margin-top: 20px;
+  background-color: #000000;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.recharts-default-tooltip {
+  background-color: #2a2a2a !important;
+  border: 1px solid #444 !important;
+  border-radius: 4px !important;
+}
+
+.recharts-tooltip-item {
+  color: #e0e0e0 !important;
+}
+
+.recharts-tooltip-label {
+  color: #fff !important;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
