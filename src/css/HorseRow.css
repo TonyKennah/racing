@@ -40,30 +40,30 @@
 }
 
 .avg-rating {
-  color: #fff;
+  color: var(--text-h);
   font-size: 13px;
 }
 
 .cell-no {
-  color: #fff;
+  color: var(--text-h);
   display: inline-block;
   width: 25px;
 }
 
 .cell-draw {
-  color: #fff;
+  color: var(--text-h);
   display: inline-block;
   width: 35px;
 }
 
 .cell-form {
-  color: #fff;
+  color: var(--text);
   display: inline-block;
   width: 75px;
 }
 
 .cell-name {
-  color: #fff;
+  color: var(--text-h);
   display: inline-block;
   width: 170px;
   white-space: nowrap;
@@ -73,17 +73,17 @@
 
 .stats-inline {
   font-size: 11px;
-  color: #fff;
+  color: var(--text);
   margin-left: 4px;
 }
 
 .jockey-trainer-row {
   font-size: 12px;
-  color: #fff;
+  color: var(--text);
 }
 
 .jockey-trainer-row strong {
-  color: #fff;
+  color: var(--text-h);
 }
 
 .past-button {
