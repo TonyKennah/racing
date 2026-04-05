@@ -16,7 +16,10 @@ const FormChart = ({ horses }) => {
       dataMap[date][horse.name] = parseFloat(race.name);
 
       // Store race metadata for the tooltip
-      dataMap[date][`${horse.name}_details`] = `${race.course} ${race.time}`;
+      const beaten = race.distBeaten ? ` (${race.distBeaten} btn)` : '';
+      dataMap[date][`${horse.name}_details`] = 
+        `${race.time} ${race.course} (${race.distance}, ${race.going}) | ` +
+        `Pos: ${race.position}${beaten} | Wt: ${race.weight}`;
     });
   });
 
@@ -47,7 +50,7 @@ const FormChart = ({ horses }) => {
           <Tooltip 
             formatter={(value, name, entry) => {
               const details = entry.payload[`${name}_details`];
-              return [details ? `${value} (${details})` : value, name];
+              return [details ? `${value} • ${details}` : value, name];
             }}
           />
           <Legend />

@@ -17,21 +17,19 @@ const PastRace = ({ race }) => {
   } = race;
 
   return (
-    <div className="past-race-row">
-      <span className="past-race-date">{date}</span>
-      <span className="past-race-pos">{position}</span>
-      <span className="past-race-details">
-        {course} <small className="past-race-meta">({distance}, {going})</small>
+    <div className="past-race-row" style={{ display: 'flex', alignItems: 'center', gap: '16px', whiteSpace: 'nowrap', fontSize: '14px', padding: '6px 8px', borderBottom: '1px solid var(--border)', width: '100%', boxSizing: 'border-box' }}>
+      <span style={{ width: '80px', flexShrink: 0 }}>{date}</span>
+      <span style={{ width: '45px', flexShrink: 0 }}>{time}</span>
+      <span style={{ width: '200px', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <strong>{course}</strong> <small className="past-race-meta">({distance}, {going})</small>
       </span>
-      <span className="past-race-rtg">Rtg: <strong>{name}</strong></span>
-      <a 
-        href={url} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="past-race-link"
-      >
-        ↗
-      </a>
+      <span style={{ width: '100px', flexShrink: 0 }}>
+        <small>Pos: </small><strong>{position}</strong> {distBeaten && <small>({distBeaten} btn)</small>}
+      </span>
+      <span style={{ width: '125px', flexShrink: 0 }}>
+        <small>Wt: </small><strong>{weight}</strong> • <small>Rtg: </small><strong>{name}</strong>
+      </span>
+      <a href={url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'var(--accent)', fontWeight: 'bold', flexShrink: 0 }}>↗</a>
     </div>
   );
 };

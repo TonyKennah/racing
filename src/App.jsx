@@ -38,7 +38,7 @@ function App() {
 
   return (
     <main>
-      <h1>Today's Racing</h1>
+      <h2>Today's Racing</h2>
       {races.map((race, index) => (
         <RaceCard key={index} race={race} />
       ))}
