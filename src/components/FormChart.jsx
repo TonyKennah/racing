@@ -16,7 +16,7 @@ const FormChart = ({ horses }) => {
       dataMap[date][horse.name] = parseFloat(race.name);
 
       // Store race metadata for the tooltip
-      const beaten = race.distBeaten ? ` (${race.distBeaten} btn)` : '';
+      const beaten = race.distBeaten ? ` (btn ${race.distBeaten} l)` : '';
       dataMap[date][`${horse.name}_details`] = 
         `${race.time} ${race.course} (${race.distance}, ${race.going}) | ` +
         `Pos: ${race.position}${beaten} | Wt: ${race.weight}`;
@@ -53,9 +53,9 @@ const FormChart = ({ horses }) => {
               if (!details) return [value, name];
               const [raceInfo, ...performance] = details.split(' | ');
               return [
-                <span key={name} style={{ display: 'block' }}>
-                  <span style={{ display: 'block' }}>{value} • {raceInfo}</span>
-                  <span style={{ display: 'block', fontSize: '11px', opacity: 0.7, marginTop: '2px' }}>{performance.join(' • ')}</span>
+                <span key={name} style={{ display: 'block' }}>{value}
+                  <span style={{ display: 'block' }}>{raceInfo}</span>
+                  <span style={{ display: 'block', fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>{performance.join(' • ')}</span>
                 </span>,
                 name
               ];
