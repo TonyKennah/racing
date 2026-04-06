@@ -3,6 +3,7 @@ import RaceCard from './components/Racecard';
 
 function App() {
   const [races, setRaces] = useState([]);
+  const [selectedPlaces, setSelectedPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -36,10 +37,58 @@ function App() {
     </div>
   );
 
+  const uniquePlaces = [...new Set(races.map(r => r.place))].sort();
+
+  const filteredRaces = selectedPlaces.length === 0
+    ? races
+    : races.filter(r => selectedPlaces.includes(r.place));
+
   return (
     <main>
-      <h2>Today's Racing</h2>
-      {races.map((race, index) => (
+      <h2>The Racing</h2>
+
+      <div className="place-filters" style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+        justifyContent: 'center',
+        marginBottom: '30px',
+        padding: '0 20px'
+      }}>
+        {uniquePlaces.map(place => {
+          const isActive = selectedPlaces.includes(place);
+          return (
+            <button
+              key={place}
+              onClick={() => setSelectedPlaces(prev => 
+                isActive ? prev.filter(p => p !== place) : [...prev, place]
+              )}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
+                backgroundColor: isActive ? 'var(--accent-bg)' : 'transparent',
+                color: isActive ? 'var(--text-h)' : 'var(--text)',
+                fontSize: '13px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {place}
+            </button>
+          );
+        })}
+        {selectedPlaces.length > 0 && (
+          <button 
+            onClick={() => setSelectedPlaces([])}
+            style={{ background: 'none', border: 'none', color: 'var(--text)', cursor: 'pointer', fontSize: '12px', textDecoration: 'underline' }}
+          >
+            Show All
+          </button>
+        )}
+      </div>
+
+      {filteredRaces.map((race, index) => (
         <RaceCard key={index} race={race} />
       ))}
     </main>
