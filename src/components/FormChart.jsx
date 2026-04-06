@@ -50,7 +50,15 @@ const FormChart = ({ horses }) => {
           <Tooltip 
             formatter={(value, name, entry) => {
               const details = entry.payload[`${name}_details`];
-              return [details ? `${value} • ${details}` : value, name];
+              if (!details) return [value, name];
+              const [raceInfo, ...performance] = details.split(' | ');
+              return [
+                <span key={name} style={{ display: 'block' }}>
+                  <span style={{ display: 'block' }}>{value} • {raceInfo}</span>
+                  <span style={{ display: 'block', fontSize: '11px', opacity: 0.7, marginTop: '2px' }}>{performance.join(' • ')}</span>
+                </span>,
+                name
+              ];
             }}
           />
           <Legend />
