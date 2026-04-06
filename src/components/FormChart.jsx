@@ -48,16 +48,17 @@ const FormChart = ({ horses }) => {
           <XAxis dataKey="date" />
           <YAxis domain={['auto', 'auto']} label={{ value: 'Rating', angle: -90, position: 'insideLeft' }} />
           <Tooltip 
+            separator=""
             formatter={(value, name, entry) => {
               const details = entry.payload[`${name}_details`];
               if (!details) return [value, name];
               const [raceInfo, ...performance] = details.split(' | ');
               return [
-                <span key={name} style={{ display: 'block' }}>{value}
+                <span key={name} style={{ display: 'block' }}>
                   <span style={{ display: 'block' }}>{raceInfo}</span>
-                  <span style={{ display: 'block', fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>{performance.join(' • ')}</span>
+                  <span style={{ display: 'block', fontSize: '15px', opacity: 0.7, marginTop: '2px' }}>{performance.join(' • ')}</span>
                 </span>,
-                name
+                `${name}: ${value}`
               ];
             }}
           />

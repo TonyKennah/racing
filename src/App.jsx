@@ -78,14 +78,7 @@ function App() {
             </button>
           );
         })}
-        {selectedPlaces.length > 0 && (
-          <button 
-            onClick={() => setSelectedPlaces([])}
-            style={{ background: 'none', border: 'none', color: 'var(--text)', cursor: 'pointer', fontSize: '12px', textDecoration: 'underline' }}
-          >
-            Show All
-          </button>
-        )}
+        
       </div>
 
       {filteredRaces.map((race, index) => (
