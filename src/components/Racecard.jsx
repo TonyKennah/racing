@@ -5,7 +5,7 @@ import FormChart from './FormChart'; // 1. Import it
 
 const RaceCard = ({ race }) => {
   const [showChart, setShowChart] = useState(false);
-  const [sortBy, setSortBy] = useState('number'); // options: 'number', 'avg', 'high'
+  const [sortBy, setSortBy] = useState('avg'); // options: 'number', 'avg', 'high'
 
   // Helper to calculate average of last 3 runs
   const getAvg = (h) => {
