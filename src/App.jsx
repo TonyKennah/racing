@@ -7,6 +7,39 @@ function App() {
   const [handicapOnly, setHandicapOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const hasScrolled = useRef(false);
+
+  const uniquePlaces = [...new Set(races.map(r => r.place))].sort();
+
+  const filteredRaces = races.filter(race => {
+    const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
+    const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
+    return matchesPlace && matchesHandicap;
+  });
+
+  useEffect(() => {
+    // Only attempt scroll once data is ready and we haven't scrolled yet
+    if (!loading && filteredRaces.length > 0 && !hasScrolled.current) {
+      const now = new Date();
+      const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      
+      // Find the first race scheduled for now or in the future
+      const nextRace = filteredRaces.find(r => r.time >= currentTime);
+      
+      if (nextRace) {
+        // The 600ms delay gives the browser time to finish the initial render and paint
+        setTimeout(() => {
+          const id = `race-${nextRace.time}-${nextRace.place.replace(/\s+/g, '-')}`;
+          const element = document.getElementById(id);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Mark as scrolled so we don't snap back if user manually filters later
+            hasScrolled.current = true;
+          }
+        }, 600);
+      }
+    }
+  }, [loading, filteredRaces]);
 
   useEffect(() => {
 
@@ -38,14 +71,6 @@ function App() {
       <p className="error">Error: {error}</p>
     </div>
   );
-
-  const uniquePlaces = [...new Set(races.map(r => r.place))].sort();
-
-  const filteredRaces = races.filter(race => {
-    const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
-    const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
-    return matchesPlace && matchesHandicap;
-  });
 
   return (
     <main>

@@ -30,11 +30,15 @@ const RaceCard = ({ race }) => {
   });
 
   return (
-    <div className="race-card" style={{ marginBottom: '40px', borderBottom: '2px solid #eee' }}>
+    <div 
+      id={`race-${race.time}-${race.place.replace(/\s+/g, '-')}`}
+      className="race-card" 
+      style={{ marginBottom: '40px', borderBottom: '2px solid #eee' }}
+    >
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
           <h2 style={{ margin: 0, textAlign: 'left' }}>{race.time} {race.place}</h2>
-          <h5 style={{ margin: 0, color: 'var(--text)', fontWeight: 400 }}>— {race.detail}</h5>
+          <h5 style={{ height: 40, overflow: 'auto', margin: 0, color: 'var(--text)', fontWeight: 400 }}>— {race.detail}</h5>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <label style={{ fontSize: '13px', color: '#666' }}>Sort by:</label>
