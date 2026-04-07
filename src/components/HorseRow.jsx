@@ -33,7 +33,9 @@ const HorseRow = ({ horse }) => {
             </span>
           </div>
         </div>
-        <button className="past-button" onClick={() => setShowForm(!showForm)}>{showForm ? 'hide' : 'past'}</button>
+      {pastRuns.length > 0 && (
+        <button className="past-button" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
+      )}
       </div>
 
       {showForm && (

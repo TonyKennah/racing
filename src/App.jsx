@@ -8,6 +8,7 @@ function App() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+
     fetch('https://www.pluckier.co.uk/todays.json')
       .then((response) => {
         if (!response.ok) {
