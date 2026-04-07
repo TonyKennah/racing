@@ -35,10 +35,10 @@ const FormChart = ({ horses }) => {
   });
 
   const LINE_COLORS = [
-  '#e6194b', '#3cb44b', '#0a4313', '#4363d8', '#f58231', 
-  '#911eb4', '#46f0f0', '#f032e6', '#3f2e7a', '#fabebe', 
+  '#e6194b', '#3cb44b', '#3b7944', '#4363d8', '#f58231', 
+  '#911eb4', '#46f0f0', '#f032e6', '#b5d44f', '#fabebe', 
   '#008080', '#e6beff', '#9a6324', '#892e78', '#800000', 
-  '#134b56', '#808000', '#ffd8b1', '#000075', '#808080'
+  '#134b56', '#808000', '#ffd8b1', '#656591', '#808080'
 ];
 
   return (
@@ -51,6 +51,7 @@ const FormChart = ({ horses }) => {
           <XAxis dataKey="date" />
           <YAxis domain={['auto', 'auto']} label={{ value: 'Rating', angle: -90, position: 'insideLeft' }} />
           <Tooltip 
+            itemSorter={(item) => -item.value}
             separator=""
             formatter={(value, name, entry) => {
               const details = entry.payload[`${name}_details`];
@@ -59,10 +60,11 @@ const FormChart = ({ horses }) => {
               const [raceInfo, ...performance] = details.split(' | ');
               return [
                 <span key={name} style={{ display: 'block' }}>
+                  <span style={{ color: entry.color, fontWeight: 'bold', display: 'block' }}>{`${name} (${todayWeight}) ${value}`}</span>
                   <span style={{ display: 'block' }}>{raceInfo}</span>
-                  <span style={{ display: 'block', fontSize: '15px', opacity: 0.7, marginTop: '2px' }}>{performance.join(' • ')}</span>
+                  <span style={{ display: 'block', fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>{performance.join(' • ')}</span>
                 </span>,
-                `${name} (${todayWeight}) ${value}`
+                ''
               ];
             }}
           />

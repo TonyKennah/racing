@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import RaceCard from './components/Racecard';
 
 function App() {
   const [races, setRaces] = useState([]);
   const [selectedPlaces, setSelectedPlaces] = useState([]);
+  const [handicapOnly, setHandicapOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -40,9 +41,11 @@ function App() {
 
   const uniquePlaces = [...new Set(races.map(r => r.place))].sort();
 
-  const filteredRaces = selectedPlaces.length === 0
-    ? races
-    : races.filter(r => selectedPlaces.includes(r.place));
+  const filteredRaces = races.filter(race => {
+    const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
+    const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
+    return matchesPlace && matchesHandicap;
+  });
 
   return (
     <main>
@@ -56,6 +59,23 @@ function App() {
         marginBottom: '30px',
         padding: '0 20px'
       }}>
+        <button
+          onClick={() => setHandicapOnly(!handicapOnly)}
+          style={{
+            padding: '6px 14px',
+            borderRadius: '20px',
+            cursor: 'pointer',
+            border: `1px solid ${handicapOnly ? 'var(--accent)' : 'var(--border)'}`,
+            backgroundColor: handicapOnly ? 'var(--accent-bg)' : 'transparent',
+            color: handicapOnly ? 'var(--text-h)' : 'var(--text)',
+            fontSize: '13px',
+            fontWeight: 'bold',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          Handicap Only
+        </button>
+
         {uniquePlaces.map(place => {
           const isActive = selectedPlaces.includes(place);
           return (
