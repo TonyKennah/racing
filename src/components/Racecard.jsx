@@ -38,7 +38,7 @@ const RaceCard = ({ race }) => {
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
           <h2 style={{ margin: 0, textAlign: 'left' }}>{race.time} {race.place}</h2>
-          <h5 style={{ height: 40, overflow: 'auto', margin: 0, color: 'var(--text)', fontWeight: 400 }}>— {race.detail}</h5>
+          <h5 style={{ height: 45, overflow: 'auto', margin: 0, color: 'var(--text)', fontWeight: 400 }}>— {race.detail}</h5>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <label style={{ fontSize: '13px', color: '#666' }}>Sort by:</label>
