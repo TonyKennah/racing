@@ -68,7 +68,7 @@ const RaceCard = ({ race }) => {
 
       <div className="entries">
         {sortedHorses.map(horse => (
-          <HorseRow key={horse.number} horse={horse} />
+          <HorseRow key={horse.number} horse={horse} sortBy={sortBy} />
         ))}
       </div>
     </div>

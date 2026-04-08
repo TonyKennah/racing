@@ -2,15 +2,22 @@ import React, { useState } from 'react';
 import PastRace from './PastRace';
 import '../css/HorseRow.css';
 
-const HorseRow = ({ horse }) => {
+const HorseRow = ({ horse, sortBy }) => {
   const [showForm, setShowForm] = useState(false);
 
-  // Calculate average rating of the last 3 runs
   const pastRuns = horse.past || [];
-  const lastThree = pastRuns.slice(0, 3);
-  const avgRating = lastThree.length > 0
-    ? (lastThree.reduce((acc, race) => acc + (Number(race.name) || 0), 0) / lastThree.length).toFixed(0)
-    : null;
+
+  let displayRating = null;
+  if (sortBy === 'high') {
+    // Show career highest rating
+    displayRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => Number(r.name) || 0)) : null;
+  } else {
+    // Default: Calculate average rating of the last 3 runs (L3)
+    const lastThree = pastRuns.slice(0, 3);
+    displayRating = lastThree.length > 0
+      ? (lastThree.reduce((acc, race) => acc + (Number(race.name) || 0), 0) / lastThree.length).toFixed(0)
+      : null;
+  }
 
   return (
     <div className="horse-row">
@@ -42,7 +49,7 @@ const HorseRow = ({ horse }) => {
             </span>
           </div>
         </div>
-      <span className="avg-rating"> {avgRating !== null ? avgRating : '-'}</span>
+      <span className="avg-rating"> {displayRating !== null ? displayRating : '-'}</span>
       <button className="past-button" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
       </div>
 
