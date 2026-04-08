@@ -1,93 +1,136 @@
+.cell-no {
+  font-weight: bold;
+  width: 25px;
+  color: var(--text-h);
+  flex-shrink: 0;
+}
+
+.cell-draw {
+  width: 35px;
+  color: var(--text);
+  font-size: 0.9em;
+  flex-shrink: 0;
+}
+
+.cell-form {
+  width: 70px;
+  color: var(--text);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+.cell-name {
+  flex: 1;
+  min-width: 150px;
+  color: var(--text-h);
+  font-size: 1.1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell-lastrun {
+  width: 40px;
+  color: var(--text);
+  font-size: 0.85em;
+  text-align: center;
+}
+
+.cell-age {
+  width: 35px;
+  color: var(--text);
+  text-align: center;
+}
+
+.cell-weight {
+  width: 50px;
+  color: var(--text-h);
+  font-weight: 500;
+  text-align: center;
+}
+
+.cell-jockey {
+  width: 180px;
+  color: var(--text);
+  font-size: 0.95em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.avg-rating {
+  font-weight: bold;
+  color: var(--accent);
+  margin: 0 15px;
+  font-size: 1.1em;
+}
+
+.trainer-row {
+  font-size: 13px;
+  color: var(--text);
+  margin-top: 4px;
+  opacity: 0.8;
+}
+
 .horse-row {
-  padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s ease;
+}
+
+.horse-row:hover {
+  background-color: var(--accent-bg);
 }
 
 .horse-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.horse-silks-wrapper {
-  width: 36px;
-  display: flex;
-  justify-content: center;
-  flex-shrink: 0;
+  width: 100%;
 }
 
 .horse-info-container {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.horse-silks {
-  width: 36px;
-  height: auto;
+  flex: 1;
 }
 
 .horse-details-column {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  flex: 1;
 }
 
 .horse-name-row {
-  font-size: 15px;
-  display: flex;
-  align-items: baseline;
-}
-
-.avg-rating {
-  color: var(--text-h);
-  font-size: 13px;
-}
-
-.cell-no {
-  color: var(--text-h);
-  display: inline-block;
-  width: 25px;
-}
-
-.cell-draw {
-  color: var(--text-h);
-  display: inline-block;
-  width: 35px;
-}
-
-.cell-form {
-  color: var(--text);
-  display: inline-block;
-  width: 75px;
-}
-
-.cell-name {
-  color: var(--text-h);
-  display: inline-block;
-  width: 170px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.stats-inline {
-  font-size: 11px;
-  color: var(--text);
-  margin-left: 4px;
-}
-
-.jockey-trainer-row {
-  font-size: 12px;
-  color: var(--text);
-}
-
-.jockey-trainer-row strong {
-  color: var(--text-h);
+  display: flex;                /* Lines everything up in a row */
+  gap: 15px;                    /* Consistent spacing between 'columns' */
+  white-space: nowrap;  
 }
 
 .past-button {
-  padding: 2px 8px;
-  font-size: 11px;
+  background-color: transparent;
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
   cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 40px;
+}
+
+.past-button:hover {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .horse-name-row {
+    gap: 8px;
+  }
+  .cell-jockey, .cell-form {
+    display: none; /* Hide secondary info on small mobile to prevent overlap */
+  }
 }

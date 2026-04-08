@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   font-size: 13px;
-  background-color: #fff;
+  background-color: #000000;
   font-family: sans-serif;
 }
 
@@ -30,7 +30,7 @@
 }
 
 .past-race-meta {
-  color: #666;
+  color: #fff;
 }
 
 .past-race-rtg {

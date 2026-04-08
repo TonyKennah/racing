@@ -25,14 +25,21 @@ const HorseRow = ({ horse }) => {
               <span className="cell-draw">{horse.draw ? `(${horse.draw})` : ''}</span>
               <span className="cell-form">{horse.form}</span>
               <span className="cell-name"><strong>{horse.name}</strong></span>
-              <span className="stats-inline">{horse.lastRun && `(${horse.lastRun}d)`} {horse.age}yo {horse.weight} <strong>J:</strong> {horse.jockey}</span>
-              {avgRating && <span className="avg-rating"> • {avgRating}</span>}
+              <span className="cell-lastrun">{horse.lastRun && `${horse.lastRun}`}</span>
+              <span className="cell-age">{horse.age}yo</span>
+              <span className="cell-weight">{horse.weight}</span>
+              <span className="cell-jockey">
+                <strong>J:</strong> {horse.jockey}
+              </span>          
             </span>
-            <span className="jockey-trainer-row">
+
+
+            <span className="trainer-row">
                <strong>T:</strong> {horse.trainer} / <strong>O:</strong> {horse.owner} {horse.breeding && <> / <strong>B:</strong> {horse.breeding}</>}
             </span>
           </div>
         </div>
+      {avgRating && <span className="avg-rating"> • {avgRating}</span>}
       {pastRuns.length > 0 && (
         <button className="past-button" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
       )}
