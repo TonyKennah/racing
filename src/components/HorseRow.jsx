@@ -32,17 +32,18 @@ const HorseRow = ({ horse }) => {
                 <strong>J:</strong> {horse.jockey}
               </span>          
             </span>
-
-
             <span className="trainer-row">
-               <strong>T:</strong> {horse.trainer} / <strong>O:</strong> {horse.owner} {horse.breeding && <> / <strong>B:</strong> {horse.breeding}</>}
+              <span className="cell-owner">
+                <strong>O:</strong> {horse.owner} {horse.breeding && <> / <strong>B:</strong> {horse.breeding}</>}
+              </span> 
+              <span className="cell-trainer">
+                <strong>T:</strong> {horse.trainer}
+              </span>
             </span>
           </div>
         </div>
-      {avgRating && <span className="avg-rating"> • {avgRating}</span>}
-      {pastRuns.length > 0 && (
-        <button className="past-button" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
-      )}
+      <span className="avg-rating"> {avgRating !== null ? avgRating : '-'}</span>
+      <button className="past-button" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
       </div>
 
       {showForm && (
