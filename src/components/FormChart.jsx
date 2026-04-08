@@ -2,6 +2,22 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import '../css/FormChart.css';
 
+// Custom Dot Component for annotations
+const CustomDot = (props) => {
+  const { cx, cy, stroke, payload, dataKey } = props;
+  if (payload[`${dataKey}_isHighest`]) {
+    return (
+      <g>
+        <circle cx={cx} cy={cy} r={3} fill={stroke} stroke={stroke} strokeWidth={1} />
+        <text x={cx} y={cy - 15} fill={stroke} textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight="bold">
+          {dataKey}
+        </text>
+      </g>
+    );
+  }
+  return <circle cx={cx} cy={cy} r={3} fill={stroke} stroke={stroke} strokeWidth={1} />; // Default dot
+};
+
 const FormChart = ({ horses }) => {
   // 1. Transform data: Create a map of Date -> { [horseName]: rating }
   const dataMap = {};
@@ -9,14 +25,26 @@ const FormChart = ({ horses }) => {
   horses.forEach(horse => {
     horse.past.forEach(race => {
       // Use date as key. Format: "27/12/2025"
-      const date = race.date; 
+      const date = race.date;
       if (!dataMap[date]) dataMap[date] = { date };
-      
+
       // Convert the 'name' string (rating) to a number
       dataMap[date][horse.name] = parseFloat(race.name);
 
       // Store today's weight to display in the header line of the tooltip
       dataMap[date][`${horse.name}_todayWeight`] = horse.weight;
+
+      // Determine if this is the highest rating for this horse
+      let maxRatingForHorse = -1;
+      horse.past.forEach(pr => {
+        const prRating = parseFloat(pr.name);
+        if (prRating > maxRatingForHorse) {
+          maxRatingForHorse = prRating;
+        }
+      });
+      if (parseFloat(race.name) === maxRatingForHorse) {
+        dataMap[date][`${horse.name}_isHighest`] = true;
+      }
 
       // Store race metadata for the tooltip
       const beaten = race.distBeaten ? ` (${race.distBeaten} l)` : '';
@@ -68,7 +96,6 @@ const FormChart = ({ horses }) => {
               ];
             }}
           />
-          <Legend />
           {/* 3. Create a line for each horse */}
           {horses.map((horse, index) => (
             <Line 
@@ -77,7 +104,7 @@ const FormChart = ({ horses }) => {
               dataKey={horse.name} 
               stroke={LINE_COLORS[index % LINE_COLORS.length]} 
               strokeWidth={2}
-              dot={{ r: 2 }} 
+              dot={<CustomDot />}
               connectNulls // Essential! Connects dots even if a horse didn't race on a specific date
             />
           ))}
