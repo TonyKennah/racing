@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import HorseRow from './HorseRow';
 import FormChart from './FormChart'; // 1. Import it
+import '../css/RaceCard.css';
 
 const RaceCard = ({ race }) => {
   const [showChart, setShowChart] = useState(false);
@@ -30,23 +31,19 @@ const RaceCard = ({ race }) => {
   });
 
   return (
-    <div 
-      id={`race-${race.time}-${race.place.replace(/\s+/g, '-')}`}
-      className="race-card" 
-      style={{ marginBottom: '40px', borderBottom: '2px solid var(--accent)' }}
-    >
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-          <h2 style={{ margin: 0, textAlign: 'left' }}>{race.time} {race.place}</h2>
-          <h5 style={{ height: 45, overflow: 'auto', margin: 0, color: 'var(--text)', fontWeight: 400 }}>— {race.detail}</h5>
+    <div id={`race-${race.time}-${race.place.replace(/\s+/g, '-')}`} className="race-card">
+      <header className="race-header">
+        <div className="race-title-group">
+          <h2>{race.time} {race.place}</h2>
+          <h5 className="race-detail">— {race.detail}</h5>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <label style={{ fontSize: '13px', color: '#666' }}>Sort by:</label>
+        <div className="race-controls">
+          <label>Sort by:</label>
           <select 
             value={sortBy}
             aria-label="Sort horses by"
             onChange={(e) => setSortBy(e.target.value)}
-            style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '13px' }}
+            className="race-sort-select"
           >
             <option value="number">Number</option>
             <option value="avg">Avg Rating (L3)</option>
@@ -54,7 +51,7 @@ const RaceCard = ({ race }) => {
           </select>
           <button 
             onClick={() => setShowChart(!showChart)}
-            style={{ padding: '5px 10px', cursor: 'pointer', borderRadius: '4px', border: '1px solid #ccc' }}
+            className="race-analytics-btn"
           >
             {showChart ? 'Close Analytics' : 'Show Race Chart'}
           </button>
