@@ -77,7 +77,7 @@ const FormChart = ({ horses }) => {
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
-          <YAxis domain={['auto', 'auto']} label={{ value: 'Rating', angle: -90, position: 'insideLeft' }} />
+          <YAxis domain={['auto', 'dataMax + 100']} label={{ value: 'Rating', angle: -90, position: 'insideLeft' }} />
           <Tooltip 
             itemSorter={(item) => -item.value}
             separator=""
