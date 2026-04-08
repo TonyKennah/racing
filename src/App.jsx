@@ -128,7 +128,7 @@ function App() {
       </div>
 
       {filteredRaces.map((race, index) => (
-        <RaceCard key={index} race={race} />
+        <RaceCard key={`${race.time}-${race.place}`} race={race} />
       ))}
     </main>
   );

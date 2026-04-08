@@ -35,13 +35,8 @@ const FormChart = ({ horses }) => {
       dataMap[date][`${horse.name}_todayWeight`] = horse.weight;
 
       // Determine if this is the highest rating for this horse
-      let maxRatingForHorse = -1;
-      horse.past.forEach(pr => {
-        const prRating = parseFloat(pr.name);
-        if (prRating > maxRatingForHorse) {
-          maxRatingForHorse = prRating;
-        }
-      });
+      const maxRatingForHorse = Math.max(...horse.past.map(pr => parseFloat(pr.name)));
+
       if (parseFloat(race.name) === maxRatingForHorse) {
         dataMap[date][`${horse.name}_isHighest`] = true;
       }

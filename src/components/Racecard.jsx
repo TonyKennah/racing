@@ -33,7 +33,7 @@ const RaceCard = ({ race }) => {
     <div 
       id={`race-${race.time}-${race.place.replace(/\s+/g, '-')}`}
       className="race-card" 
-      style={{ marginBottom: '40px', borderBottom: '2px solid #eee' }}
+      style={{ marginBottom: '40px', borderBottom: '2px solid var(--accent)' }}
     >
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
@@ -43,7 +43,8 @@ const RaceCard = ({ race }) => {
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <label style={{ fontSize: '13px', color: '#666' }}>Sort by:</label>
           <select 
-            value={sortBy} 
+            value={sortBy}
+            aria-label="Sort horses by"
             onChange={(e) => setSortBy(e.target.value)}
             style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '13px' }}
           >
