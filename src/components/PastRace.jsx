@@ -50,7 +50,7 @@ const PastRace = ({ race }) => {
       <span className="past-race-date">{date}</span>
       <span className="past-race-time">{time}</span>
       <span className="past-race-course">
-        <strong>{course}</strong> <small className="past-race-meta">({raceClass && ` C${raceClass}`}, {formatFurlongsToMiles(distance)}, {going})</small>
+        <strong>{course}</strong> <small className="past-race-meta">({raceClass && `C${raceClass}`}, {formatFurlongsToMiles(distance)}, {going})</small>
       </span>
       <span className="past-race-position-col">
         <small>Pos: </small><strong>{position}</strong> {distBeaten && <small>({distBeaten} btn)</small>}

@@ -41,7 +41,10 @@ const HorseRow = ({ horse, sortBy }) => {
             </span>
             <span className="trainer-row">
               <span className="cell-owner">
-                <strong>O:</strong> {horse.owner} {horse.breeding && <> / <strong>B:</strong> {horse.breeding}</>}
+                <strong>O:</strong> {horse.owner}
+              </span>
+              <span className="cell-breeding">
+                {horse.breeding && <><strong>B:</strong> {horse.breeding}</>}
               </span> 
               <span className="cell-trainer">
                 <strong>T:</strong> {horse.trainer}

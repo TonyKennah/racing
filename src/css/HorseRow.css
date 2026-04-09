@@ -76,6 +76,16 @@
   font-size: 0.95em;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-left: 165px;
+}
+
+.cell-breeding {
+  min-width: 50px;
+  color: var(--text);
+  font-size: 0.65em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: none;
 }
 
 .avg-rating {
