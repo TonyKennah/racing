@@ -18,3 +18,39 @@
   text-align: center;
 }
 
+.full-page-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.place-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 30px;
+  padding: 0 20px;
+}
+
+.filter-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background-color: transparent;
+  color: var(--text);
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.filter-btn.active {
+  border-color: var(--accent);
+  background-color: var(--accent-bg);
+  color: var(--text-h);
+}
+
+.handicap-btn {
+  font-weight: bold;
+}

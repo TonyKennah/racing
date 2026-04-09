@@ -1,15 +1,42 @@
 .past-race-row {
-  border-bottom: 1px solid #eee;
   display: flex;
   align-items: center;
-  font-size: 13px;
-  background-color: #000000;
-  font-family: sans-serif;
+  gap: 16px;
+  white-space: nowrap;
+  font-size: 14px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--bg);
+  font-family: var(--sans);
 }
 
 .past-race-date {
   font-weight: bold;
-  width: 85px;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.past-race-time {
+  width: 45px;
+  flex-shrink: 0;
+}
+
+.past-race-course {
+  width: 230px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.past-race-position-col {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.past-race-weight-rtg-col {
+  width: 125px;
   flex-shrink: 0;
 }
 
@@ -20,7 +47,6 @@
   flex-shrink: 0;
   text-align: center;
 }
-
 .past-race-details {
   flex: 1;
   padding: 0 10px;
@@ -28,20 +54,17 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .past-race-meta {
-  color: #fff;
+  color: var(--text);
 }
-
 .past-race-rtg {
   width: 80px;
   flex-shrink: 0;
   text-align: right;
 }
-
 .past-race-link {
-  color: #0066cc;
+  color: var(--accent);
   text-decoration: none;
-  font-size: 12px;
-  margin-left: 10px;
+  font-weight: bold;
+  flex-shrink: 0;
 }

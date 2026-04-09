@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import RaceCard from './components/Racecard';
+import './css/App.css';
 
 function App() {
   const [races, setRaces] = useState([]);
@@ -61,13 +62,13 @@ function App() {
   }, []); // Empty array means "run once on load"
 
   if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    <div className="full-page-center">
       <p className="loading">Loading today's races...</p>
     </div>
   );
 
   if (error) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    <div className="full-page-center">
       <p className="error">Error: {error}</p>
     </div>
   );
@@ -76,27 +77,10 @@ function App() {
     <main>
       <h2>The Racing</h2>
 
-      <div className="place-filters" style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '8px',
-        justifyContent: 'center',
-        marginBottom: '30px',
-        padding: '0 20px'
-      }}>
+      <div className="place-filters">
         <button
           onClick={() => setHandicapOnly(!handicapOnly)}
-          style={{
-            padding: '6px 14px',
-            borderRadius: '20px',
-            cursor: 'pointer',
-            border: `1px solid ${handicapOnly ? 'var(--accent)' : 'var(--border)'}`,
-            backgroundColor: handicapOnly ? 'var(--accent-bg)' : 'transparent',
-            color: handicapOnly ? 'var(--text-h)' : 'var(--text)',
-            fontSize: '13px',
-            fontWeight: 'bold',
-            transition: 'all 0.2s ease'
-          }}
+          className={`filter-btn handicap-btn ${handicapOnly ? 'active' : ''}`}
         >
           Handicap Only
         </button>
@@ -109,16 +93,7 @@ function App() {
               onClick={() => setSelectedPlaces(prev => 
                 isActive ? prev.filter(p => p !== place) : [...prev, place]
               )}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
-                backgroundColor: isActive ? 'var(--accent-bg)' : 'transparent',
-                color: isActive ? 'var(--text-h)' : 'var(--text)',
-                fontSize: '13px',
-                transition: 'all 0.2s ease'
-              }}
+              className={`filter-btn ${isActive ? 'active' : ''}`}
             >
               {place}
             </button>

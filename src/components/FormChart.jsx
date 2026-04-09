@@ -9,7 +9,7 @@ const CustomDot = (props) => {
     return (
       <g>
         <circle cx={cx} cy={cy} r={3} fill={stroke} stroke={stroke} strokeWidth={1} />
-        <text x={cx} y={cy - 15} fill={stroke} textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight="bold">
+        <text x={cx} y={cy - 15} fill={stroke} className="chart-dot-label">
           {dataKey}
         </text>
       </g>
@@ -82,10 +82,10 @@ const FormChart = ({ horses }) => {
               if (!details) return [value, name];
               const [raceInfo, ...performance] = details.split(' | ');
               return [
-                <span key={name} style={{ display: 'block' }}>
-                  <span style={{ color: entry.color, fontWeight: 'bold', display: 'block' }}>{`${name} (${todayWeight}) ${value}`}</span>
-                  <span style={{ display: 'block' }}>{raceInfo}</span>
-                  <span style={{ display: 'block', fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>{performance.join(' • ')}</span>
+                <span key={name} className="chart-tooltip-item">
+                  <span className="chart-tooltip-title" style={{ color: entry.color }}>{`${name} (${todayWeight}) ${value}`}</span>
+                  <span className="chart-tooltip-race">{raceInfo}</span>
+                  <span className="chart-tooltip-performance">{performance.join(' • ')}</span>
                 </span>,
                 ''
               ];
