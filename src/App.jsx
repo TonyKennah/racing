@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import RaceCard from './components/Racecard';
 import './css/App.css';
 
@@ -10,31 +10,33 @@ function App() {
   const [error, setError] = useState(null);
   const hasScrolled = useRef(false);
 
-  const uniquePlaces = [...new Set(races.map(r => r.place))].sort();
+  const uniquePlaces = useMemo(() => 
+    [...new Set(races.map(r => r.place))].sort(),
+    [races]
+  );
 
-  const filteredRaces = races.filter(race => {
-    const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
-    const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
-    return matchesPlace && matchesHandicap;
-  });
+  const filteredRaces = useMemo(() =>
+    races.filter(race => {
+      const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
+      const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
+      return matchesPlace && matchesHandicap;
+    }),
+    [races, selectedPlaces, handicapOnly]
+  );
 
   useEffect(() => {
-    // Only attempt scroll once data is ready and we haven't scrolled yet
     if (!loading && filteredRaces.length > 0 && !hasScrolled.current) {
       const now = new Date();
       const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       
-      // Find the first race scheduled for now or in the future
       const nextRace = filteredRaces.find(r => r.time >= currentTime);
       
       if (nextRace) {
-        // The 600ms delay gives the browser time to finish the initial render and paint
         setTimeout(() => {
           const id = `race-${nextRace.time}-${nextRace.place.replace(/\s+/g, '-')}`;
           const element = document.getElementById(id);
           if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            // Mark as scrolled so we don't snap back if user manually filters later
             hasScrolled.current = true;
           }
         }, 600);
@@ -43,7 +45,6 @@ function App() {
   }, [loading, filteredRaces]);
 
   useEffect(() => {
-
     fetch('https://www.pluckier.co.uk/todays.json')
       .then((response) => {
         if (!response.ok) {
@@ -52,14 +53,14 @@ function App() {
         return response.json();
       })
       .then((data) => {
-        setRaces(data); // Assuming the JSON is an array of races
+        setRaces(data);
         setLoading(false);
       })
       .catch((err) => {
         setError(err.message);
         setLoading(false);
       });
-  }, []); // Empty array means "run once on load"
+  }, []);
 
   if (loading) return (
     <div className="full-page-center">
@@ -99,10 +100,9 @@ function App() {
             </button>
           );
         })}
-        
       </div>
 
-      {filteredRaces.map((race, index) => (
+      {filteredRaces.map((race) => (
         <RaceCard key={`${race.time}-${race.place}`} race={race} />
       ))}
     </main>

@@ -51,3 +51,27 @@
   cursor: pointer;
   transition: border-color 0.2s;
 }
+
+
+.race-sort-select:hover {
+  border-color: var(--accent);
+  background-color: var(--accent);
+}
+
+.race-analytics-btn:hover {
+  border-color: var(--accent);
+  background-color: var(--accent);
+}
+
+.race-sort-select:focus,
+.race-analytics-btn:focus {
+  outline: none;
+  border-color: var(--accent);
+  background-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+.entries {
+  display: flex;
+  flex-direction: column;
+}

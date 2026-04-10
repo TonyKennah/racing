@@ -1,14 +1,12 @@
-// RaceCard.jsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import HorseRow from './HorseRow';
-import FormChart from './FormChart'; // 1. Import it
+import FormChart from './FormChart';
 import '../css/RaceCard.css';
 
 const RaceCard = ({ race }) => {
   const [showChart, setShowChart] = useState(false);
-  const [sortBy, setSortBy] = useState('avg'); // options: 'number', 'avg', 'high'
+  const [sortBy, setSortBy] = useState('avg');
 
-  // Helper to calculate average of last 3 runs
   const getAvg = (h) => {
     const past = h.past || [];
     const last3 = past.slice(0, 3);
@@ -16,19 +14,20 @@ const RaceCard = ({ race }) => {
     return last3.reduce((acc, r) => acc + (Number(r.name) || 0), 0) / last3.length;
   };
 
-  // Helper to calculate best ever rating
   const getMax = (h) => {
     const past = h.past || [];
     if (past.length === 0) return 0;
     return Math.max(...past.map(r => Number(r.name) || 0));
   };
 
-  // Reorder horses based on the selected sortBy state
-  const sortedHorses = [...race.horses].sort((a, b) => {
-    if (sortBy === 'avg') return getAvg(b) - getAvg(a);
-    if (sortBy === 'high') return getMax(b) - getMax(a);
-    return Number(a.number) - Number(b.number); // Default numeric sort
-  });
+  const sortedHorses = useMemo(() =>
+    [...race.horses].sort((a, b) => {
+      if (sortBy === 'avg') return getAvg(b) - getAvg(a);
+      if (sortBy === 'high') return getMax(b) - getMax(a);
+      return Number(a.number) - Number(b.number);
+    }),
+    [race.horses, sortBy]
+  );
 
   return (
     <div id={`race-${race.time}-${race.place.replace(/\s+/g, '-')}`} className="race-card">
@@ -72,6 +71,5 @@ const RaceCard = ({ race }) => {
     </div>
   );
 };
-
 
 export default RaceCard;
