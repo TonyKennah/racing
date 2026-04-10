@@ -18,7 +18,7 @@ const CustomDot = (props) => {
 };
 
 const FormChart = ({ horses }) => {
-  const dataMap = useMemo(() => {
+  const chartData = useMemo(() => {
     const map = {};
 
     horses.forEach(horse => {
@@ -42,17 +42,13 @@ const FormChart = ({ horses }) => {
       });
     });
 
-    return map;
-  }, [horses]);
-
-  const chartData = useMemo(() => {
-    const data = Object.values(dataMap).sort((a, b) => {
+    // Convert map to sorted array immediately
+    return Object.values(map).sort((a, b) => {
       const [da, ma, ya] = a.date.split('/');
       const [db, mb, yb] = b.date.split('/');
       return new Date(ya, ma-1, da) - new Date(yb, mb-1, db);
     });
-    return data;
-  }, [dataMap]);
+  }, [horses]);
 
   const LINE_COLORS = [
     '#e6194b', '#3cb44b', '#3b7944', '#4363d8', '#f58231', 
