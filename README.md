@@ -46,9 +46,7 @@ This project is configured for easy deployment to GitHub Pages. Run the followin
 npm run deploy
 ```
 
-# Examples
+# Example
 
-<img width="1816" height="991" alt="image" src="https://github.com/user-attachments/assets/7be68aa1-6fe3-4f63-a6cb-c53982da6c8a" />
+<img width="1440" height="994" alt="image" src="https://github.com/user-attachments/assets/3580347f-3a24-495b-85a0-c50e405be7ad" />
 
-
-<img width="1792" height="968" alt="image" src="https://github.com/user-attachments/assets/a7309e8e-fd01-4b53-95cc-d2ec25b92b25" />
