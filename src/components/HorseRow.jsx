@@ -12,6 +12,14 @@ const HorseRow = ({ horse, sortBy }) => {
   if (sortBy === 'high') {
     // Show career highest rating
     displayRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => Number(r.name) || 0)) : null;
+  } else if (sortBy === 'last') {
+    // Show rating from the most recent run only
+    displayRating = pastRuns.length > 0 ? (Number(pastRuns[0].name) || 0) : null;
+  } else if (sortBy === 'all') {
+    // Calculate average rating across all career runs
+    displayRating = pastRuns.length > 0
+      ? (pastRuns.reduce((acc, race) => acc + (Number(race.name) || 0), 0) / pastRuns.length).toFixed(0)
+      : null;
   } else {
     // Default: Calculate average rating of the last 3 runs (L3)
     const lastThree = pastRuns.slice(0, 3);

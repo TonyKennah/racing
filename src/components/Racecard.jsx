@@ -20,10 +20,23 @@ const RaceCard = ({ race }) => {
     return Math.max(...past.map(r => Number(r.name) || 0));
   };
 
+  const getLast = (h) => {
+    const past = h.past || [];
+    return past.length > 0 ? (Number(past[0].name) || 0) : 0;
+  };
+
+  const getAllAvg = (h) => {
+    const past = h.past || [];
+    if (past.length === 0) return 0;
+    return past.reduce((acc, r) => acc + (Number(r.name) || 0), 0) / past.length;
+  };
+
   const sortedHorses = useMemo(() =>
     [...race.horses].sort((a, b) => {
       if (sortBy === 'avg') return getAvg(b) - getAvg(a);
       if (sortBy === 'high') return getMax(b) - getMax(a);
+      if (sortBy === 'last') return getLast(b) - getLast(a);
+      if (sortBy === 'all') return getAllAvg(b) - getAllAvg(a);
       return Number(a.number) - Number(b.number);
     }),
     [race.horses, sortBy]
@@ -40,7 +53,7 @@ const RaceCard = ({ race }) => {
               {race.time} {race.place}
             </a>
           </h2>
-          <h5 className="race-detail">— {race.detail}</h5>
+          <h5 className="race-detail">{race.detail} {race.going}</h5>
         </div>
         <div className="race-controls">
           <label>Sort by:</label>
@@ -52,7 +65,9 @@ const RaceCard = ({ race }) => {
           >
             <option value="number">Number</option>
             <option value="avg">Avg Rating (L3)</option>
+            <option value="last">Last Run Rating</option>
             <option value="high">Highest Rating</option>
+            <option value="all">Avg Rating (All)</option>
           </select>
           <button 
             onClick={() => setShowChart(!showChart)}
