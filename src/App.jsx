@@ -33,11 +33,21 @@ function App() {
       
       if (nextRace) {
         setTimeout(() => {
-          const id = `${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
-          const element = document.getElementById(id);
-          if (element) {
-            element.scrollIntoView({ behavior: 'auto', block: 'start' });
+          // 1. Check if the user navigated via a deep link (URL hash)
+          const hash = window.location.hash.substring(1); // Remove the '#'
+          const hashedElement = hash ? document.getElementById(hash) : null;
+
+          if (hashedElement) {
+            hashedElement.scrollIntoView({ behavior: 'auto', block: 'start' });
             hasScrolled.current = true;
+          } else {
+            // 2. Fallback to automatic "next race" scrolling if no valid hash exists
+            const id = `${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
+            const element = document.getElementById(id);
+            if (element) {
+              element.scrollIntoView({ behavior: 'auto', block: 'start' });
+              hasScrolled.current = true;
+            }
           }
         }, 600);
       }
