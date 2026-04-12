@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import RaceCard from './components/Racecard';
+import SkeletonRaceCard from './components/SkeletonRaceCard';
 import './css/App.css';
 
 function App() {
@@ -73,9 +74,12 @@ function App() {
   }, []);
 
   if (loading) return (
-    <div className="full-page-center">
-      <p className="loading">Loading today's races...</p>
-    </div>
+    <main>
+      <h2>The Racing</h2>
+      <SkeletonRaceCard />
+      <SkeletonRaceCard />
+      <SkeletonRaceCard />
+    </main>
   );
 
   if (error) return (
