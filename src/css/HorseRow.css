@@ -20,9 +20,13 @@
   flex-shrink: 0;
 }
 
+.odds {
+  color: var(--text-h);
+  font-size: 1.1em;
+}
+
 .cell-name {
   flex: 1;
-  min-width: 150px;
   color: var(--text-h);
   font-size: 1.1em;
   overflow: hidden;
@@ -43,7 +47,7 @@
 }
 
 .cell-weight {
-  width: 40px;
+  width: 45px;
   color: var(--text-h);
   font-weight: 500;
   text-align: center;
@@ -51,7 +55,6 @@
 
 .cell-jockey {
   flex: 1;
-  min-width: 150px;
   text-align: right;
   color: var(--text);
   font-size: 0.95em;
@@ -93,6 +96,8 @@
   color: var(--accent);
   margin: 0 15px;
   font-size: 1.1em;
+  min-width: 40px;
+  text-align: right;
 }
 
 .trainer-row {

@@ -33,10 +33,10 @@ function App() {
       
       if (nextRace) {
         setTimeout(() => {
-          const id = `race-${nextRace.time}-${nextRace.place.replace(/\s+/g, '-')}`;
+          const id = `${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
           const element = document.getElementById(id);
           if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            element.scrollIntoView({ behavior: 'auto', block: 'start' });
             hasScrolled.current = true;
           }
         }, 600);
@@ -45,7 +45,7 @@ function App() {
   }, [loading, filteredRaces]);
 
   useEffect(() => {
-    fetch('https://www.pluckier.co.uk/todays.json')
+    fetch('https://www.pluckier.co.uk/todays.json', { cache: 'no-store' })
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok');

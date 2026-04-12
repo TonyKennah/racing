@@ -21,6 +21,11 @@
   text-align: left;
 }
 
+.race-title-link {
+  text-decoration: none;
+  color: inherit;
+}
+
 .race-detail {
   height: 45px;
   overflow: auto;
@@ -66,4 +71,16 @@
 .entries {
   display: flex;
   flex-direction: column;
+}
+
+.race-anchor-link {
+  margin-left: 8px;
+  text-decoration: none;
+  color: var(--border);
+  font-size: 0.7em;
+  opacity: 0.5;
+}
+.race-anchor-link:hover {
+  opacity: 1;
+  color: var(--accent);
 }

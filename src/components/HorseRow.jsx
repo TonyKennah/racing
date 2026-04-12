@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PastRace from './PastRace';
+import Odds from './Odds';
 import '../css/HorseRow.css';
 
 const HorseRow = ({ horse, sortBy }) => {
@@ -53,6 +54,7 @@ const HorseRow = ({ horse, sortBy }) => {
           </div>
         </div>
       <span className="avg-rating"> {displayRating !== null ? displayRating : '-'}</span>
+      <Odds horseName={horse.name} />
       <button className="past-button" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
       </div>
 

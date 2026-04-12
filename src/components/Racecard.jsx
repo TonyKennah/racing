@@ -29,11 +29,17 @@ const RaceCard = ({ race }) => {
     [race.horses, sortBy]
   );
 
+  const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
+
   return (
-    <div id={`race-${race.time}-${race.place.replace(/\s+/g, '-')}`} className="race-card">
+    <div id={raceId} className="race-card">
       <header className="race-header">
         <div className="race-title-group">
-          <h2>{race.time} {race.place}</h2>
+          <h2>
+            <a href={`#${raceId}`} className="race-title-link">
+              {race.time} {race.place}
+            </a>
+          </h2>
           <h5 className="race-detail">— {race.detail}</h5>
         </div>
         <div className="race-controls">
