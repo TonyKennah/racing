@@ -113,6 +113,10 @@
   transition: background-color 0.2s ease;
 }
 
+.horse-row:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
 .horse-row:hover {
   background-color: var(--accent-bg);
 }
@@ -141,6 +145,7 @@
   display: flex;                /* Lines everything up in a row */
   gap: 15px;                    /* Consistent spacing between 'columns' */
   flex-wrap: wrap;              /* Allows content to drop down on small screens */
+  line-height: 23px;
 }
 
 .past-button {
