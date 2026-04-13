@@ -26,6 +26,10 @@ const RaceTimeline = ({ races }) => {
 
   const data = [columns, ...rows];
 
+  // Calculate unique meetings to determine the number of rows
+  const rowCount = new Set(races.map(r => r.place)).size;
+  const computedHeight = (rowCount * 40) + 60; // 40px per row + 60px for the time axis/padding
+
   const chartEvents = [
     {
       eventName: 'select',
@@ -54,7 +58,7 @@ const RaceTimeline = ({ races }) => {
     // 1st venue = Blue, 2nd venue = Red, others follow...
     colors: ['#4285F4', '#DB4437', '#F4B400', '#0F9D58', '#AB47BC', '#00ACC1', '#FF7043'],
     backgroundColor: '#2a2a2a', // Matches your dark theme
-    height: rows.length * 30 + 50, // Dynamic height based on number of venues
+    height: computedHeight,
   };
 
   if (!races.length) return null;
@@ -64,7 +68,7 @@ const RaceTimeline = ({ races }) => {
       <Chart
         chartType="Timeline"
         data={data}
-        height="175px"
+        height={computedHeight-60}
         width="100%"
         options={options}
         chartEvents={chartEvents}
