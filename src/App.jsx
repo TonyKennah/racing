@@ -44,11 +44,19 @@ function App() {
             hasScrolled.current = true;
           } else {
             // 2. Fallback to automatic "next race" scrolling if no valid hash exists
-            const id = `${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
-            const element = document.getElementById(id);
-            if (element) {
-              element.scrollIntoView({ behavior: 'auto', block: 'start' });
-              hasScrolled.current = true;
+            // Only scroll if the next race is within the next 10 minutes
+            const [h, m] = nextRace.time.split(':').map(Number);
+            const nextRaceTime = new Date(now);
+            nextRaceTime.setHours(h, m, 0, 0);
+            const diffMs = nextRaceTime - now;
+
+            if (diffMs >= 0 && diffMs <= 10 * 60 * 1000) {
+              const id = `${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
+              const element = document.getElementById(id);
+              if (element) {
+                element.scrollIntoView({ behavior: 'auto', block: 'start' });
+                hasScrolled.current = true;
+              }
             }
           }
         }, 600);
