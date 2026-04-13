@@ -13,10 +13,21 @@ const RaceTimeline = ({ races }) => {
 
   const rows = races.map((race) => {
     const [hours, minutes] = race.time.split(':').map(Number);
+
+    // Extract distance from detail (e.g., "2m 4f", "5f") to determine duration
+    const milesMatch = race.detail?.match(/(\d+)m/);
+    const furlongsMatch = race.detail?.match(/(\d+)f/);
+    const m = milesMatch ? parseInt(milesMatch[1], 10) : 0;
+    const f = furlongsMatch ? parseInt(furlongsMatch[1], 10) : 0;
+    const totalMiles = m + (f / 8);
+
+    // Heuristic based on user request: 1m -> 2m, 3m -> 9m
+    // Formula: duration = 1.5 * miles + 0.5 * miles^2
+    const duration = totalMiles > 0 ? (1.5 * totalMiles + 0.5 * Math.pow(totalMiles, 2)) : 10;
+
     // We create a date object for today at the specific race time
     const start = new Date(0, 0, 0, hours, minutes);
-    // We add 10 minutes to represent the "duration" of the race event on the timeline
-    const end = new Date(0, 0, 0, hours, minutes + 10);
+    const end = new Date(0, 0, 0, hours, minutes + Math.max(2, duration));
 
     // Create an HTML string for the tooltip to force single-line display and match the theme
     const tooltipHtml = `<div style="white-space: nowrap; padding: 10px; background-color: #595656; color: #ffffff; border: 1px solid #444; font-family: sans-serif; font-size: 13px;">${race.detail || ''}</div>`;
