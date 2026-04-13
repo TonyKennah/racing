@@ -68,7 +68,7 @@ const RaceTimeline = ({ races }) => {
       <Chart
         chartType="Timeline"
         data={data}
-        height={computedHeight-60}
+        height={computedHeight-40}
         width="100%"
         options={options}
         chartEvents={chartEvents}
