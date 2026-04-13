@@ -1,0 +1,20 @@
+.race-timeline-container {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0 40px 0;
+  overflow: hidden;
+}
+
+/* Targets both the meeting names and the time labels on the axis */
+.race-timeline-container text {
+  fill: var(--text-h) !important;
+}
+
+.timeline-hint {
+  font-size: 0.8rem;
+  color: var(--text);
+  opacity: 0.6;
+  margin-top: 10px;
+}

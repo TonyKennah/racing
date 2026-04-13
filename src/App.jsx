@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import RaceCard from './components/Racecard';
 import SkeletonRaceCard from './components/SkeletonRaceCard';
+import RaceTimeline from './components/RaceTimeline';
 import './css/App.css';
 
 function App() {
@@ -116,6 +117,7 @@ function App() {
         })}
       </div>
 
+      <RaceTimeline races={filteredRaces} />
       {filteredRaces.map((race) => (
         <RaceCard key={`${race.time}-${race.place}`} race={race} />
       ))}
