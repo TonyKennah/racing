@@ -11,6 +11,32 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const hasScrolled = useRef(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formattedDateTime = useMemo(() => {
+    const day = currentTime.getDate();
+    const month = currentTime.toLocaleString('default', { month: 'long' });
+    const time = currentTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).replace(/\s/g, '');
+
+    const getOrdinal = (n) => {
+      const s = ["th", "st", "nd", "rd"];
+      const v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    };
+
+    return `${getOrdinal(day)} ${month} ${time}`;
+  }, [currentTime]);
 
   const uniquePlaces = useMemo(() => 
     [...new Set(races.map(r => r.place))].sort(),
@@ -84,7 +110,7 @@ function App() {
 
   if (loading) return (
     <main>
-      <h2>The Racing</h2>
+      <h2>The Racing {formattedDateTime}</h2>
       <SkeletonRaceCard />
       <SkeletonRaceCard />
       <SkeletonRaceCard />
@@ -99,7 +125,7 @@ function App() {
 
   return (
     <main>
-      <h2>The Racing</h2>
+      <h2>The Racing ({formattedDateTime})</h2>
 
       <div className="place-filters">
         <button

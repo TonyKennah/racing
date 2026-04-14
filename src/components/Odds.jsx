@@ -18,7 +18,18 @@ const Odds = ({ horseName }) => {
 
       // 2. If a fetch is already in progress, wait for it. Otherwise, start it.
       if (!fetchPromise) {
-        fetchPromise = fetch('https://www.pluckier.co.uk/odds.json', { cache: 'no-store' })
+        const now = new Date();
+        // If after 9 PM (21:00), adjust the date to tomorrow
+        if (now.getHours() >= 21) {
+          now.setDate(now.getDate() + 1);
+        }
+        
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+
+        fetchPromise = fetch(`https://www.pluckier.co.uk/${dateStr}-odds.json`, { cache: 'no-store' })
           .then(res => res.ok ? res.json() : [])
           .catch(() => []);
       }
