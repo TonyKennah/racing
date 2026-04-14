@@ -47,9 +47,10 @@ npm run deploy
 ```
 
 # Examples
-
+Timeline and Chart
 <img width="1173" height="914" alt="image" src="https://github.com/user-attachments/assets/4f6d8cf5-ca73-4017-993f-fc6f13a0b8f6" />
 
+Race
+<img width="1742" height="992" alt="image" src="https://github.com/user-attachments/assets/97156ce1-4711-4f40-a9ac-0af4c278c4c3" />
 
-<img width="1440" height="994" alt="image" src="https://github.com/user-attachments/assets/3580347f-3a24-495b-85a0-c50e405be7ad" />
 
