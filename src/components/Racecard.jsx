@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import HorseRow from './HorseRow';
 import FormChart from './FormChart';
+import Modal from './Modal';
 import '../css/RaceCard.css';
 
 const RaceCard = ({ race }) => {
@@ -73,16 +74,18 @@ const RaceCard = ({ race }) => {
             onClick={() => setShowChart(!showChart)}
             className="race-analytics-btn"
           >
-            {showChart ? 'Close Analytics' : 'Show Race Chart'}
+            Show Race Chart
           </button>
         </div>
       </header>
 
-      {showChart && (
-        <div className="race-visuals">
+      <Modal 
+        isOpen={showChart} 
+        onClose={() => setShowChart(false)} 
+        title={`${race.time} ${race.place} - ${race.detail} ${race.going}`}
+      >
           <FormChart horses={race.horses} />
-        </div>
-      )}
+      </Modal>
 
       <div className="entries">
         {sortedHorses.map(horse => (

@@ -110,7 +110,7 @@ function App() {
 
   if (loading) return (
     <main>
-      <h2>The Racing {formattedDateTime}</h2>
+      <h2>The Racing ({formattedDateTime})</h2>
       <SkeletonRaceCard />
       <SkeletonRaceCard />
       <SkeletonRaceCard />

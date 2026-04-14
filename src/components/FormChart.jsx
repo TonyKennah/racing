@@ -59,7 +59,7 @@ const FormChart = ({ horses }) => {
 
   return (
     <div className="form-chart-container">
-      <ResponsiveContainer width="100%" height={500}>
+      <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <XAxis dataKey="date" tick={{ fill: 'var(--text)', fontSize: 12 }} />
           <YAxis 
