@@ -23,31 +23,28 @@ const FormChart = ({ horses }) => {
 
     horses.forEach(horse => {
       horse.past.forEach(race => {
-        const date = race.date;
-        if (!map[date]) map[date] = { date };
+        const [d, m, y] = race.date.split('/');
+        const timestamp = new Date(y, m - 1, d).getTime();
 
-        map[date][horse.name] = parseFloat(race.name);
-        map[date][`${horse.name}_todayWeight`] = horse.weight;
+        if (!map[timestamp]) map[timestamp] = { timestamp, date: race.date };
+
+        map[timestamp][horse.name] = parseFloat(race.name);
+        map[timestamp][`${horse.name}_todayWeight`] = horse.weight;
 
         const maxRatingForHorse = Math.max(...horse.past.map(pr => parseFloat(pr.name)));
 
         if (parseFloat(race.name) === maxRatingForHorse) {
-          map[date][`${horse.name}_isHighest`] = true;
+          map[timestamp][`${horse.name}_isHighest`] = true;
         }
 
         const beaten = race.distBeaten ? ` (${race.distBeaten} l)` : '';
-        map[date][`${horse.name}_details`] = 
+        map[timestamp][`${horse.name}_details`] = 
           `${race.time} ${race.course} (${race.distance}, ${race.going}) | ` +
           `Pos: ${race.position}${beaten} | Wt: ${race.weight}`;
       });
     });
 
-    // Convert map to sorted array immediately
-    return Object.values(map).sort((a, b) => {
-      const [da, ma, ya] = a.date.split('/');
-      const [db, mb, yb] = b.date.split('/');
-      return new Date(ya, ma-1, da) - new Date(yb, mb-1, db);
-    });
+    return Object.values(map).sort((a, b) => a.timestamp - b.timestamp);
   }, [horses]);
 
   const LINE_COLORS = [
@@ -61,7 +58,18 @@ const FormChart = ({ horses }) => {
     <div className="form-chart-container">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <XAxis dataKey="date" tick={{ fill: 'var(--text)', fontSize: 12 }} />
+          <XAxis 
+            dataKey="timestamp" 
+            type="number"
+            domain={['dataMin', 'dataMax']}
+            tickFormatter={(unixTime) => {
+              const date = new Date(unixTime);
+              const d = date.getDate();
+              const m = date.toLocaleString('default', { month: 'short' });
+              return `${d} ${m}`;
+            }}
+            tick={{ fill: 'var(--text)', fontSize: 12 }} 
+          />
           <YAxis 
             domain={['auto', dataMax => Math.round(dataMax * 1.05)]} 
             tick={{ fill: 'var(--text)', fontSize: 12 }}
