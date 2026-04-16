@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PastRace from './PastRace';
-import Odds from './Odds';
 import '../css/HorseRow.css';
 
 const HorseRow = ({ horse, sortBy }) => {
@@ -62,7 +61,11 @@ const HorseRow = ({ horse, sortBy }) => {
           </div>
         </div>
       <span className="avg-rating"> {displayRating !== null ? displayRating : '-'}</span>
-      <Odds horseName={horse.name} />
+      <span className="odds-value">
+        {horse.odds?.[horse.odds.length - 1] === "null" 
+          ? "NR" 
+          : (horse.odds?.[horse.odds.length - 1] ? (isNaN(horse.odds[horse.odds.length - 1]) ? horse.odds[horse.odds.length - 1] : Number(horse.odds[horse.odds.length - 1])) : "x")}
+      </span>
       <button className="past-button" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
       </div>
 

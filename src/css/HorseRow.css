@@ -121,6 +121,15 @@
   background-color: var(--accent-bg);
 }
 
+.odds-value {
+  font-weight: bold;
+  color: var(--taxt-h);
+  min-width: 60px;
+  display: inline-block;
+  padding-right: 20px;
+  text-align: center;
+}
+
 .horse-main {
   display: flex;
   align-items: center;

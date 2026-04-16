@@ -91,7 +91,21 @@ function App() {
   }, [loading, filteredRaces]);
 
   useEffect(() => {
-    fetch('https://www.pluckier.co.uk/todays.json', { cache: 'no-store' })
+    const now = new Date();
+    const currentHour = now.getHours(); // 0-23
+
+    let targetDate = new Date(now);
+    // If it's 9 PM or later, fetch tomorrow's data
+    if (currentHour >= 21) { 
+      targetDate.setDate(now.getDate() + 1);
+    }
+
+    const day = String(targetDate.getDate()).padStart(2, '0');
+    const month = String(targetDate.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+    const year = targetDate.getFullYear();
+    const dateString = `${day}-${month}-${year}`;
+
+    fetch(`https://www.pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' })
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok');

@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import HorseRow from './HorseRow';
 import FormChart from './FormChart';
+import OddsChart from './OddsChart';
 import Modal from './Modal';
 import '../css/RaceCard.css';
 
 const RaceCard = ({ race }) => {
   const [showChart, setShowChart] = useState(false);
+  const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
 
   const getAvg = (h) => {
@@ -70,11 +72,11 @@ const RaceCard = ({ race }) => {
             <option value="high">Highest Rating</option>
             <option value="all">Avg Rating (All)</option>
           </select>
-          <button 
-            onClick={() => setShowChart(!showChart)}
-            className="race-analytics-btn"
-          >
-            Show Race Chart
+          <button onClick={() => setShowChart(!showChart)} className="race-analytics-btn">
+            Chart
+          </button>
+          <button onClick={() => setShowOdds(!showOdds)} className="race-analytics-btn">
+            Odds
           </button>
         </div>
       </header>
@@ -85,6 +87,14 @@ const RaceCard = ({ race }) => {
         title={`${race.time} ${race.place} - ${race.detail} ${race.going}`}
       >
           <FormChart horses={race.horses} />
+      </Modal>
+
+      <Modal 
+        isOpen={showOdds} 
+        onClose={() => setShowOdds(false)} 
+        title={`Odds Movement: ${race.time} ${race.place}`}
+      >
+          <OddsChart horses={race.horses} />
       </Modal>
 
       <div className="entries">
