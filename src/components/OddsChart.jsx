@@ -4,7 +4,7 @@ import '../css/FormChart.css';
 
 const CustomDot = (props) => {
   const { cx, cy, stroke, payload, dataKey } = props;
-  if (payload[`${dataKey}_isHighest`]) {
+  if (payload[`${dataKey}_isLowest`]) {
     return (
       <g>
         <circle cx={cx} cy={cy} r={3} fill={stroke} stroke={stroke} strokeWidth={1} />
@@ -29,13 +29,13 @@ const OddsChart = ({ horses }) => {
     // Find the maximum number of odds updates across all horses to define our X-axis range
     const maxLength = Math.max(...horses.map(h => (h.odds ? h.odds.length : 0)));
     
-    // Pre-calculate the maximum odds for each horse to flag the "isHighest" point
-    const horseMaxOdds = {};
+    // Pre-calculate the minimum odds for each horse to flag the "isLowest" point
+    const horseMinOdds = {};
     horses.forEach(horse => {
       const numericOdds = horse.odds
         ?.filter(o => o && o !== "null" && o !== "NR" && !isNaN(o))
         .map(o => parseFloat(o)) || [];
-      horseMaxOdds[horse.name] = numericOdds.length > 0 ? Math.min(...numericOdds) : null;
+      horseMinOdds[horse.name] = numericOdds.length > 0 ? Math.min(...numericOdds) : null;
     });
 
     const data = [];
@@ -47,8 +47,8 @@ const OddsChart = ({ horses }) => {
         if (oddVal && oddVal !== "null" && oddVal !== "NR" && !isNaN(oddVal)) {
           const val = parseFloat(oddVal);
           point[horse.name] = val;
-          if (val === horseMaxOdds[horse.name]) {
-            point[`${horse.name}_isHighest`] = true;
+          if (val === horseMinOdds[horse.name]) {
+            point[`${horse.name}_isLowest`] = true;
           }
         }
       });
