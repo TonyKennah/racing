@@ -21,8 +21,12 @@ function App() {
   }, []);
 
   const formattedDateTime = useMemo(() => {
-    const day = currentTime.getDate();
-    const month = currentTime.toLocaleString('default', { month: 'long' });
+    const targetDate = new Date(currentTime);
+    // If it's 9 PM or later, the racing data shown is for tomorrow
+    if (currentTime.getHours() >= 21) {
+      targetDate.setDate(targetDate.getDate() + 1);
+    }
+
     const time = currentTime.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
@@ -35,7 +39,10 @@ function App() {
       return n + (s[(v - 20) % 10] || s[v] || s[0]);
     };
 
-    return `${getOrdinal(day)} ${month} ${time}`;
+    const day = targetDate.getDate();
+    const month = targetDate.toLocaleString('default', { month: 'long' });
+
+    return `for ${getOrdinal(day)} ${month} (${time})`;
   }, [currentTime]);
 
   const uniquePlaces = useMemo(() => 
@@ -124,7 +131,7 @@ function App() {
 
   if (loading) return (
     <main>
-      <h2>The Racing ({formattedDateTime})</h2>
+      <h2>The Racing {formattedDateTime}</h2>
       <SkeletonRaceCard />
       <SkeletonRaceCard />
       <SkeletonRaceCard />
@@ -139,7 +146,7 @@ function App() {
 
   return (
     <main>
-      <h2>The Racing ({formattedDateTime})</h2>
+      <h2>The Racing {formattedDateTime}</h2>
 
       <div className="place-filters">
         <button
