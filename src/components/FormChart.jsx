@@ -78,6 +78,13 @@ const FormChart = ({ horses }) => {
           <Tooltip 
             itemSorter={(item) => -item.value}
             separator=""
+            labelFormatter={(label) => {
+              if (isNaN(label)) return label;
+              const date = new Date(label);
+              return date.toLocaleDateString('en-GB', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+              });
+            }}
             formatter={(value, name, entry) => {
               const details = entry.payload[`${name}_details`];
               const todayWeight = entry.payload[`${name}_todayWeight`];
