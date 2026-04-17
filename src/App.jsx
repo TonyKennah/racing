@@ -5,6 +5,7 @@ import RaceTimeline from './components/RaceTimeline';
 import Modal from './components/Modal';
 import OddsMovementSummary from './components/OddsMovementSummary';
 import InterestingSelections from './components/InterestingSelections';
+import FavoriteSelections from './components/FavoriteSelections';
 import './css/App.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
   const hasScrolled = useRef(false);
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [showInterestingModal, setShowInterestingModal] = useState(false);
+  const [showFavoriteModal, setShowFavoriteModal] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -193,6 +195,13 @@ function App() {
         >
           ⭐ Value Selections
         </button>
+        <button 
+          className="filter-btn strong-favorites-btn"
+          style={{ marginLeft: '10px', borderColor: '#4285F4' }}
+          onClick={() => setShowFavoriteModal(true)}
+        >
+          🎯 Strong Favourites
+        </button>
       </div>
 
       <Modal 
@@ -210,6 +219,15 @@ function App() {
       >
         <InterestingSelections races={filteredRaces} />
       </Modal>
+
+      <Modal 
+        isOpen={showFavoriteModal} 
+        onClose={() => setShowFavoriteModal(false)} 
+        title="Strong Favourites (Top Rated & Shortest Odds)"
+      >
+        <FavoriteSelections races={filteredRaces} />
+      </Modal>
+      
       
       
       {filteredRaces.map((race) => (
