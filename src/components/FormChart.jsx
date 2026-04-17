@@ -5,11 +5,12 @@ import '../css/FormChart.css';
 const CustomDot = (props) => {
   const { cx, cy, stroke, payload, dataKey } = props;
   if (payload[`${dataKey}_isHighest`]) {
+    const odds = payload[`${dataKey}_latestOdds`];
     return (
       <g>
         <circle cx={cx} cy={cy} r={3} fill={stroke} stroke={stroke} strokeWidth={1} />
         <text x={cx} y={cy - 15} fill={stroke} textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight="bold">
-          {dataKey}
+          {`${dataKey} ${odds}`}
         </text>
       </g>
     );
@@ -22,6 +23,9 @@ const FormChart = ({ horses }) => {
     const map = {};
 
     horses.forEach(horse => {
+      const lastOdd = horse.odds?.[horse.odds.length - 1];
+      const displayOdd = lastOdd === "null" ? "NR" : (lastOdd ? (isNaN(lastOdd) ? lastOdd : Number(lastOdd)) : "x");
+
       horse.past.forEach(race => {
         const [d, m, y] = race.date.split('/');
         const timestamp = new Date(y, m - 1, d).getTime();
@@ -30,6 +34,7 @@ const FormChart = ({ horses }) => {
 
         map[timestamp][horse.name] = parseFloat(race.name);
         map[timestamp][`${horse.name}_todayWeight`] = horse.weight;
+        map[timestamp][`${horse.name}_latestOdds`] = displayOdd;
 
         const maxRatingForHorse = Math.max(...horse.past.map(pr => parseFloat(pr.name)));
 
@@ -88,12 +93,13 @@ const FormChart = ({ horses }) => {
             formatter={(value, name, entry) => {
               const details = entry.payload[`${name}_details`];
               const todayWeight = entry.payload[`${name}_todayWeight`];
+              const latestOdds = entry.payload[`${name}_latestOdds`];
               if (!details) return [value, name];
               const [raceInfo, ...performance] = details.split(' | ');
               return [
                 <span key={name} style={{ display: 'block' }}>
                   <span style={{ fontWeight: 'bold', display: 'block' }}>
-                    <span style={{ color: entry.color }}>{name}</span>
+                    <span style={{ color: entry.color }}>{name} {latestOdds}</span>
                     <span style={{ color: 'var(--text-h)' }}>{` (${todayWeight}) ${value}`}</span>
                   </span>
                   <span style={{ display: 'block' }}>{raceInfo}</span>

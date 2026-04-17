@@ -34,12 +34,19 @@ const RaceCard = ({ race }) => {
     return past.reduce((acc, r) => acc + (Number(r.name) || 0), 0) / past.length;
   };
 
+  const getLatestOdds = (h) => {
+    const odds = h.odds || [];
+    const last = odds[odds.length - 1];
+    return (last && last !== "null" && last !== "NR" && !isNaN(last)) ? parseFloat(last) : Infinity;
+  };
+
   const sortedHorses = useMemo(() =>
     [...race.horses].sort((a, b) => {
       if (sortBy === 'avg') return getAvg(b) - getAvg(a);
       if (sortBy === 'high') return getMax(b) - getMax(a);
       if (sortBy === 'last') return getLast(b) - getLast(a);
       if (sortBy === 'all') return getAllAvg(b) - getAllAvg(a);
+      if (sortBy === 'odds') return getLatestOdds(a) - getLatestOdds(b);
       return Number(a.number) - Number(b.number);
     }),
     [race.horses, sortBy]
@@ -66,28 +73,21 @@ const RaceCard = ({ race }) => {
             onChange={(e) => setSortBy(e.target.value)}
             className="race-sort-select"
           >
+            <option value="odds">Latest Odds</option>
             <option value="number">Number</option>
             <option value="avg">Avg Rating (L3)</option>
             <option value="last">Last Run Rating</option>
             <option value="high">Highest Rating</option>
             <option value="all">Avg Rating (All)</option>
           </select>
-          <button onClick={() => setShowChart(!showChart)} className="race-analytics-btn">
-            Chart
-          </button>
           <button onClick={() => setShowOdds(!showOdds)} className="race-analytics-btn">
             Odds
           </button>
+          <button onClick={() => setShowChart(!showChart)} className="race-analytics-btn">
+            Chart
+          </button>
         </div>
       </header>
-
-      <Modal 
-        isOpen={showChart} 
-        onClose={() => setShowChart(false)} 
-        title={`${race.time} ${race.place} - ${race.detail} ${race.going}`}
-      >
-          <FormChart horses={race.horses} />
-      </Modal>
 
       <Modal 
         isOpen={showOdds} 
@@ -95,6 +95,14 @@ const RaceCard = ({ race }) => {
         title={`Odds Movement: ${race.time} ${race.place}`}
       >
           <OddsChart horses={race.horses} />
+      </Modal>
+
+      <Modal 
+        isOpen={showChart} 
+        onClose={() => setShowChart(false)} 
+        title={`${race.time} ${race.place} - ${race.detail} ${race.going}`}
+      >
+          <FormChart horses={race.horses} />
       </Modal>
 
       <div className="entries">
