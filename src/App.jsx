@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import RaceCard from './components/Racecard';
 import SkeletonRaceCard from './components/SkeletonRaceCard';
 import RaceTimeline from './components/RaceTimeline';
+import Modal from './components/Modal';
+import OddsMovementSummary from './components/OddsMovementSummary';
+import InterestingSelections from './components/InterestingSelections';
 import './css/App.css';
 
 function App() {
@@ -11,6 +14,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const hasScrolled = useRef(false);
+  const [showMovementModal, setShowMovementModal] = useState(false);
+  const [showInterestingModal, setShowInterestingModal] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -173,6 +178,40 @@ function App() {
       </div>
 
       <RaceTimeline races={filteredRaces} />
+
+      <div className="summary-controls">
+        <button 
+          className="filter-btn movement-summary-btn"
+          onClick={() => setShowMovementModal(true)}
+        >
+          📊 Full Odds Movement
+        </button>
+        <button 
+          className="filter-btn interesting-selections-btn"
+          style={{ marginLeft: '10px', borderColor: '#f4b400' }}
+          onClick={() => setShowInterestingModal(true)}
+        >
+          ⭐ Value Selections
+        </button>
+      </div>
+
+      <Modal 
+        isOpen={showMovementModal} 
+        onClose={() => setShowMovementModal(false)} 
+        title="Card-wide Odds Movement"
+      >
+        <OddsMovementSummary races={filteredRaces} />
+      </Modal>
+
+      <Modal 
+        isOpen={showInterestingModal} 
+        onClose={() => setShowInterestingModal(false)} 
+        title="Interesting Selections (Top Rated & Odds > 9)"
+      >
+        <InterestingSelections races={filteredRaces} />
+      </Modal>
+      
+      
       {filteredRaces.map((race) => (
         <RaceCard key={`${race.time}-${race.place}`} race={race} />
       ))}
