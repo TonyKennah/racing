@@ -45,6 +45,12 @@
   transition: all 0.2s ease;
 }
 
+.jump-link {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
 .filter-btn.active {
   border-color: var(--accent);
   background-color: var(--accent-bg);

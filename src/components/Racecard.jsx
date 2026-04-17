@@ -59,6 +59,9 @@ const RaceCard = ({ race }) => {
       <header className="race-header">
         <div className="race-title-group">
           <h2>
+            <a href="#home" className="home-link" title="Return to top" style={{ textDecoration: 'none', marginRight: '8px' }}>
+              🏠
+            </a>
             <a href={`#${raceId}`} className="race-title-link">
               {race.time} {race.place}
             </a>

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import '../css/InterestingSelections.css';
 
-const InterestingSelections = ({ races }) => {
+const InterestingSelections = ({ races, onClose }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'maxRating', direction: 'desc' });
 
   const selections = useMemo(() => {
@@ -20,7 +20,9 @@ const InterestingSelections = ({ races }) => {
           name: horse.name,
           maxRating,
           currentOdds,
-          venue: `${race.time} ${race.place}`
+          venue: `${race.time} ${race.place}`,
+          time: race.time,
+          place: race.place
         };
       });
 
@@ -78,6 +80,12 @@ const InterestingSelections = ({ races }) => {
     return sortConfig.direction === 'asc' ? ' ↓' : ' ↑';
   };
 
+  const handleJump = (time, place) => {
+    const id = `${time}${place.replace(/\s+/g, '')}`;
+    window.location.hash = id;
+    if (onClose) onClose();
+  };
+
   if (selections.length === 0) {
     return <div className="no-selections">No high-rated value selections found at the moment.</div>;
   }
@@ -108,7 +116,12 @@ const InterestingSelections = ({ races }) => {
           {selections.map((item, idx) => (
             <tr key={`${item.name}-${idx}`}>
               <td><strong>{item.name}</strong></td>
-              <td className="venue-cell">{item.venue}</td>
+              <td 
+                className="venue-cell jump-link" 
+                onClick={() => handleJump(item.time, item.place)}
+              >
+                {item.venue}
+              </td>
               <td>
                 <span className={`rank-badge ${item.rank === '1st' ? 'gold' : 'silver'}`}>
                   {item.rank} Highest

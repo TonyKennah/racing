@@ -152,7 +152,7 @@ function App() {
   );
 
   return (
-    <main>
+    <main id="home">
       <h2>The Racing {formattedDateTime}</h2>
 
       <div className="place-filters">
@@ -209,7 +209,10 @@ function App() {
         onClose={() => setShowMovementModal(false)} 
         title="Card-wide Odds Movement"
       >
-        <OddsMovementSummary races={filteredRaces} />
+        <OddsMovementSummary 
+          races={filteredRaces} 
+          onClose={() => setShowMovementModal(false)} 
+        />
       </Modal>
 
       <Modal 
@@ -217,7 +220,10 @@ function App() {
         onClose={() => setShowInterestingModal(false)} 
         title="Interesting Selections (Top Rated & Odds > 9)"
       >
-        <InterestingSelections races={filteredRaces} />
+        <InterestingSelections 
+          races={filteredRaces} 
+          onClose={() => setShowInterestingModal(false)} 
+        />
       </Modal>
 
       <Modal 
@@ -225,7 +231,10 @@ function App() {
         onClose={() => setShowFavoriteModal(false)} 
         title="Strong Favourites (Top Rated & Shortest Odds)"
       >
-        <FavoriteSelections races={filteredRaces} />
+        <FavoriteSelections 
+          races={filteredRaces} 
+          onClose={() => setShowFavoriteModal(false)} 
+        />
       </Modal>
       
       

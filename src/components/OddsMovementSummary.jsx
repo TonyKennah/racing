@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import '../css/OddsMovementSummary.css';
 
-const OddsMovementSummary = ({ races }) => {
+const OddsMovementSummary = ({ races, onClose }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'diff', direction: 'asc' });
 
   const movementData = useMemo(() => {
@@ -20,6 +20,8 @@ const OddsMovementSummary = ({ races }) => {
           list.push({
             name: horse.name,
             venue: `${race.time} ${race.place}`,
+            time: race.time,
+            place: race.place,
             start,
             current,
             diff: parseFloat(diff.toFixed(2))
@@ -62,6 +64,12 @@ const OddsMovementSummary = ({ races }) => {
     return sortConfig.direction === 'asc' ? ' ↓' : ' ↑';
   };
 
+  const handleJump = (time, place) => {
+    const id = `${time}${place.replace(/\s+/g, '')}`;
+    window.location.hash = id;
+    if (onClose) onClose();
+  };
+
   if (movementData.length === 0) {
     return <div className="no-data">No odds movement recorded yet.</div>;
   }
@@ -92,7 +100,12 @@ const OddsMovementSummary = ({ races }) => {
           {movementData.map((item, idx) => (
             <tr key={`${item.name}-${idx}`}>
               <td><strong>{item.name}</strong></td>
-              <td className="venue-cell">{item.venue}</td>
+              <td 
+                className="venue-cell jump-link" 
+                onClick={() => handleJump(item.time, item.place)}
+              >
+                {item.venue}
+              </td>
               <td>{item.start}</td>
               <td>{item.current}</td>
               <td className={item.diff < 0 ? 'move-down' : item.diff > 0 ? 'move-up' : ''}>
