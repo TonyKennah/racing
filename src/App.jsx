@@ -184,9 +184,10 @@ function App() {
       <div className="summary-controls">
         <button 
           className="filter-btn movement-summary-btn"
+          style={{ marginLeft: '10px', borderColor: '#3ccf34' }}
           onClick={() => setShowMovementModal(true)}
         >
-          📊 Full Odds Movement
+          📊 Odds Movement
         </button>
         <button 
           className="filter-btn interesting-selections-btn"

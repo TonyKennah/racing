@@ -3,6 +3,7 @@
   border-radius: 8px;
   padding: 20px;
   overflow: hidden;
+  padding-bottom: 0px;
 }
 
 /* Targets both the meeting names and the time labels on the axis */
