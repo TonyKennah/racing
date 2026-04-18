@@ -84,3 +84,8 @@
 .strong-favorites-btn {
   border-color: #4285F4;
 }
+
+.filter-btn:hover {
+    border-color: var(--accent);
+    background-color: var(--accent);
+}
