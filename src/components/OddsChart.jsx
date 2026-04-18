@@ -103,9 +103,13 @@ const OddsChart = ({ horses }) => {
             shared={false}
             trigger="hover"
             itemSorter={(item) => item.value}
+            separator=""
             contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #444' }}
-            itemStyle={{ fontSize: '13px' }}
-            formatter={(value, name) => [Number(value), name]}
+            itemStyle={{ fontSize: '16px' }}
+            formatter={(value, name, entry) => [
+              <span style={{ color: entry.color }}>{name}: {Number(value)}</span>,
+              ''
+            ]}
           />
           <Legend 
             wrapperStyle={{ paddingTop: '10px' }}
