@@ -7,6 +7,8 @@ const HorseRow = ({ horse, sortBy }) => {
 
   const pastRuns = horse.past || [];
 
+  const isNR = horse.odds?.[horse.odds.length - 1] === "null" || horse.odds?.[horse.odds.length - 1] === "NR";
+
   let displayRating = null;
   if (sortBy === 'high') {
     // Show career highest rating
@@ -28,7 +30,7 @@ const HorseRow = ({ horse, sortBy }) => {
   }
 
   return (
-    <div className="horse-row">
+    <div className={`horse-row ${isNR ? 'non-runner' : ''}`}>
       <div className="horse-main">
         <div className="horse-info-container">
           <div className="horse-silks-wrapper">

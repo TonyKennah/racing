@@ -121,6 +121,15 @@
   background-color: var(--accent-bg);
 }
 
+.horse-row.non-runner {
+  opacity: 0.4;
+  filter: grayscale(0.8);
+}
+
+.non-runner .cell-name {
+  text-decoration: line-through;
+}
+
 .odds-value {
   font-weight: bold;
   color: var(--taxt-h);

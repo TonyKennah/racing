@@ -42,6 +42,12 @@ const RaceCard = ({ race }) => {
 
   const sortedHorses = useMemo(() =>
     [...race.horses].sort((a, b) => {
+      const isNRA = getLatestOdds(a) === Infinity;
+      const isNRB = getLatestOdds(b) === Infinity;
+
+      // Always push non-runners to the bottom
+      if (isNRA !== isNRB) return isNRA ? 1 : -1;
+
       if (sortBy === 'avg') return getAvg(b) - getAvg(a);
       if (sortBy === 'high') return getMax(b) - getMax(a);
       if (sortBy === 'last') return getLast(b) - getLast(a);
