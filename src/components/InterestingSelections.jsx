@@ -8,6 +8,11 @@ const InterestingSelections = ({ races, onClose }) => {
     const results = [];
 
     races.forEach(race => {
+      // Filter for races with at least 80% FORM
+      const formMatch = race.detail?.match(/FORM\s+(\d+)%/i);
+      const formPercentage = formMatch ? parseInt(formMatch[1], 10) : 0;
+      if (formPercentage < 80) return;
+
       // 1. Calculate max rating for each horse and get current odds
       const horseData = race.horses
         .filter(horse => {

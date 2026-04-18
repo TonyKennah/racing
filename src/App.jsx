@@ -216,7 +216,7 @@ function App() {
       <Modal 
         isOpen={showInterestingModal} 
         onClose={() => setShowInterestingModal(false)} 
-        title="Interesting Selections (Top Rated & Odds > 9)"
+        title="Interesting Selections (Top Rated & Odds > 9 & > 80% FORM)"
       >
         <InterestingSelections 
           races={filteredRaces} 
