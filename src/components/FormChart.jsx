@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import '../css/FormChart.css';
 
@@ -19,6 +19,8 @@ const CustomDot = (props) => {
 };
 
 const FormChart = ({ horses }) => {
+  const [top2Only, setTop2Only] = useState(false);
+
   const chartData = useMemo(() => {
     const map = {};
 
@@ -27,6 +29,28 @@ const FormChart = ({ horses }) => {
       const displayOdd = lastOdd === "null" ? "NR" : (lastOdd ? (isNaN(lastOdd) ? lastOdd : Number(lastOdd)) : "x");
 
       horse.past.forEach(race => {
+        // Filter logic: If top2Only is active, include 1st, 2nd, or beaten < 2 lengths
+        if (top2Only) {
+            const posStr = race.position ? race.position.toString().trim() : "";
+            const actualPos = posStr.split('/')[0]; // Extract the finishing position from format "3/4"
+            const isTop2 = actualPos === "1" || actualPos === "2";
+            
+            let isClose = false;
+            if (race.distBeaten) {
+                const distStr = race.distBeaten.toLowerCase().trim();
+                // Handle common racing abbreviations for small distances (shd, hd, nk, etc.)
+                const abbreviations = ['shd', 'hd', 'nk', 'snk', 'dht'];
+                if (abbreviations.includes(distStr)) {
+                    isClose = true;
+                } else {
+                    const distNum = parseFloat(distStr);
+                    if (!isNaN(distNum) && distNum < 2) isClose = true;
+                }
+            }
+            
+            if (!isTop2 && !isClose) return;
+        }
+
         const [d, m, y] = race.date.split('/');
         const timestamp = new Date(y, m - 1, d).getTime();
 
@@ -50,7 +74,7 @@ const FormChart = ({ horses }) => {
     });
 
     return Object.values(map).sort((a, b) => a.timestamp - b.timestamp);
-  }, [horses]);
+  }, [horses, top2Only]);
 
   const LINE_COLORS = [
     '#e6194b', '#3cb44b', '#3b7944', '#4363d8', '#f58231', 
@@ -61,6 +85,14 @@ const FormChart = ({ horses }) => {
 
   return (
     <div className="form-chart-container">
+      <div className="chart-controls" style={{ marginBottom: '10px', textAlign: 'right' }}>
+        <button 
+          className={`race-analytics-btn ${top2Only ? 'active' : ''}`}
+          onClick={() => setTop2Only(!top2Only)}
+        >
+          {top2Only ? 'Showing Top 2 or < 2l' : 'Filter Top 2 or < 2l'}
+        </button>
+      </div>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <XAxis 

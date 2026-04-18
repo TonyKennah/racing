@@ -22,8 +22,8 @@
   overflow: hidden;
   min-width: 400px;
   min-height: 300px;
-  width: 100vw;
-  height: 100vh;
+  width: 95vw;
+  height: 95vh;
 }
 
 .modal-header {
@@ -43,7 +43,7 @@
 
 .modal-close-btn {
   background: none;
-  border: none;
+  border: nne;
   color: var(--text);
   font-size: 28px;
   cursor: pointer;

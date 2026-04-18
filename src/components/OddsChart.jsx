@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import '../css/FormChart.css';
 
@@ -18,6 +18,14 @@ const CustomDot = (props) => {
 };
 
 const OddsChart = ({ horses }) => {
+  const [under12Only, setUnder12Only] = useState(false);
+
+  const getLatestOdds = (h) => {
+    const odds = h.odds || [];
+    const last = odds[odds.length - 1];
+    return (last && last !== "null" && last !== "NR" && !isNaN(last)) ? parseFloat(last) : Infinity;
+  };
+
   const LINE_COLORS = [
     '#e6194b', '#3cb44b', '#3b7944', '#4363d8', '#f58231', 
     '#911eb4', '#46f0f0', '#f032e6', '#b5d44f', '#fabebe', 
@@ -25,13 +33,18 @@ const OddsChart = ({ horses }) => {
     '#134b56', '#808000', '#ffd8b1', '#656591', '#808080'
   ];
 
+  const visibleHorses = useMemo(() => {
+    return under12Only ? horses.filter(h => getLatestOdds(h) < 12) : horses;
+  }, [horses, under12Only]);
+
   const chartData = useMemo(() => {
+    if (visibleHorses.length === 0) return [];
     // Find the maximum number of odds updates across all horses to define our X-axis range
-    const maxLength = Math.max(...horses.map(h => (h.odds ? h.odds.length : 0)));
+    const maxLength = Math.max(...visibleHorses.map(h => (h.odds ? h.odds.length : 0)));
     
     // Pre-calculate the minimum odds for each horse to flag the "isLowest" point
     const horseMinOdds = {};
-    horses.forEach(horse => {
+    visibleHorses.forEach(horse => {
       const numericOdds = horse.odds
         ?.filter(o => o && o !== "null" && o !== "NR" && !isNaN(o))
         .map(o => parseFloat(o)) || [];
@@ -41,7 +54,7 @@ const OddsChart = ({ horses }) => {
     const data = [];
     for (let i = 0; i < maxLength; i++) {
       const point = { updateIndex: `Update ${i + 1}` };
-      horses.forEach(horse => {
+      visibleHorses.forEach(horse => {
         const oddVal = horse.odds?.[i];
         // Parse numeric odds, ignore "null" or "NR" for the chart line
         if (oddVal && oddVal !== "null" && oddVal !== "NR" && !isNaN(oddVal)) {
@@ -55,15 +68,23 @@ const OddsChart = ({ horses }) => {
       data.push(point);
     }
     return data;
-  }, [horses]);
+  }, [visibleHorses]);
 
   // If no odds data exists yet
   if (chartData.length === 0) {
-    return <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text)' }}>No odds history available.</div>;
+    return <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text)' }}>No horses match the current filter.</div>;
   }
 
   return (
     <div className="form-chart-container">
+      <div className="chart-controls" style={{ marginBottom: '10px', textAlign: 'right' }}>
+        <button 
+          className={`race-analytics-btn ${under12Only ? 'active' : ''}`}
+          onClick={() => setUnder12Only(!under12Only)}
+        >
+          {under12Only ? 'Showing Odds < 12' : 'Filter Odds < 12'}
+        </button>
+      </div>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -90,7 +111,7 @@ const OddsChart = ({ horses }) => {
             wrapperStyle={{ paddingTop: '10px' }}
             inactiveColor="#666"
           />
-          {horses.map((horse, index) => {
+          {visibleHorses.map((horse) => {
             // Only draw a line if the horse actually has numeric odds
             const hasData = horse.odds?.some(o => o && o !== "null" && o !== "NR");
             if (!hasData) return null;
@@ -100,7 +121,7 @@ const OddsChart = ({ horses }) => {
                 key={horse.name}
                 type="monotone" 
                 dataKey={horse.name} 
-                stroke={LINE_COLORS[index % LINE_COLORS.length]} 
+                stroke={LINE_COLORS[horses.indexOf(horse) % LINE_COLORS.length]} 
                 strokeWidth={2}
                 dot={<CustomDot />}
                 connectNulls // Connects line if a horse misses an update
