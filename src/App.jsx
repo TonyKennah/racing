@@ -184,21 +184,18 @@ function App() {
       <div className="summary-controls">
         <button 
           className="filter-btn movement-summary-btn"
-          style={{ marginLeft: '10px', borderColor: '#3ccf34' }}
           onClick={() => setShowMovementModal(true)}
         >
           📊 Odds Movement
         </button>
         <button 
           className="filter-btn interesting-selections-btn"
-          style={{ marginLeft: '10px', borderColor: '#f4b400' }}
           onClick={() => setShowInterestingModal(true)}
         >
           ⭐ Value Selections
         </button>
         <button 
           className="filter-btn strong-favorites-btn"
-          style={{ marginLeft: '10px', borderColor: '#4285F4' }}
           onClick={() => setShowFavoriteModal(true)}
         >
           🎯 Strong Favourites

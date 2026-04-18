@@ -44,7 +44,7 @@ const FormChart = ({ horses }) => {
 
         const beaten = race.distBeaten ? ` (${race.distBeaten} l)` : '';
         map[timestamp][`${horse.name}_details`] = 
-          `${race.time} ${race.course} (${race.distance}, ${race.going}) | ` +
+          `${race.time} ${race.course} (Class ${race.raceClass}, ${race.distance}, ${race.going}) | ` +
           `Pos: ${race.position}${beaten} | Wt: ${race.weight}`;
       });
     });

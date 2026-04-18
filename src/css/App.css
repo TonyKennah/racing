@@ -67,3 +67,20 @@
   justify-content: center;
   padding-bottom: 20px;
 }
+
+.home-link {
+  text-decoration: none;
+  margin-right: 8px;
+}
+
+.movement-summary-btn {
+  border-color: #3ccf34;
+}
+
+.interesting-selections-btn {
+  border-color: #f4b400;
+}
+
+.strong-favorites-btn {
+  border-color: #4285F4;
+}
