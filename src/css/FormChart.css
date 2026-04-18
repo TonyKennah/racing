@@ -7,17 +7,17 @@
 }
 
 .recharts-default-tooltip {
-  background-color: #2a2a2a !important;
-  border: 1px solid #444 !important;
+  background-color: var(--bg) !important;
+  border: 1px solid var(--border) !important;
   border-radius: 4px !important;
 }
 
 .recharts-tooltip-item {
-  color: #e0e0e0 !important;
+  color: var(--text) !important;
 }
 
 .recharts-tooltip-label {
-  color: #fff !important;
+  color: var(--text-h) !important;
   margin-bottom: 4px;
   font-weight: bold;
 }
