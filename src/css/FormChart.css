@@ -22,6 +22,14 @@
   font-weight: bold;
 }
 
+.chart-controls {
+    background-color: var(--bg);
+    margin-bottom: -5px !important;
+    opacity: 1;
+    position: relative;
+    z-index: 10;
+}
+
 .chart-dot-label {
   text-anchor: middle;
   dominant-baseline: central;
