@@ -11,6 +11,14 @@ const RaceTimeline = ({ races }) => {
     { type: 'date', id: 'End' },
   ];
 
+  // Detect if the user is in dark mode to adjust chart colors dynamically
+  const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = {
+    bg: isDark ? '#2a2a2a' : '#ffffff',
+    text: isDark ? '#e0e0e0' : '#333333',
+    tooltip: isDark ? 'background-color: #595656; color: #ffffff; border: 1px solid #444;' : 'background-color: #ffffff; color: #333333; border: 1px solid #ccc;'
+  };
+
   const rows = races.map((race) => {
     const [hours, minutes] = race.time.split(':').map(Number);
 
@@ -30,7 +38,7 @@ const RaceTimeline = ({ races }) => {
     const end = new Date(0, 0, 0, hours, minutes + Math.max(2, duration));
 
     // Create an HTML string for the tooltip to force single-line display and match the theme
-    const tooltipHtml = `<div style="white-space: nowrap; padding: 10px; background-color: #595656; color: #ffffff; border: 1px solid #444; font-family: sans-serif; font-size: 13px;">${race.detail || ''}</div>`;
+    const tooltipHtml = `<div style="white-space: nowrap; padding: 10px; ${theme.tooltip} font-family: sans-serif; font-size: 13px;">${race.detail || ''}</div>`;
 
     return [race.place, race.time, tooltipHtml, start, end];
   });
@@ -62,13 +70,13 @@ const RaceTimeline = ({ races }) => {
       showRowLabels: true,
       groupByRowLabel: true,
       colorByRowLabel: true,
-      rowLabelStyle: { fontSize: 12 },
-      barLabelStyle: { fontSize: 10 },
+      rowLabelStyle: { fontSize: 12, color: theme.text },
+      barLabelStyle: { fontSize: 10, color: theme.text },
     },
     tooltip: { isHtml: true },
     // 1st venue = Blue, 2nd venue = Red, others follow...
     colors: ['#4285F4', '#DB4437', '#F4B400', '#0F9D58', '#AB47BC', '#00ACC1', '#FF7043'],
-    backgroundColor: '#2a2a2a', // Matches your dark theme
+    backgroundColor: theme.bg,
     height: computedHeight,
   };
 

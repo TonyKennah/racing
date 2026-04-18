@@ -9,6 +9,11 @@ const OddsMovementSummary = ({ races, onClose }) => {
     races.forEach(race => {
       race.horses.forEach(horse => {
         const odds = horse.odds || [];
+
+        // If the horse is currently a non-runner (latest odd is null/NR), exclude it from the summary
+        const latestOdd = odds[odds.length - 1];
+        if (latestOdd === "null" || latestOdd === "NR") return;
+
         // Filter out "null", "NR", or empty odds to ensure we have valid numbers
         const validOdds = odds.filter(o => o !== "null" && o !== "NR" && !isNaN(parseFloat(o)));
         
