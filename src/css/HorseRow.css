@@ -13,7 +13,7 @@
 }
 
 .cell-form {
-  width: 90px;
+  width: 100px;
   color: var(--text);
   font-family: var(--mono);
   letter-spacing: 1px;
@@ -80,7 +80,7 @@
   font-size: 0.65em;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-left: 165px;
+  padding-left: 175px;
 }
 
 .cell-breeding {
