@@ -23,11 +23,16 @@ const FormChart = ({ horses }) => {
 
   const chartData = useMemo(() => {
     const map = {};
+    const horseMaxRatings = {};
 
     horses.forEach(horse => {
       // Skip non-runners
       const lastOdd = horse.odds?.[horse.odds.length - 1];
       if (lastOdd === "null" || lastOdd === "NR") return;
+
+      // Pre-calculate the career max rating for each horse to avoid redundant calculations
+      const ratings = horse.past.map(pr => parseFloat(pr.name)).filter(n => !isNaN(n));
+      horseMaxRatings[horse.name] = ratings.length > 0 ? Math.max(...ratings) : -1;
 
       const displayOdd = lastOdd === "null" ? "NR" : (lastOdd ? (isNaN(lastOdd) ? lastOdd : Number(lastOdd)) : "x");
 
@@ -63,12 +68,6 @@ const FormChart = ({ horses }) => {
         map[timestamp][`${horse.name}_todayWeight`] = horse.weight;
         map[timestamp][`${horse.name}_latestOdds`] = displayOdd;
 
-        const maxRatingForHorse = Math.max(...horse.past.map(pr => parseFloat(pr.name)));
-
-        if (parseFloat(race.name) === maxRatingForHorse) {
-          map[timestamp][`${horse.name}_isHighest`] = true;
-        }
-
         const beaten = race.distBeaten ? ` (${race.distBeaten} l)` : '';
         map[timestamp][`${horse.name}_details`] = 
           `${race.time} ${race.course} (Class ${race.raceClass}, ${race.distance}, ${race.going}) | ` +
@@ -76,7 +75,22 @@ const FormChart = ({ horses }) => {
       });
     });
 
-    return Object.values(map).sort((a, b) => a.timestamp - b.timestamp);
+    const sortedData = Object.values(map).sort((a, b) => a.timestamp - b.timestamp);
+
+    // Single-annotation pass: Mark only the chronologically first occurrence of the max rating
+    const annotatedHorses = new Set();
+    const horseNames = Object.keys(horseMaxRatings);
+
+    sortedData.forEach(point => {
+      horseNames.forEach(horseName => {
+        if (point[horseName] === horseMaxRatings[horseName] && !annotatedHorses.has(horseName)) {
+          point[`${horseName}_isHighest`] = true;
+          annotatedHorses.add(horseName);
+        }
+      });
+    });
+
+    return sortedData;
   }, [horses, top2Only]);
 
   const LINE_COLORS = [

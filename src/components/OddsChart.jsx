@@ -51,6 +51,8 @@ const OddsChart = ({ horses }) => {
       horseMinOdds[horse.name] = numericOdds.length > 0 ? Math.min(...numericOdds) : null;
     });
 
+    const annotatedHorses = new Set();
+
     const data = [];
     for (let i = 0; i < maxLength; i++) {
       const point = { updateIndex: `Update ${i + 1}` };
@@ -60,8 +62,9 @@ const OddsChart = ({ horses }) => {
         if (oddVal && oddVal !== "null" && oddVal !== "NR" && !isNaN(oddVal)) {
           const val = parseFloat(oddVal);
           point[horse.name] = val;
-          if (val === horseMinOdds[horse.name]) {
+          if (val === horseMinOdds[horse.name] && !annotatedHorses.has(horse.name)) {
             point[`${horse.name}_isLowest`] = true;
+            annotatedHorses.add(horse.name);
           }
         }
       });
