@@ -9,12 +9,17 @@ const InterestingSelections = ({ races, onClose }) => {
 
     races.forEach(race => {
       // 1. Calculate max rating for each horse and get current odds
-      const horseData = race.horses.map(horse => {
+      const horseData = race.horses
+        .filter(horse => {
+          const lastOdd = horse.odds?.[horse.odds.length - 1];
+          return lastOdd !== "null" && lastOdd !== "NR";
+        })
+        .map(horse => {
         const ratings = (horse.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
         const maxRating = ratings.length > 0 ? Math.max(...ratings) : 0;
         
         const lastOdd = horse.odds?.[horse.odds.length - 1];
-        const currentOdds = (lastOdd && lastOdd !== "null" && lastOdd !== "NR") ? parseFloat(lastOdd) : 0;
+        const currentOdds = lastOdd ? parseFloat(lastOdd) : 0;
         
         return {
           name: horse.name,

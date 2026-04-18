@@ -25,7 +25,10 @@ const FormChart = ({ horses }) => {
     const map = {};
 
     horses.forEach(horse => {
+      // Skip non-runners
       const lastOdd = horse.odds?.[horse.odds.length - 1];
+      if (lastOdd === "null" || lastOdd === "NR") return;
+
       const displayOdd = lastOdd === "null" ? "NR" : (lastOdd ? (isNaN(lastOdd) ? lastOdd : Number(lastOdd)) : "x");
 
       horse.past.forEach(race => {
