@@ -84,11 +84,11 @@ const OddsMovementSummary = ({ races, onClose }) => {
       <table className="odds-summary-table">
         <thead>
           <tr>
-            <th onClick={() => requestSort('name')} className="sortable">
-              Horse{getSortIndicator('name')}
-            </th>
             <th onClick={() => requestSort('venue')} className="sortable">
               Race{getSortIndicator('venue')}
+            </th>
+            <th onClick={() => requestSort('name')} className="sortable">
+              Horse{getSortIndicator('name')}
             </th>
             <th onClick={() => requestSort('start')} className="sortable">
               Start{getSortIndicator('start')}
@@ -104,13 +104,13 @@ const OddsMovementSummary = ({ races, onClose }) => {
         <tbody>
           {movementData.map((item, idx) => (
             <tr key={`${item.name}-${idx}`}>
-              <td><strong>{item.name}</strong></td>
               <td 
                 className="venue-cell jump-link" 
                 onClick={() => handleJump(item.time, item.place)}
               >
                 {item.venue}
               </td>
+              <td><strong>{item.name}</strong></td>
               <td>{item.start}</td>
               <td>{item.current}</td>
               <td className={item.diff < 0 ? 'move-down' : item.diff > 0 ? 'move-up' : ''}>

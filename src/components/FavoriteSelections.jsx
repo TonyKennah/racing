@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import '../css/FavoriteSelections.css';
 
 const FavoriteSelections = ({ races, onClose }) => {
-  const [sortConfig, setSortConfig] = useState({ key: 'rating', direction: 'desc' });
+  const [sortConfig, setSortConfig] = useState({ key: 'time', direction: 'asc' });
 
   const selections = useMemo(() => {
     const results = [];
@@ -80,14 +80,11 @@ const FavoriteSelections = ({ races, onClose }) => {
       <table className="favorite-table">
         <thead>
           <tr>
-            <th onClick={() => requestSort('name')} className="sortable">
-              Horse{getSortIndicator('name')}
-            </th>
             <th onClick={() => requestSort('venue')} className="sortable">
               Race{getSortIndicator('venue')}
             </th>
-            <th onClick={() => requestSort('rating')} className="sortable">
-              Rating{getSortIndicator('rating')}
+            <th onClick={() => requestSort('name')} className="sortable">
+              Horse{getSortIndicator('name')}
             </th>
             <th onClick={() => requestSort('odds')} className="sortable">
               Odds{getSortIndicator('odds')}
@@ -97,14 +94,13 @@ const FavoriteSelections = ({ races, onClose }) => {
         <tbody>
           {selections.map((item, idx) => (
             <tr key={`${item.name}-${idx}`}>
-              <td><strong>{item.name}</strong></td>
               <td 
                 className="venue-cell jump-link" 
                 onClick={() => handleJump(item.time, item.place)}
               >
                 {item.venue}
               </td>
-              <td className="rating-cell">{item.rating}</td>
+              <td><strong>{item.name}</strong></td>
               <td className="odds-cell">{item.odds}</td>
             </tr>
           ))}
