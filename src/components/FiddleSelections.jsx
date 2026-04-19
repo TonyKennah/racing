@@ -6,7 +6,7 @@ const FiddleSelections = ({ races, onClose }) => {
 
   const selections = useMemo(() => {
     // Lists for "Hot" connections
-    const hotOwners = ["J P MacManus"];
+    const hotOwners = ["J P McManus"];
     const hotTrainers = ["A P O'Brien", "T D Easterby", "L Russell & M Scudamore",
         "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell"
     ];
@@ -18,16 +18,25 @@ const FiddleSelections = ({ races, onClose }) => {
         const owner = horse.owner || "";
         const trainer = horse.trainer || "";
 
+        const oddsArray = horse.odds || [];
+        const latestOddRaw = oddsArray[oddsArray.length - 1];
+
+        // Filter out non-runners and ensure odds are valid numbers
+        if (!latestOddRaw || latestOddRaw === "null" || latestOddRaw === "NR") return;
+        
+        const currentOdds = parseFloat(latestOddRaw);
+        if (isNaN(currentOdds) || currentOdds <= 9) return;
+
         // Check for matches (case-insensitive partial matches are safer)
         const isHotOwner = hotOwners.some(o => owner.toLowerCase().includes(o.toLowerCase()));
         const isHotTrainer = hotTrainers.some(t => trainer.toLowerCase().includes(t.toLowerCase()));
-
         if (isHotOwner || isHotTrainer) {
           results.push({
             name: horse.name,
             venue: `${race.time} ${race.place}`,
             time: race.time,
             place: race.place,
+            odds: currentOdds,
             owner: horse.owner,
             trainer: horse.trainer
           });
@@ -71,7 +80,7 @@ const FiddleSelections = ({ races, onClose }) => {
   };
 
   if (selections.length === 0) {
-    return <div className="no-data">No connections for J P MacManus or A P O'Brien found today.</div>;
+    return <div className="no-data">No fiddles found matching these criteria.</div>;
   }
 
   return (
@@ -88,8 +97,8 @@ const FiddleSelections = ({ races, onClose }) => {
             <th onClick={() => requestSort('trainer')} className="sortable">
               Trainer{getSortIndicator('trainer')}
             </th>
-            <th onClick={() => requestSort('owner')} className="sortable">
-              Owner{getSortIndicator('owner')}
+            <th onClick={() => requestSort('odds')} className="sortable">
+              Odds{getSortIndicator('odds')}
             </th>
           </tr>
         </thead>
@@ -104,7 +113,7 @@ const FiddleSelections = ({ races, onClose }) => {
               </td>
               <td><strong>{item.name}</strong></td>
               <td>{item.trainer}</td>
-              <td>{item.owner}</td>
+              <td className="odds-highlight">{item.odds}</td>
             </tr>
           ))}
         </tbody>
