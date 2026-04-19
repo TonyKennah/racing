@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import RaceCard from './components/Racecard';
 import SkeletonRaceCard from './components/SkeletonRaceCard';
+import SkeletonRaceTimeline from './components/SkeletonRaceTimeline';
 import RaceTimeline from './components/RaceTimeline';
 import Modal from './components/Modal';
 import OddsMovementSummary from './components/OddsMovementSummary';
@@ -139,6 +140,7 @@ function App() {
   if (loading) return (
     <main>
       <h2>The Racing {formattedDateTime}</h2>
+      <SkeletonRaceTimeline />
       <SkeletonRaceCard />
       <SkeletonRaceCard />
       <SkeletonRaceCard />

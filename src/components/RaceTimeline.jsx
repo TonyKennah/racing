@@ -1,5 +1,6 @@
 import React from 'react';
 import { Chart } from 'react-google-charts';
+import SkeletonRaceTimeline from './SkeletonRaceTimeline';
 import '../css/RaceTimeline.css';
 
 const RaceTimeline = ({ races }) => {
@@ -87,7 +88,8 @@ const RaceTimeline = ({ races }) => {
       <Chart
         chartType="Timeline"
         data={data}
-        height={computedHeight-40}
+        height={computedHeight - 40}
+        loader={<SkeletonRaceTimeline height={computedHeight - 40} />}
         width="100%"
         options={options}
         chartEvents={chartEvents}

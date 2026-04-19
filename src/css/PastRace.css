@@ -24,7 +24,7 @@
 }
 
 .past-race-course {
-  width: 230px;
+  width: 275px;
   flex-shrink: 0;
   overflow: hidden;
   text-overflow: ellipsis;
