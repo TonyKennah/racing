@@ -16,6 +16,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const hasScrolled = useRef(false);
+  const [showNextRaceBanner, setShowNextRaceBanner] = useState(false);
   const [followRacing, setFollowRacing] = useState(false);
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [showInterestingModal, setShowInterestingModal] = useState(false);
@@ -76,6 +77,26 @@ function App() {
     })},
     [races, selectedPlaces, handicapOnly, followRacing, currentTime]
   );
+
+  // Track changes to show a "Next Race" transition message
+  const prevCountRef = useRef(filteredRaces.length);
+  const prevTimeRef = useRef(currentTime);
+
+  useEffect(() => {
+    // If followRacing is active and the count dropped because time moved forward
+    if (
+      followRacing && 
+      currentTime !== prevTimeRef.current && 
+      filteredRaces.length < prevCountRef.current && 
+      prevCountRef.current > 0
+    ) {
+      setShowNextRaceBanner(true);
+      const timer = setTimeout(() => setShowNextRaceBanner(false), 4000);
+      return () => clearTimeout(timer);
+    }
+    prevCountRef.current = filteredRaces.length;
+    prevTimeRef.current = currentTime;
+  }, [filteredRaces.length, currentTime, followRacing]);
 
   useEffect(() => {
     if (!loading && filteredRaces.length > 0 && !hasScrolled.current) {
@@ -254,10 +275,18 @@ function App() {
         />
       </Modal>
       
-      
+      {showNextRaceBanner && (
+        <div className="next-race-banner">
+          🕒 Race finished. Moving to next scheduled off...
+        </div>
+      )}
       
       {filteredRaces.map((race) => (
-        <RaceCard key={`${race.time}-${race.place}`} race={race} />
+        <RaceCard 
+          key={`${race.time}-${race.place}`} 
+          race={race} 
+          allRaces={filteredRaces} 
+        />
       ))}
     </main>
   );

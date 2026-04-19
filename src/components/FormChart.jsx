@@ -18,7 +18,7 @@ const CustomDot = (props) => {
   return <circle cx={cx} cy={cy} r={3} fill={stroke} stroke={stroke} strokeWidth={1} />;
 };
 
-const FormChart = ({ horses }) => {
+const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev }) => {
   const [top2Only, setTop2Only] = useState(false);
 
   const chartData = useMemo(() => {
@@ -102,13 +102,27 @@ const FormChart = ({ horses }) => {
 
   return (
     <div className="form-chart-container">
-      <div className="chart-controls" style={{ marginBottom: '10px', textAlign: 'right' }}>
+      <div className="chart-controls" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ flex: 1 }}>
+          {hasPrev && (
+            <button className="race-analytics-btn" onClick={onPrev}>
+              ← Prev Race
+            </button>
+          )}
+        </div>
         <button 
           className={`race-analytics-btn ${top2Only ? 'active' : ''}`}
           onClick={() => setTop2Only(!top2Only)}
         >
           {top2Only ? 'Showing Top 2 or < 2l' : 'Filter Top 2 or < 2l'}
         </button>
+        <div style={{ flex: 1, textAlign: 'right' }}>
+          {hasNext && (
+            <button className="race-analytics-btn" onClick={onNext}>
+              Next Race →
+            </button>
+          )}
+        </div>
       </div>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>

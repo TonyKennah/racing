@@ -5,10 +5,11 @@ import OddsChart from './OddsChart';
 import Modal from './Modal';
 import '../css/RaceCard.css';
 
-const RaceCard = ({ race }) => {
+const RaceCard = ({ race, allRaces = [] }) => {
   const [showChart, setShowChart] = useState(false);
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
+  const [activeChartRace, setActiveChartRace] = useState(race);
 
   const getAvg = (h) => {
     const past = h.past || [];
@@ -60,6 +61,24 @@ const RaceCard = ({ race }) => {
 
   const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
 
+  // Navigation logic for the FormChart Modal
+  const currentIndex = allRaces.findIndex(r => r.time === activeChartRace.time && r.place === activeChartRace.place);
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < allRaces.length - 1 && currentIndex !== -1;
+
+  const handlePrev = () => {
+    if (hasPrev) setActiveChartRace(allRaces[currentIndex - 1]);
+  };
+
+  const handleNext = () => {
+    if (hasNext) setActiveChartRace(allRaces[currentIndex + 1]);
+  };
+
+  const openChart = () => {
+    setActiveChartRace(race); // Reset to this card's race when opening
+    setShowChart(true);
+  };
+
   return (
     <div id={raceId} className="race-card">
       <header className="race-header">
@@ -92,7 +111,7 @@ const RaceCard = ({ race }) => {
           <button onClick={() => setShowOdds(!showOdds)} className="race-analytics-btn">
             Odds
           </button>
-          <button onClick={() => setShowChart(!showChart)} className="race-analytics-btn">
+          <button onClick={openChart} className="race-analytics-btn">
             Chart
           </button>
         </div>
@@ -109,9 +128,15 @@ const RaceCard = ({ race }) => {
       <Modal 
         isOpen={showChart} 
         onClose={() => setShowChart(false)} 
-        title={`${race.time} ${race.place} - ${race.detail} ${race.going}`}
+        title={`${activeChartRace.time} ${activeChartRace.place} - ${activeChartRace.detail} ${activeChartRace.going}`}
       >
-          <FormChart horses={race.horses} />
+          <FormChart 
+            horses={activeChartRace.horses} 
+            onNext={handleNext}
+            onPrev={handlePrev}
+            hasNext={hasNext}
+            hasPrev={hasPrev}
+          />
       </Modal>
 
       <div className="entries">
