@@ -112,7 +112,7 @@ const FiddleSelections = ({ races, onClose }) => {
                 {item.venue}
               </td>
               <td><strong>{item.name}</strong></td>
-              <td>{item.breeding}</td>
+              <td className="breeding-cell">{item.breeding}</td>
               <td className="odds-highlight">{item.odds}</td>
             </tr>
           ))}

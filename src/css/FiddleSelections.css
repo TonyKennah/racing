@@ -29,3 +29,9 @@
     padding: 10px 12px;
     border-bottom: 1px solid #444;
 }
+
+.breeding-cell {
+    font-size: 0.75rem;
+    color: var(--text);
+    opacity: 0.8;
+}
