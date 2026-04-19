@@ -8,7 +8,7 @@ const FiddleSelections = ({ races, onClose }) => {
     // Lists for "Hot" connections
     const hotOwners = ["J P McManus"];
     const hotTrainers = ["A P O'Brien", "T D Easterby", "L Russell & M Scudamore",
-        "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell"
+        "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell", "G & J Moore", "R A Fahey"
     ];
 
     const results = [];
@@ -17,6 +17,7 @@ const FiddleSelections = ({ races, onClose }) => {
       race.horses.forEach(horse => {
         const owner = horse.owner || "";
         const trainer = horse.trainer || "";
+        const breeding = horse.breeding || "";
 
         const oddsArray = horse.odds || [];
         const latestOddRaw = oddsArray[oddsArray.length - 1];
@@ -37,8 +38,7 @@ const FiddleSelections = ({ races, onClose }) => {
             time: race.time,
             place: race.place,
             odds: currentOdds,
-            owner: horse.owner,
-            trainer: horse.trainer
+            breeding: horse.breeding
           });
         }
       });
@@ -94,8 +94,8 @@ const FiddleSelections = ({ races, onClose }) => {
             <th onClick={() => requestSort('name')} className="sortable">
               Horse{getSortIndicator('name')}
             </th>
-            <th onClick={() => requestSort('trainer')} className="sortable">
-              Trainer{getSortIndicator('trainer')}
+            <th onClick={() => requestSort('breeding')} className="sortable">
+              Breeding{getSortIndicator('breeding')}
             </th>
             <th onClick={() => requestSort('odds')} className="sortable">
               Odds{getSortIndicator('odds')}
@@ -112,7 +112,7 @@ const FiddleSelections = ({ races, onClose }) => {
                 {item.venue}
               </td>
               <td><strong>{item.name}</strong></td>
-              <td>{item.trainer}</td>
+              <td>{item.breeding}</td>
               <td className="odds-highlight">{item.odds}</td>
             </tr>
           ))}
