@@ -16,6 +16,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const hasScrolled = useRef(false);
+  const [followRacing, setFollowRacing] = useState(false);
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [showInterestingModal, setShowInterestingModal] = useState(false);
   const [showFavoriteModal, setShowFavoriteModal] = useState(false);
@@ -59,12 +60,17 @@ function App() {
   );
 
   const filteredRaces = useMemo(() =>
-    races.filter(race => {
+    {
+      const isShowingTomorrow = currentTime.getHours() >= 21;
+      const nowHhmm = `${String(currentTime.getHours()).padStart(2, '0')}:${String(currentTime.getMinutes()).padStart(2, '0')}`;
+
+      return races.filter(race => {
       const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
       const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
-      return matchesPlace && matchesHandicap;
-    }),
-    [races, selectedPlaces, handicapOnly]
+      const matchesFollow = !followRacing || isShowingTomorrow || race.time >= nowHhmm;
+      return matchesPlace && matchesHandicap && matchesFollow;
+    })},
+    [races, selectedPlaces, handicapOnly, followRacing, currentTime]
   );
 
   useEffect(() => {
@@ -184,6 +190,13 @@ function App() {
       <RaceTimeline races={filteredRaces} />
 
       <div className="summary-controls">
+        <button 
+          className={`filter-btn follow-btn ${followRacing ? 'active' : ''}`}
+          onClick={() => setFollowRacing(!followRacing)}
+          title="Only show races that haven't run yet"
+        >
+          ⏱️ Follow Racing
+        </button>
         <button 
           className="filter-btn movement-summary-btn"
           onClick={() => setShowMovementModal(true)}

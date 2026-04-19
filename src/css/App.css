@@ -73,6 +73,10 @@
   margin-right: 8px;
 }
 
+.follow-btn {
+  border-color: #ff4757;
+}
+
 .movement-summary-btn {
   border-color: #3ccf34;
 }
