@@ -62,12 +62,16 @@ function App() {
   const filteredRaces = useMemo(() =>
     {
       const isShowingTomorrow = currentTime.getHours() >= 21;
-      const nowHhmm = `${String(currentTime.getHours()).padStart(2, '0')}:${String(currentTime.getMinutes()).padStart(2, '0')}`;
+      const nowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
 
       return races.filter(race => {
       const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
       const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
-      const matchesFollow = !followRacing || isShowingTomorrow || race.time >= nowHhmm;
+
+      const [rH, rM] = race.time.split(':').map(Number);
+      const raceMinutes = rH * 60 + rM;
+      const matchesFollow = !followRacing || isShowingTomorrow || nowMinutes <= (raceMinutes + 3);
+
       return matchesPlace && matchesHandicap && matchesFollow;
     })},
     [races, selectedPlaces, handicapOnly, followRacing, currentTime]
