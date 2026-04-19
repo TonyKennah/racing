@@ -7,6 +7,7 @@ import Modal from './components/Modal';
 import OddsMovementSummary from './components/OddsMovementSummary';
 import InterestingSelections from './components/InterestingSelections';
 import FavoriteSelections from './components/FavoriteSelections';
+import FiddleSelections from './components/FiddleSelections';
 import './css/App.css';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [showInterestingModal, setShowInterestingModal] = useState(false);
   const [showFavoriteModal, setShowFavoriteModal] = useState(false);
+  const [showFiddleModal, setShowFiddleModal] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -220,25 +222,32 @@ function App() {
           onClick={() => setFollowRacing(!followRacing)}
           title="Only show races that haven't run yet"
         >
-          ⏱️ Follow Racing
+          ⏱️ Follow
         </button>
         <button 
           className="filter-btn movement-summary-btn"
           onClick={() => setShowMovementModal(true)}
         >
-          📊 Odds Movement
+          📊 Odds 
         </button>
         <button 
           className="filter-btn interesting-selections-btn"
           onClick={() => setShowInterestingModal(true)}
         >
-          ⭐ Value Selections
+          ⭐ Value
         </button>
         <button 
           className="filter-btn strong-favorites-btn"
           onClick={() => setShowFavoriteModal(true)}
         >
-          🎯 Strong Favourites
+          🎯 Short
+        </button>
+        <button 
+          className="filter-btn fiddle-btn"
+          onClick={() => setShowFiddleModal(true)}
+          title="Show J P MacManus and A P O'Brien runners"
+        >
+          🎻 Fiddles
         </button>
       </div>
 
@@ -272,6 +281,17 @@ function App() {
         <FavoriteSelections 
           races={filteredRaces} 
           onClose={() => setShowFavoriteModal(false)} 
+        />
+      </Modal>
+
+      <Modal 
+        isOpen={showFiddleModal} 
+        onClose={() => setShowFiddleModal(false)} 
+        title="Fiddle Selections (Key Connections)"
+      >
+        <FiddleSelections 
+          races={filteredRaces} 
+          onClose={() => setShowFiddleModal(false)} 
         />
       </Modal>
       

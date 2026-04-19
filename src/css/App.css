@@ -89,6 +89,10 @@
   border-color: #4285F4;
 }
 
+.fiddle-btn {
+  border-color: #ff9f43;
+}
+
 .next-race-banner {
   background-color: var(--accent-bg);
   color: var(--accent);
