@@ -227,25 +227,28 @@ function App() {
         <button 
           className="filter-btn movement-summary-btn"
           onClick={() => setShowMovementModal(true)}
+          title="Show odds movements"
         >
           📊 Odds 
         </button>
         <button 
           className="filter-btn interesting-selections-btn"
           onClick={() => setShowInterestingModal(true)}
+          title="Show well rated big prices"
         >
           ⭐ Value
         </button>
         <button 
           className="filter-btn strong-favorites-btn"
           onClick={() => setShowFavoriteModal(true)}
+          title="Show short priced favourites"
         >
           🎯 Short
         </button>
         <button 
           className="filter-btn fiddle-btn"
           onClick={() => setShowFiddleModal(true)}
-          title="Show J P MacManus and A P O'Brien runners"
+          title="Show well connected horses"
         >
           🎻 Fiddles
         </button>
