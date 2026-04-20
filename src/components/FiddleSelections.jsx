@@ -6,7 +6,7 @@ const FiddleSelections = ({ races, onClose }) => {
 
   const selections = useMemo(() => {
     // Lists for "Hot" connections
-    const hotOwners = ["J P McManus"];
+    const hotOwners = ["John P McManus"];
     const hotTrainers = ["A P O'Brien", "T D Easterby", "L Russell & M Scudamore",
         "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell", "G & J Moore", "R A Fahey"
     ];

@@ -15,19 +15,19 @@ const OddsMovementSummary = ({ races, onClose }) => {
         if (latestOdd === "null" || latestOdd === "NR") return;
 
         // Filter out "null", "NR", or empty odds to ensure we have valid numbers
-        const validOdds = odds.filter(o => o !== "null" && o !== "NR" && !isNaN(parseFloat(o)));
+        const validOdds = odds.filter(o => o !== "null" && o !== "NR" && !isNaN(parseFloat(o))).map(o => parseFloat(o));
         
         if (validOdds.length > 1) {
-          const start = parseFloat(validOdds[0]);
-          const current = parseFloat(validOdds[validOdds.length - 1]);
-          const diff = current - start;
+          const biggest = Math.max(...validOdds);
+          const current = validOdds[validOdds.length - 1];
+          const diff = current - biggest;
           
           list.push({
             name: horse.name,
             venue: `${race.time} ${race.place}`,
             time: race.time,
             place: race.place,
-            start,
+            biggest,
             current,
             diff: parseFloat(diff.toFixed(2))
           });
@@ -90,8 +90,8 @@ const OddsMovementSummary = ({ races, onClose }) => {
             <th onClick={() => requestSort('name')} className="sortable">
               Horse{getSortIndicator('name')}
             </th>
-            <th onClick={() => requestSort('start')} className="sortable">
-              Start{getSortIndicator('start')}
+            <th onClick={() => requestSort('biggest')} className="sortable">
+              Biggest{getSortIndicator('biggest')}
             </th>
             <th onClick={() => requestSort('current')} className="sortable">
               Current{getSortIndicator('current')}
@@ -111,7 +111,7 @@ const OddsMovementSummary = ({ races, onClose }) => {
                 {item.venue}
               </td>
               <td><strong>{item.name}</strong></td>
-              <td>{item.start}</td>
+              <td>{item.biggest}</td>
               <td>{item.current}</td>
               <td className={item.diff < 0 ? 'move-down' : item.diff > 0 ? 'move-up' : ''}>
                 {item.diff > 0 ? `+${item.diff}` : item.diff}

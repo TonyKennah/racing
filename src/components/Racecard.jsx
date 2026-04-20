@@ -136,6 +136,7 @@ const RaceCard = ({ race, allRaces = [] }) => {
             onPrev={handlePrev}
             hasNext={hasNext}
             hasPrev={hasPrev}
+            todayDistance={activeChartRace.distance}
           />
       </Modal>
 

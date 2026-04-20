@@ -85,19 +85,24 @@ function App() {
   const prevTimeRef = useRef(currentTime);
 
   useEffect(() => {
+    const prevCount = prevCountRef.current;
+    const prevTime = prevTimeRef.current;
+
+    // Always update tracking refs to current values for the next cycle
+    prevCountRef.current = filteredRaces.length;
+    prevTimeRef.current = currentTime;
+
     // If followRacing is active and the count dropped because time moved forward
     if (
       followRacing && 
-      currentTime !== prevTimeRef.current && 
-      filteredRaces.length < prevCountRef.current && 
-      prevCountRef.current > 0
+      currentTime.getTime() !== prevTime.getTime() && 
+      filteredRaces.length < prevCount && 
+      prevCount > 0
     ) {
       setShowNextRaceBanner(true);
       const timer = setTimeout(() => setShowNextRaceBanner(false), 4000);
       return () => clearTimeout(timer);
     }
-    prevCountRef.current = filteredRaces.length;
-    prevTimeRef.current = currentTime;
   }, [filteredRaces.length, currentTime, followRacing]);
 
   useEffect(() => {

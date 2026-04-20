@@ -4,21 +4,27 @@ import '../css/FormChart.css';
 
 const CustomDot = (props) => {
   const { cx, cy, stroke, payload, dataKey } = props;
-  if (payload[`${dataKey}_isHighest`]) {
-    const odds = payload[`${dataKey}_latestOdds`];
-    return (
-      <g>
+  const isHighest = payload[`${dataKey}_isHighest`];
+  const isWin = payload[`${dataKey}_isWin`];
+  const isSameDist = payload[`${dataKey}_isSameDist`];
+
+  return (
+    <g>
+      {isWin ? (
+        <text x={cx} y={cy} fill={stroke} textAnchor="middle" dominantBaseline="central" fontSize={isSameDist ? 24 : 16}>★</text>
+      ) : (
         <circle cx={cx} cy={cy} r={3} fill={stroke} stroke={stroke} strokeWidth={1} />
+      )}
+      {isHighest && (
         <text x={cx} y={cy - 15} fill={stroke} textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight="bold">
-          {`${dataKey} ${odds}`}
+          {`${dataKey} ${payload[`${dataKey}_latestOdds`]}`}
         </text>
-      </g>
-    );
-  }
-  return <circle cx={cx} cy={cy} r={3} fill={stroke} stroke={stroke} strokeWidth={1} />;
+      )}
+    </g>
+  );
 };
 
-const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev }) => {
+const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) => {
   const [top2Only, setTop2Only] = useState(false);
 
   const chartData = useMemo(() => {
@@ -37,11 +43,14 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev }) => {
       const displayOdd = lastOdd === "null" ? "NR" : (lastOdd ? (isNaN(lastOdd) ? lastOdd : Number(lastOdd)) : "x");
 
       horse.past.forEach(race => {
+        const posStr = race.position ? race.position.toString().trim() : "";
+        const actualPos = posStr.split('/')[0]; // Extract the finishing position from format "3/4"
+        const isWinner = actualPos === "1";
+        const isSameDist = race.distance === todayDistance;
+
         // Filter logic: If top2Only is active, include 1st, 2nd, or beaten < 2 lengths
         if (top2Only) {
-            const posStr = race.position ? race.position.toString().trim() : "";
-            const actualPos = posStr.split('/')[0]; // Extract the finishing position from format "3/4"
-            const isTop2 = actualPos === "1" || actualPos === "2";
+            const isTop2 = isWinner || actualPos === "2";
             
             let isClose = false;
             if (race.distBeaten) {
@@ -67,6 +76,8 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev }) => {
         map[timestamp][horse.name] = parseFloat(race.name);
         map[timestamp][`${horse.name}_todayWeight`] = horse.weight;
         map[timestamp][`${horse.name}_latestOdds`] = displayOdd;
+        map[timestamp][`${horse.name}_isWin`] = isWinner;
+        map[timestamp][`${horse.name}_isSameDist`] = isSameDist;
 
         const beaten = race.distBeaten ? ` (${race.distBeaten} l)` : '';
         map[timestamp][`${horse.name}_details`] = 
@@ -91,7 +102,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev }) => {
     });
 
     return sortedData;
-  }, [horses, top2Only]);
+  }, [horses, top2Only, todayDistance]);
 
   const LINE_COLORS = [
     '#e6194b', '#3cb44b', '#3b7944', '#4363d8', '#f58231', 
