@@ -25,11 +25,31 @@ const CustomDot = (props) => {
 };
 
 const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) => {
+  const parseDistanceToFurlongs = (distStr) => {
+    if (!distStr || typeof distStr !== 'string') return 0;
+    let totalFurlongs = 0;
+    
+    const mMatch = distStr.match(/(\d+)m/);
+    const fMatch = distStr.match(/(\d+)f/);
+
+    if (mMatch) totalFurlongs += parseInt(mMatch[1], 10) * 8;
+    if (fMatch) totalFurlongs += parseInt(fMatch[1], 10);
+
+    // If no m or f units found, try to parse as a plain number (e.g. "10")
+    if (!mMatch && !fMatch) {
+      const val = parseInt(distStr, 10);
+      if (!isNaN(val)) totalFurlongs = val;
+    }
+    return totalFurlongs;
+  };
+
   const [top2Only, setTop2Only] = useState(false);
+  const [distOnly, setDistOnly] = useState(false);
 
   const chartData = useMemo(() => {
     const map = {};
     const horseMaxRatings = {};
+    const todayFurlongs = parseDistanceToFurlongs(todayDistance);
 
     horses.forEach(horse => {
       // Skip non-runners
@@ -46,7 +66,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
         const posStr = race.position ? race.position.toString().trim() : "";
         const actualPos = posStr.split('/')[0]; // Extract the finishing position from format "3/4"
         const isWinner = actualPos === "1";
-        const isSameDist = race.distance === todayDistance;
+        const isSameDist = parseDistanceToFurlongs(race.distance) === todayFurlongs && todayFurlongs > 0;
 
         // Filter logic: If top2Only is active, include 1st, 2nd, or beaten < 2 lengths
         if (top2Only) {
@@ -56,7 +76,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             if (race.distBeaten) {
                 const distStr = race.distBeaten.toLowerCase().trim();
                 // Handle common racing abbreviations for small distances (shd, hd, nk, etc.)
-                const abbreviations = ['shd', 'hd', 'nk', 'snk', 'dht'];
+                const abbreviations = ['shd', 'hd', 'nk', 'ns', 'dh'];
                 if (abbreviations.includes(distStr)) {
                     isClose = true;
                 } else {
@@ -66,6 +86,11 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             }
             
             if (!isTop2 && !isClose) return;
+        }
+
+        // Filter logic: If distOnly is active, skip races that aren't the same distance
+        if (distOnly && !isSameDist) {
+            return;
         }
 
         const [d, m, y] = race.date.split('/');
@@ -102,7 +127,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
     });
 
     return sortedData;
-  }, [horses, top2Only, todayDistance]);
+  }, [horses, top2Only, distOnly, todayDistance]);
 
   const LINE_COLORS = [
     '#e6194b', '#3cb44b', '#3b7944', '#4363d8', '#f58231', 
@@ -121,12 +146,21 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             </button>
           )}
         </div>
-        <button 
-          className={`race-analytics-btn ${top2Only ? 'active' : ''}`}
-          onClick={() => setTop2Only(!top2Only)}
-        >
-          {top2Only ? 'Showing Top 2 or < 2l' : 'Filter Top 2 or < 2l'}
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            className={`race-analytics-btn ${top2Only ? 'active' : ''}`}
+            onClick={() => setTop2Only(!top2Only)}
+          >
+            {top2Only ? 'Showing Top 2' : 'Filter Top 2'}
+          </button>
+          <button 
+            className={`race-analytics-btn ${distOnly ? 'active' : ''}`}
+            onClick={() => setDistOnly(!distOnly)}
+          >
+            {distOnly ? 'Showing Same Dist' : 'Filter Same Dist'}
+          </button>
+        </div>
+
         <div style={{ flex: 1, textAlign: 'right' }}>
           {hasNext && (
             <button className="race-analytics-btn" onClick={onNext}>
