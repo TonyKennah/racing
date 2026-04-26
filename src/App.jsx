@@ -23,6 +23,9 @@ const isFiddleHorse = (horse) => {
   const latestOddRaw = oddsArray[oddsArray.length - 1];
   if (!latestOddRaw || latestOddRaw === "null" || latestOddRaw === "NR") return false;
   
+  if(horse.owner.startsWith("STAR"))
+    return true;
+  
   const currentOdds = parseFloat(latestOddRaw);
   if (isNaN(currentOdds) || currentOdds <= 9) return false;
 
@@ -42,7 +45,7 @@ function App() {
   const [showNextRaceBanner, setShowNextRaceBanner] = useState(false);
   const [followRacing, setFollowRacing] = useState(false);
   const [showMovementModal, setShowMovementModal] = useState(false);
-  const [showInterestingModal, setShowInterestingModal] = useState(false);
+  const [valueOnly, setValueOnly] = useState(false);
   const [showFavoriteModal, setShowFavoriteModal] = useState(false);
   const [fiddleOnly, setFiddleOnly] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -132,25 +135,72 @@ function App() {
       if (!race?.time) return false;
       const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
       const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
-      
-      const hasFiddle = race.horses && race.horses.some(h => isFiddleHorse(h));
-      const matchesFiddle = !fiddleOnly || hasFiddle;
 
+      // Value Selections Logic: Top 2 rated, Odds > 9, > 80% FORM
+      // This logic is still needed to determine 'isValue' for horses, but not for filtering races here.
+      const formMatch = race.detail?.match(/FORM\s+(\d+)%/i);
+      const formPercentage = formMatch ? parseInt(formMatch[1], 10) : 0;
+      
+      const activeHorsesStats = (race.horses || []).filter(h => {
+        const lastOdd = h.odds?.[h.odds.length - 1];
+        return lastOdd && lastOdd !== "null" && lastOdd !== "NR";
+      }).map(h => {
+        const ratings = (h.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
+        const max = ratings.length > 0 ? Math.max(...ratings) : 0;
+        const lastOdd = h.odds?.[h.odds.length - 1];
+        const odds = parseFloat(lastOdd);
+        return { max, odds };
+      });
+
+      const uniqueRatings = [...new Set(activeHorsesStats.map(s => s.max))].sort((a, b) => b - a);
+      const top1 = uniqueRatings[0] || 0;
+      const top2 = uniqueRatings[1] || 0;
+      // The 'hasValue' check is moved to the map function below to set the 'isValue' flag on horses.
+      // It is no longer used to filter races at this stage.
+
+      // Only these conditions now filter races
       const [rH, rM] = race.time.split(':').map(Number);
       const raceMinutes = rH * 60 + rM;
       const matchesFollow = !followRacing || isShowingFuture || nowMinutes <= (raceMinutes + 3);
-
-      return matchesPlace && matchesHandicap && matchesFollow && matchesFiddle;
+      return matchesPlace && matchesHandicap && matchesFollow;
     });
 
-    return filtered.map(race => ({
-      ...race,
-      horses: (race.horses || []).map(h => ({
-        ...h,
-        isFiddle: isFiddleHorse(h)
-      }))
-    }))},
-    [races, selectedPlaces, handicapOnly, followRacing, currentTime, displayDate, fiddleOnly]
+    return filtered.map(race => {
+      const formMatch = race.detail?.match(/FORM\s+(\d+)%/i);
+      const formPercentage = formMatch ? parseInt(formMatch[1], 10) : 0;
+      const activeHorses = (race.horses || []).filter(h => {
+        const lastOdd = h.odds?.[h.odds.length - 1];
+        return lastOdd && lastOdd !== "null" && lastOdd !== "NR";
+      });
+      const ratingsPool = activeHorses.map(h => {
+        const pr = (h.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
+        return pr.length > 0 ? Math.max(...pr) : 0;
+      });
+      const uniqueRatings = [...new Set(ratingsPool)].sort((a, b) => b - a);
+      const top1 = uniqueRatings[0] || 0;
+      const top2 = uniqueRatings[1] || 0;
+
+      return {
+        ...race,
+        horses: (race.horses || []).map(h => {
+          const lastOdd = h.odds?.[h.odds.length - 1];
+          const currentOdds = (lastOdd && lastOdd !== "null" && lastOdd !== "NR") ? parseFloat(lastOdd) : 0;
+          const pr = (h.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
+          const maxRating = pr.length > 0 ? Math.max(...pr) : 0;
+          
+          // isFiddle and isValue are now calculated here for each horse
+          // and used for highlighting, not for filtering races.
+          const isValue = formPercentage >= 80 && maxRating > 0 && (maxRating === top1 || maxRating === top2) && currentOdds > 9;
+          
+          return {
+            ...h,
+            isFiddle: isFiddleHorse(h),
+            isValue: isValue
+          };
+        })
+      };
+    })},
+    [races, selectedPlaces, handicapOnly, followRacing, currentTime, displayDate, fiddleOnly, valueOnly]
   );
 
   // Track changes to show a "Next Race" transition message
@@ -422,9 +472,9 @@ function App() {
           📊 Odds 
         </button>
         <button 
-          className="filter-btn interesting-selections-btn"
-          onClick={() => setShowInterestingModal(true)}
-          title="Show well rated big prices"
+          className={`filter-btn interesting-selections-btn ${valueOnly ? 'active' : ''}`}
+          onClick={() => setValueOnly(!valueOnly)}
+          title="Highlight well rated big prices"
         >
           ⭐ Value
         </button>
@@ -438,7 +488,7 @@ function App() {
         <button 
           className={`filter-btn fiddle-btn ${fiddleOnly ? 'active' : ''}`}
           onClick={() => setFiddleOnly(!fiddleOnly)}
-          title="Filter to races with well connected horses"
+          title="Highlight well connected horses"
         >
           🎻 Fiddles
         </button>
@@ -456,17 +506,6 @@ function App() {
       </Modal>
 
       <Modal 
-        isOpen={showInterestingModal} 
-        onClose={() => setShowInterestingModal(false)} 
-        title="Interesting Selections (Top Rated & Odds > 9 & > 80% FORM)"
-      >
-        <InterestingSelections 
-          races={filteredRaces} 
-          onClose={() => setShowInterestingModal(false)} 
-        />
-      </Modal>
-
-      <Modal 
         isOpen={showFavoriteModal} 
         onClose={() => setShowFavoriteModal(false)} 
         title="Strong Favourites (Top Rated & Shortest Odds)"
@@ -479,7 +518,7 @@ function App() {
 
       {showNextRaceBanner && (
         <div className="next-race-banner">
-          🕒 Race finished. Moving to next scheduled off...
+          🕒 Race finished. Moved to next scheduled off...
         </div>
       )}
       
@@ -489,6 +528,7 @@ function App() {
           race={race} 
           allRaces={filteredRaces} 
           highlightFiddles={fiddleOnly}
+          highlightValues={valueOnly}
         />
       ))}
     </main>

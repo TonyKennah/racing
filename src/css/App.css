@@ -53,8 +53,9 @@
 
 .filter-btn.active {
   border-color: var(--accent);
-  background-color: var(--accent-bg);
-  color: var(--text-h);
+  background-color: var(--accent);
+  color: var(--bg);
+  font-weight: bold;
 }
 
 .handicap-btn {
@@ -76,6 +77,10 @@
 .follow-btn {
   border-color: #ff4757;
 }
+.follow-btn.active {
+  background-color: #ff4757;
+  color: white;
+}
 
 .movement-summary-btn {
   border-color: #3ccf34;
@@ -84,6 +89,10 @@
 .interesting-selections-btn {
   border-color: #f4b400;
 }
+.interesting-selections-btn.active {
+  background-color: #f4b400;
+  color: #000;
+}
 
 .strong-favorites-btn {
   border-color: #4285F4;
@@ -91,6 +100,10 @@
 
 .fiddle-btn {
   border-color: #ff9f43;
+}
+.fiddle-btn.active {
+  background-color: #ff9f43;
+  color: #000;
 }
 
 .next-race-banner {
@@ -116,4 +129,14 @@
 .filter-btn:hover {
     border-color: var(--accent);
     background-color: var(--accent);
+}
+
+.fiddle-highlight {
+  background-color: rgba(255, 159, 67, 0.15) !important;
+  border-left: 4px solid #ff9f43 !important;
+}
+
+.value-highlight {
+  background-color: rgba(244, 180, 0, 0.15) !important;
+  border-left: 4px solid #f4b400 !important;
 }
