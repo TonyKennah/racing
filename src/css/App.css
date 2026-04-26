@@ -1,7 +1,7 @@
 
 /* Theme Variables */
 :root[data-theme='light'] {
-  --bg: #ffffff;
+  --bg: #d2e5ed;
   --text: #333333;
   --text-h: #000000;
   --border: #dddddd;
