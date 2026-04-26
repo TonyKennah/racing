@@ -11,7 +11,14 @@ const CustomDot = (props) => {
   return (
     <g>
       {isWin ? (
-        <text x={cx} y={cy} fill={stroke} textAnchor="middle" dominantBaseline="central" fontSize={isSameDist ? 24 : 16}>★</text>
+        <text 
+          x={cx} 
+          y={cy - (isSameDist ? 2 : 1)} // Adjusted Y to visually center symbols
+          fill={stroke} 
+          textAnchor="middle" 
+          dominantBaseline="central" 
+          fontSize={isSameDist ? 24 : 16}
+        >★</text>
       ) : (
         <circle cx={cx} cy={cy} r={3} fill={stroke} stroke={stroke} strokeWidth={1} />
       )}
@@ -31,16 +38,35 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
     
     const mMatch = distStr.match(/(\d+)m/);
     const fMatch = distStr.match(/(\d+)f/);
+    const yMatch = distStr.match(/(\d+)y/);
 
     if (mMatch) totalFurlongs += parseInt(mMatch[1], 10) * 8;
     if (fMatch) totalFurlongs += parseInt(fMatch[1], 10);
 
-    // If no m or f units found, try to parse as a plain number (e.g. "10")
-    if (!mMatch && !fMatch) {
-      const val = parseInt(distStr, 10);
-      if (!isNaN(val)) totalFurlongs = val;
+
+    if (yMatch) {
+      const yards = parseInt(yMatch[1], 10);
+      totalFurlongs += Math.round(yards / 220); // Round to nearest furlong
     }
     return totalFurlongs;
+  };
+
+  const formatFurlongsToMiles = (furlongsStr) => {
+    if (!furlongsStr || typeof furlongsStr !== 'string' || !furlongsStr.endsWith('f')) {
+      return furlongsStr;
+    }
+    const furlongs = parseInt(furlongsStr.slice(0, -1), 10);
+    if (isNaN(furlongs)) return furlongsStr;
+
+    const miles = Math.floor(furlongs / 8);
+    const remainingFurlongs = furlongs % 8;
+
+    let result = '';
+    if (miles > 0) result += `${miles}m`;
+    if (remainingFurlongs > 0) {
+      result += (result ? ' ' : '') + `${remainingFurlongs}f`;
+    }
+    return result || (furlongs === 0 ? '0f' : furlongsStr);
   };
 
   const [top2Only, setTop2Only] = useState(false);
@@ -106,7 +132,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
 
         const beaten = race.distBeaten ? ` (${race.distBeaten} l)` : '';
         map[timestamp][`${horse.name}_details`] = 
-          `${race.time} ${race.course} (Class ${race.raceClass}, ${race.distance}, ${race.going}) | ` +
+          `${race.time} ${race.course} (Class ${race.raceClass}, ${formatFurlongsToMiles(race.distance)}, ${race.going}) | ` +
           `Pos: ${race.position}${beaten} | Wt: ${race.weight}`;
       });
     });

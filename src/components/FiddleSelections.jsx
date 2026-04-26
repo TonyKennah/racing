@@ -8,7 +8,8 @@ const FiddleSelections = ({ races, onClose }) => {
     // Lists for "Hot" connections
     const hotOwners = ["John P McManus"];
     const hotTrainers = ["A P O'Brien", "T D Easterby", "L Russell & M Scudamore",
-        "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell", "G & J Moore", "R A Fahey"
+        "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell", "G & J Moore", "R A Fahey",
+        "Ian Williams"
     ];
 
     const results = [];

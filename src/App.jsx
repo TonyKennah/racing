@@ -24,6 +24,15 @@ function App() {
   const [showFavoriteModal, setShowFavoriteModal] = useState(false);
   const [showFiddleModal, setShowFiddleModal] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [displayDate, setDisplayDate] = useState(() => {
+    const now = new Date();
+    // If it's 9 PM or later, initialize with tomorrow's date
+    if (now.getHours() >= 21) {
+      now.setDate(now.getDate() + 1);
+    }
+    return now;
+  });
+  const dateInputRef = useRef(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -33,12 +42,6 @@ function App() {
   }, []);
 
   const formattedDateTime = useMemo(() => {
-    const targetDate = new Date(currentTime);
-    // If it's 9 PM or later, the racing data shown is for tomorrow
-    if (currentTime.getHours() >= 21) {
-      targetDate.setDate(targetDate.getDate() + 1);
-    }
-
     const time = currentTime.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
@@ -51,11 +54,11 @@ function App() {
       return n + (s[(v - 20) % 10] || s[v] || s[0]);
     };
 
-    const day = targetDate.getDate();
-    const month = targetDate.toLocaleString('default', { month: 'long' });
+    const day = displayDate.getDate();
+    const month = displayDate.toLocaleString('default', { month: 'long' });
 
     return `for ${getOrdinal(day)} ${month} (${time})`;
-  }, [currentTime]);
+  }, [currentTime, displayDate]);
 
   const uniquePlaces = useMemo(() => 
     [...new Set(races.map(r => r.place))].sort(),
@@ -64,7 +67,13 @@ function App() {
 
   const filteredRaces = useMemo(() =>
     {
-      const isShowingTomorrow = currentTime.getHours() >= 21;
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const dDate = new Date(displayDate);
+      dDate.setHours(0,0,0,0);
+      // Determine if the selected card is in the future relative to today
+      const isShowingFuture = dDate > today;
+
       const nowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
 
       return races.filter(race => {
@@ -73,11 +82,11 @@ function App() {
 
       const [rH, rM] = race.time.split(':').map(Number);
       const raceMinutes = rH * 60 + rM;
-      const matchesFollow = !followRacing || isShowingTomorrow || nowMinutes <= (raceMinutes + 3);
+      const matchesFollow = !followRacing || isShowingFuture || nowMinutes <= (raceMinutes + 3);
 
       return matchesPlace && matchesHandicap && matchesFollow;
     })},
-    [races, selectedPlaces, handicapOnly, followRacing, currentTime]
+    [races, selectedPlaces, handicapOnly, followRacing, currentTime, displayDate]
   );
 
   // Track changes to show a "Next Race" transition message
@@ -144,24 +153,17 @@ function App() {
   }, [loading, filteredRaces]);
 
   useEffect(() => {
-    const now = new Date();
-    const currentHour = now.getHours(); // 0-23
-
-    let targetDate = new Date(now);
-    // If it's 9 PM or later, fetch tomorrow's data
-    if (currentHour >= 21) { 
-      targetDate.setDate(now.getDate() + 1);
-    }
-
-    const day = String(targetDate.getDate()).padStart(2, '0');
-    const month = String(targetDate.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-    const year = targetDate.getFullYear();
+    setLoading(true);
+    setError(null);
+    const day = String(displayDate.getDate()).padStart(2, '0');
+    const month = String(displayDate.getMonth() + 1).padStart(2, '0');
+    const year = displayDate.getFullYear();
     const dateString = `${day}-${month}-${year}`;
 
     fetch(`https://www.pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error('Races for this date are not available');
         }
         return response.json();
       })
@@ -173,11 +175,48 @@ function App() {
         setError(err.message);
         setLoading(false);
       });
-  }, []);
+  }, [displayDate]);
+
+  const handleOpenDatePicker = () => {
+    if (dateInputRef.current) {
+      if (typeof dateInputRef.current.showPicker === 'function') {
+        dateInputRef.current.showPicker();
+      } else {
+        dateInputRef.current.click();
+      }
+    }
+  };
+
+  const dateInputValue = `${displayDate.getFullYear()}-${String(displayDate.getMonth() + 1).padStart(2, '0')}-${String(displayDate.getDate()).padStart(2, '0')}`;
+
+  const datePickerInput = (
+    <input
+      type="date"
+      ref={dateInputRef}
+      value={dateInputValue}
+      onChange={(e) => {
+        if (e.target.value) {
+          const [y, m, d] = e.target.value.split('-').map(Number);
+          const newDate = new Date(y, m - 1, d);
+          setDisplayDate(newDate);
+          hasScrolled.current = false;
+        }
+      }}
+      style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+    />
+  );
 
   if (loading) return (
     <main>
-      <h2>The Racing {formattedDateTime}</h2>
+      <h2 
+        onClick={handleOpenDatePicker} 
+        style={{ cursor: 'pointer' }}
+        title="Click to change date"
+      >
+        The Racing {formattedDateTime}
+        <span style={{ marginLeft: '10px', fontSize: '1rem' }}>📅</span>
+      </h2>
+      {datePickerInput}
       <SkeletonRaceTimeline />
       <SkeletonRaceCard />
       <SkeletonRaceCard />
@@ -186,14 +225,40 @@ function App() {
   );
 
   if (error) return (
-    <div className="full-page-center">
-      <p className="error">Error: {error}</p>
-    </div>
+    <main>
+      <h2 
+        onClick={handleOpenDatePicker} 
+        style={{ cursor: 'pointer' }}
+        title="Click to change date"
+      >
+        The Racing {formattedDateTime}
+        <span style={{ marginLeft: '10px', fontSize: '1rem' }}>📅</span>
+      </h2>
+      {datePickerInput}
+      <div className="full-page-center">
+        <p className="error">Error: {error}</p>
+        <button 
+          className="filter-btn" 
+          onClick={() => setDisplayDate(new Date())}
+          style={{ marginTop: '20px' }}
+        >
+          Go to Today
+        </button>
+      </div>
+    </main>
   );
 
   return (
     <main id="home">
-      <h2>The Racing {formattedDateTime}</h2>
+      <h2 
+        onClick={handleOpenDatePicker} 
+        style={{ cursor: 'pointer' }} 
+        title="Click to change date"
+      >
+        The Racing {formattedDateTime}
+        <span style={{ marginLeft: '10px', fontSize: '1rem' }}>📅</span>
+      </h2>
+      {datePickerInput}
 
       <div className="place-filters">
         <button
