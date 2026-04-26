@@ -23,7 +23,7 @@ const isFiddleHorse = (horse) => {
   const latestOddRaw = oddsArray[oddsArray.length - 1];
   if (!latestOddRaw || latestOddRaw === "null" || latestOddRaw === "NR") return false;
   
-  if(horse.owner.startsWith("STAR"))
+  if(horse.owner?.startsWith("STAR"))
     return true;
   
   const currentOdds = parseFloat(latestOddRaw);
@@ -311,6 +311,7 @@ function App() {
   const datePickerInput = (
     <input
       type="date"
+      id="main-date-picker"
       ref={dateInputRef}
       value={dateInputValue}
       onChange={(e) => {
@@ -321,7 +322,7 @@ function App() {
           hasScrolled.current = false;
         }
       }}
-      style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+      className="hidden-date-input"
     />
   );
 
@@ -354,14 +355,16 @@ function App() {
   if (loading) return (
     <main>
       {searchBar}
-      <h2 
-        onClick={handleOpenDatePicker} 
-        className="date-header"
-        title="Click to change date"
-      >
-        The Racing {formattedDateTime}
-        <span className="date-icon">📅</span>
-      </h2>
+      <label htmlFor="main-date-picker">
+        <h2 
+          onClick={handleOpenDatePicker} 
+          className="date-header"
+          title="Click to change date"
+        >
+          The Racing {formattedDateTime}
+          <span className="date-icon">📅</span>
+        </h2>
+      </label>
       {datePickerInput}
       <SkeletonRaceTimeline />
       <SkeletonRaceCard />
@@ -373,14 +376,16 @@ function App() {
   if (error) return (
     <main>
       {searchBar}
-      <h2 
-        onClick={handleOpenDatePicker} 
-        className="date-header"
-        title="Click to change date"
-      >
-        The Racing {formattedDateTime}
-        <span className="date-icon">📅</span>
-      </h2>
+      <label htmlFor="main-date-picker">
+        <h2 
+          onClick={handleOpenDatePicker} 
+          className="date-header"
+          title="Click to change date"
+        >
+          The Racing {formattedDateTime}
+          <span className="date-icon">📅</span>
+        </h2>
+      </label>
       {datePickerInput}
       <div className="full-page-center">
         <p className="error">Error: {error}</p>
@@ -397,14 +402,16 @@ function App() {
   return (
     <main id="home">
       {searchBar}
-      <h2 
-        onClick={handleOpenDatePicker} 
-        className="date-header" 
-        title="Click to change date"
-      >
-        The Racing {formattedDateTime}
-        <span className="date-icon">📅</span>
-      </h2>
+      <label htmlFor="main-date-picker">
+        <h2 
+          onClick={handleOpenDatePicker} 
+          className="date-header" 
+          title="Click to change date"
+        >
+          The Racing {formattedDateTime}
+          <span className="date-icon">📅</span>
+        </h2>
+      </label>
       {datePickerInput}
 
       <div className="place-filters">
