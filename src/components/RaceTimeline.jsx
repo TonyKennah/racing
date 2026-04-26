@@ -38,8 +38,14 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
     const start = new Date(0, 0, 0, hours, minutes);
     const end = new Date(0, 0, 0, hours, minutes + Math.max(2, duration));
 
-    // Create an HTML string for the tooltip to force single-line display and match the theme
-    const tooltipHtml = `<div style="white-space: nowrap; padding: 10px; ${theme.tooltip} font-family: sans-serif; font-size: 13px;">${race.detail || ''}</div>`;
+    // Break the detail into two lines if it contains a '(' (e.g., "Handicap Chase (Class 4)")
+    const detailParts = (race.detail || '').split('(');
+    const displayDetail = detailParts.length > 1 
+      ? `${detailParts[0].trim()}<br/>(${detailParts.slice(1).join('(')}` 
+      : race.detail || '';
+
+    // Create an HTML string for the tooltip and match the theme
+    const tooltipHtml = `<div style="padding: 10px; ${theme.tooltip} font-family: sans-serif; font-size: 13px; line-height: 1.4;">${displayDetail}</div>`;
 
     return [race.place, race.time, tooltipHtml, start, end];
   });
