@@ -33,6 +33,34 @@ function App() {
     return now;
   });
   const dateInputRef = useRef(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const searchResults = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term || !Array.isArray(races)) return [];
+    
+    const matches = [];
+    races.forEach(race => {
+      race.horses?.forEach(horse => {
+        if (horse.name?.toLowerCase().includes(term) || horse.trainer?.toLowerCase().includes(term)) {
+          matches.push({
+            name: horse.name,
+            id: `${race.time}${race.place.replace(/\s+/g, '')}`,
+            info: `${horse.trainer} - ${race.time} ${race.place}`
+          });
+        }
+      });
+    });
+    return matches.slice(0, 10);
+  }, [searchTerm, races]);
+
+  const handleSearchSelect = (id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      setSearchTerm('');
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -61,7 +89,7 @@ function App() {
   }, [currentTime, displayDate]);
 
   const uniquePlaces = useMemo(() => 
-    [...new Set(races.map(r => r.place))].sort(),
+    [...new Set((Array.isArray(races) ? races : []).map(r => r.place))].sort(),
     [races]
   );
 
@@ -76,7 +104,10 @@ function App() {
 
       const nowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
 
-      return races.filter(race => {
+      const pool = Array.isArray(races) ? races : [];
+
+      return pool.filter(race => {
+      if (!race?.time) return false;
       const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
       const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
 
@@ -168,7 +199,12 @@ function App() {
         return response.json();
       })
       .then((data) => {
-        setRaces(data);
+        // Ensure data is an array before setting state
+        if (Array.isArray(data)) {
+          setRaces(data);
+        } else {
+          throw new Error('Unexpected data format from server');
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -206,8 +242,57 @@ function App() {
     />
   );
 
+  const searchBar = (
+    <div className="search-container" style={{ position: 'relative', marginBottom: '15px' }}>
+      <input
+        type="text"
+        placeholder="🔍 Search horse name..."
+        className="filter-btn"
+        style={{ width: '100%', textAlign: 'left', cursor: 'text', background: '#1a1a1a', paddingLeft: '15px' }}
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+      {searchResults.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          backgroundColor: '#2a2a2a',
+          zIndex: 2000,
+          borderRadius: '8px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+          maxHeight: '300px',
+          overflowY: 'auto',
+          border: '1px solid #444',
+          marginTop: '5px'
+        }}>
+          {searchResults.map((res, i) => (
+            <div
+              key={`${res.id}-${i}`}
+              onClick={() => handleSearchSelect(res.id)}
+              style={{
+                padding: '12px 15px',
+                borderBottom: i === searchResults.length - 1 ? 'none' : '1px solid #3d3d3d',
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#3d3d3d'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <span style={{ fontWeight: '600' }}>{res.name}</span>
+              <span style={{ color: '#888', fontSize: '0.9em' }}>{res.info}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   if (loading) return (
     <main>
+      {searchBar}
       <h2 
         onClick={handleOpenDatePicker} 
         style={{ cursor: 'pointer' }}
@@ -226,6 +311,7 @@ function App() {
 
   if (error) return (
     <main>
+      {searchBar}
       <h2 
         onClick={handleOpenDatePicker} 
         style={{ cursor: 'pointer' }}
@@ -250,6 +336,7 @@ function App() {
 
   return (
     <main id="home">
+      {searchBar}
       <h2 
         onClick={handleOpenDatePicker} 
         style={{ cursor: 'pointer' }} 
