@@ -94,19 +94,18 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
           <h5 className="race-detail">{race.detail} {race.going}</h5>
         </div>
         <div className="race-controls">
-          <label>Sort by:</label>
           <select 
             value={sortBy}
             aria-label="Sort horses by"
             onChange={(e) => setSortBy(e.target.value)}
             className="race-sort-select"
           >
-            <option value="odds">Latest Odds</option>
+            <option value="odds">Odds</option>
             <option value="number">Number</option>
-            <option value="avg">Avg Rating (L3)</option>
-            <option value="last">Last Run Rating</option>
-            <option value="high">Highest Rating</option>
-            <option value="all">Avg Rating (All)</option>
+            <option value="avg">Avg (L3)</option>
+            <option value="last">Last Run</option>
+            <option value="high">Highest</option>
+            <option value="all">Avg (All)</option>
           </select>
           <button onClick={() => setShowOdds(!showOdds)} className="race-analytics-btn">
             Odds

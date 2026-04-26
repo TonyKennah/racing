@@ -42,6 +42,12 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const hasScrolled = useRef(false);
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
   const [showNextRaceBanner, setShowNextRaceBanner] = useState(false);
   const [followRacing, setFollowRacing] = useState(false);
   const [showMovementModal, setShowMovementModal] = useState(false);
@@ -93,6 +99,11 @@ function App() {
     }, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const formattedDateTime = useMemo(() => {
     const time = currentTime.toLocaleTimeString('en-US', {
@@ -327,28 +338,34 @@ function App() {
   );
 
   const searchBar = (
-    <div className="search-container">
-      <input
-        type="text"
-        placeholder="🔍 Search horse name..."
-        className="filter-btn search-input"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      {searchResults.length > 0 && (
-        <div className="search-results">
-          {searchResults.map((res, i) => (
-            <div
-              key={`${res.id}-${i}`}
-              onClick={() => handleSearchSelect(res.id)}
-              className="search-result-item"
-            >
-              <span className="search-result-name">{res.name}</span>
-              <span className="search-result-info">{res.info}</span>
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="top-bar">
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="🔍 Search horse name..."
+          className="filter-btn search-input"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        {searchResults.length > 0 && (
+          <div className="search-results">
+            {searchResults.map((res, i) => (
+              <div
+                key={`${res.id}-${i}`}
+                onClick={() => handleSearchSelect(res.id)}
+                className="search-result-item"
+              >
+                <span className="search-result-name">{res.name}</span>
+                <span className="search-result-info">{res.info}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="theme-toggle-group">
+        <button onClick={() => setTheme('light')} className={`theme-btn ${theme === 'light' ? 'active' : ''}`} title="Light Mode">☀️</button>
+        <button onClick={() => setTheme('dark')} className={`theme-btn ${theme === 'dark' ? 'active' : ''}`} title="Dark Mode">🌙</button>
+      </div>
     </div>
   );
 
