@@ -453,7 +453,7 @@ function App() {
         })}
       </div>
 
-      <RaceTimeline races={filteredRaces} />
+      <RaceTimeline races={filteredRaces} theme={theme} />
 
       <div className="summary-controls">
         <button 

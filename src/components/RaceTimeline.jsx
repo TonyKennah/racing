@@ -3,7 +3,7 @@ import { Chart } from 'react-google-charts';
 import SkeletonRaceTimeline from './SkeletonRaceTimeline';
 import '../css/RaceTimeline.css';
 
-const RaceTimeline = ({ races }) => {
+const RaceTimeline = ({ races, theme: currentTheme }) => {
   const columns = [
     { type: 'string', id: 'Venue' },
     { type: 'string', id: 'Race' },
@@ -13,7 +13,7 @@ const RaceTimeline = ({ races }) => {
   ];
 
   // Detect if the user is in dark mode to adjust chart colors dynamically
-  const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = currentTheme === 'dark';
   const theme = {
     bg: isDark ? '#2a2a2a' : '#ffffff',
     text: isDark ? '#e0e0e0' : '#333333',
