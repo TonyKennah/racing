@@ -326,46 +326,24 @@ function App() {
   );
 
   const searchBar = (
-    <div className="search-container" style={{ position: 'relative', marginBottom: '15px' }}>
+    <div className="search-container">
       <input
         type="text"
         placeholder="🔍 Search horse name..."
-        className="filter-btn"
-        style={{ width: '100%', textAlign: 'left', cursor: 'text', background: '#1a1a1a', paddingLeft: '15px' }}
+        className="filter-btn search-input"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
       {searchResults.length > 0 && (
-        <div style={{
-          position: 'absolute',
-          top: '100%',
-          left: 0,
-          right: 0,
-          backgroundColor: '#2a2a2a',
-          zIndex: 2000,
-          borderRadius: '8px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-          maxHeight: '300px',
-          overflowY: 'auto',
-          border: '1px solid #444',
-          marginTop: '5px'
-        }}>
+        <div className="search-results">
           {searchResults.map((res, i) => (
             <div
               key={`${res.id}-${i}`}
               onClick={() => handleSearchSelect(res.id)}
-              style={{
-                padding: '12px 15px',
-                borderBottom: i === searchResults.length - 1 ? 'none' : '1px solid #3d3d3d',
-                cursor: 'pointer',
-                display: 'flex',
-                justifyContent: 'space-between'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#3d3d3d'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              className="search-result-item"
             >
-              <span style={{ fontWeight: '600' }}>{res.name}</span>
-              <span style={{ color: '#888', fontSize: '0.9em' }}>{res.info}</span>
+              <span className="search-result-name">{res.name}</span>
+              <span className="search-result-info">{res.info}</span>
             </div>
           ))}
         </div>
@@ -378,11 +356,11 @@ function App() {
       {searchBar}
       <h2 
         onClick={handleOpenDatePicker} 
-        style={{ cursor: 'pointer' }}
+        className="date-header"
         title="Click to change date"
       >
         The Racing {formattedDateTime}
-        <span style={{ marginLeft: '10px', fontSize: '1rem' }}>📅</span>
+        <span className="date-icon">📅</span>
       </h2>
       {datePickerInput}
       <SkeletonRaceTimeline />
@@ -397,19 +375,18 @@ function App() {
       {searchBar}
       <h2 
         onClick={handleOpenDatePicker} 
-        style={{ cursor: 'pointer' }}
+        className="date-header"
         title="Click to change date"
       >
         The Racing {formattedDateTime}
-        <span style={{ marginLeft: '10px', fontSize: '1rem' }}>📅</span>
+        <span className="date-icon">📅</span>
       </h2>
       {datePickerInput}
       <div className="full-page-center">
         <p className="error">Error: {error}</p>
         <button 
-          className="filter-btn" 
+          className="filter-btn error-retry-btn" 
           onClick={() => setDisplayDate(new Date())}
-          style={{ marginTop: '20px' }}
         >
           Go to Today
         </button>
@@ -422,11 +399,11 @@ function App() {
       {searchBar}
       <h2 
         onClick={handleOpenDatePicker} 
-        style={{ cursor: 'pointer' }} 
+        className="date-header" 
         title="Click to change date"
       >
         The Racing {formattedDateTime}
-        <span style={{ marginLeft: '10px', fontSize: '1rem' }}>📅</span>
+        <span className="date-icon">📅</span>
       </h2>
       {datePickerInput}
 

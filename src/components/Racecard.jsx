@@ -84,7 +84,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
       <header className="race-header">
         <div className="race-title-group">
           <h2>
-            <a href="#home" className="home-link" title="Return to top" style={{ textDecoration: 'none', marginRight: '8px' }}>
+            <a href="#home" className="home-link" title="Return to top">
               🏠
             </a>
             <a href={`#${raceId}`} className="race-title-link">
