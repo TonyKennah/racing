@@ -5,9 +5,7 @@ import SkeletonRaceTimeline from './components/SkeletonRaceTimeline';
 import RaceTimeline from './components/RaceTimeline';
 import Modal from './components/Modal';
 import OddsMovementSummary from './components/OddsMovementSummary';
-import InterestingSelections from './components/InterestingSelections';
 import FavoriteSelections from './components/FavoriteSelections';
-import FiddleSelections from './components/FiddleSelections';
 import './css/App.css';
 
 const HOT_OWNERS = ["John P McManus"];
