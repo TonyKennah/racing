@@ -5,7 +5,7 @@ import OddsChart from './OddsChart';
 import Modal from './Modal';
 import '../css/RaceCard.css';
 
-const RaceCard = ({ race, allRaces = [] }) => {
+const RaceCard = ({ race, allRaces = [], highlightFiddles }) => {
   const [showChart, setShowChart] = useState(false);
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
@@ -142,7 +142,12 @@ const RaceCard = ({ race, allRaces = [] }) => {
 
       <div className="entries">
         {sortedHorses.map(horse => (
-          <HorseRow key={horse.number} horse={horse} sortBy={sortBy} />
+          <HorseRow 
+            key={horse.number} 
+            horse={horse} 
+            sortBy={sortBy} 
+            highlightFiddle={highlightFiddles && horse.isFiddle}
+          />
         ))}
       </div>
     </div>

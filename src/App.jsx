@@ -10,6 +10,28 @@ import FavoriteSelections from './components/FavoriteSelections';
 import FiddleSelections from './components/FiddleSelections';
 import './css/App.css';
 
+const HOT_OWNERS = ["John P McManus"];
+const HOT_TRAINERS = [
+  "A P O'Brien", "T D Easterby", "L Russell & M Scudamore",
+  "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell",
+  "G & J Moore", "R A Fahey", "Ian Williams"
+];
+
+const isFiddleHorse = (horse) => {
+  if (!horse) return false;
+  const oddsArray = horse.odds || [];
+  const latestOddRaw = oddsArray[oddsArray.length - 1];
+  if (!latestOddRaw || latestOddRaw === "null" || latestOddRaw === "NR") return false;
+  
+  const currentOdds = parseFloat(latestOddRaw);
+  if (isNaN(currentOdds) || currentOdds <= 9) return false;
+
+  const owner = (horse.owner || "").toLowerCase();
+  const trainer = (horse.trainer || "").toLowerCase();
+  return HOT_OWNERS.some(o => owner.includes(o.toLowerCase())) ||
+         HOT_TRAINERS.some(t => trainer.includes(t.toLowerCase()));
+};
+
 function App() {
   const [races, setRaces] = useState([]);
   const [selectedPlaces, setSelectedPlaces] = useState([]);
@@ -22,7 +44,7 @@ function App() {
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [showInterestingModal, setShowInterestingModal] = useState(false);
   const [showFavoriteModal, setShowFavoriteModal] = useState(false);
-  const [showFiddleModal, setShowFiddleModal] = useState(false);
+  const [fiddleOnly, setFiddleOnly] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [displayDate, setDisplayDate] = useState(() => {
     const now = new Date();
@@ -106,18 +128,29 @@ function App() {
 
       const pool = Array.isArray(races) ? races : [];
 
-      return pool.filter(race => {
+      const filtered = pool.filter(race => {
       if (!race?.time) return false;
       const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
       const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
+      
+      const hasFiddle = race.horses && race.horses.some(h => isFiddleHorse(h));
+      const matchesFiddle = !fiddleOnly || hasFiddle;
 
       const [rH, rM] = race.time.split(':').map(Number);
       const raceMinutes = rH * 60 + rM;
       const matchesFollow = !followRacing || isShowingFuture || nowMinutes <= (raceMinutes + 3);
 
-      return matchesPlace && matchesHandicap && matchesFollow;
-    })},
-    [races, selectedPlaces, handicapOnly, followRacing, currentTime, displayDate]
+      return matchesPlace && matchesHandicap && matchesFollow && matchesFiddle;
+    });
+
+    return filtered.map(race => ({
+      ...race,
+      horses: (race.horses || []).map(h => ({
+        ...h,
+        isFiddle: isFiddleHorse(h)
+      }))
+    }))},
+    [races, selectedPlaces, handicapOnly, followRacing, currentTime, displayDate, fiddleOnly]
   );
 
   // Track changes to show a "Next Race" transition message
@@ -403,9 +436,9 @@ function App() {
           🎯 Short
         </button>
         <button 
-          className="filter-btn fiddle-btn"
-          onClick={() => setShowFiddleModal(true)}
-          title="Show well connected horses"
+          className={`filter-btn fiddle-btn ${fiddleOnly ? 'active' : ''}`}
+          onClick={() => setFiddleOnly(!fiddleOnly)}
+          title="Filter to races with well connected horses"
         >
           🎻 Fiddles
         </button>
@@ -444,17 +477,6 @@ function App() {
         />
       </Modal>
 
-      <Modal 
-        isOpen={showFiddleModal} 
-        onClose={() => setShowFiddleModal(false)} 
-        title="Fiddle Selections (Key Connections)"
-      >
-        <FiddleSelections 
-          races={filteredRaces} 
-          onClose={() => setShowFiddleModal(false)} 
-        />
-      </Modal>
-      
       {showNextRaceBanner && (
         <div className="next-race-banner">
           🕒 Race finished. Moving to next scheduled off...
@@ -466,6 +488,7 @@ function App() {
           key={`${race.time}-${race.place}`} 
           race={race} 
           allRaces={filteredRaces} 
+          highlightFiddles={fiddleOnly}
         />
       ))}
     </main>

@@ -121,6 +121,11 @@
   background-color: var(--accent-bg);
 }
 
+.fiddle-highlight {
+  background-color: rgba(255, 215, 0, 0.15) !important; /* Subtle gold background */
+  border-left: 4px solid gold !important; /* Gold border on the left */
+}
+
 .horse-row.non-runner {
   opacity: 0.4;
   filter: grayscale(0.8);
