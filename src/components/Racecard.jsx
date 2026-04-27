@@ -111,7 +111,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
             Odds
           </button>
           <button onClick={openChart} className="race-analytics-btn">
-            Chart
+            Form
           </button>
         </div>
       </header>

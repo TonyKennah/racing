@@ -345,7 +345,7 @@ function App() {
       <div className="search-container">
         <input
           type="text"
-          placeholder="🔍 Search horse name..."
+          placeholder="🔍 Search..."
           className="filter-btn search-input"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
