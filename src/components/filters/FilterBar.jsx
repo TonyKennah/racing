@@ -5,10 +5,10 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, onShowMovement, onShowFa
     <div className="filter-section">
       <div className="place-filters">
         <button
-          onClick={() => setFilters(f => ({ ...f, handicap: !f.handicap }))}
-          className={`filter-btn handicap-btn ${filters.handicap ? 'active' : ''}`}
+          onClick={() => setFilters(f => ({ ...f, tricast: !f.tricast }))}
+          className={`filter-btn handicap-btn ${filters.tricast ? 'active' : ''}`}
         >
-          Handicap Only
+          Tricasts
         </button>
 
         {uniquePlaces.map(place => {

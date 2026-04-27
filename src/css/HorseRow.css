@@ -95,7 +95,7 @@
 .avg-rating {
   font-weight: bold;
   color: var(--accent);
-  margin: 0 15px;
+  margin: 0 25px;
   font-size: 1.1em;
   min-width: 40px;
   text-align: right;
@@ -109,7 +109,7 @@
 }
 
 .horse-row {
-  padding: 5px 10px;
+  padding: 5px 0px;
   transition: background-color 0.2s ease;
 }
 
@@ -140,7 +140,7 @@
   color: var(--text-h);
   min-width: 60px;
   display: inline-block;
-  padding-right: 20px;
+  padding-right: 13px;
   text-align: center;
 }
 

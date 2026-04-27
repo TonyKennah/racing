@@ -1,8 +1,10 @@
-export const HOT_OWNERS = ["John P McManus"];
+export const HOT_OWNERS = [
+  "John P McManus", "Mrs J Donnelly"
+];
 export const HOT_TRAINERS = [
   "A P O'Brien", "T D Easterby", "L Russell & M Scudamore",
   "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell",
-  "G & J Moore", "R A Fahey", "Ian Williams"
+  "G & J Moore", "R A Fahey", "Ian Williams", "A W Carroll"
 ];
 
 /**
