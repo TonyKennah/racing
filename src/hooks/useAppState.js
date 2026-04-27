@@ -15,7 +15,7 @@ export function useAppState() {
   
   const [filters, setFilters] = useState({
     places: [],
-    handicap: false,
+    tricast: false,
     follow: false,
     value: false,
     fiddle: false
