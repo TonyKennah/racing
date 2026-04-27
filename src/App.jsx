@@ -54,12 +54,7 @@ function App() {
   const [fiddleOnly, setFiddleOnly] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [displayDate, setDisplayDate] = useState(() => {
-    const now = new Date();
-    // If it's 9 PM or later, initialize with tomorrow's date
-    if (now.getHours() >= 21) {
-      now.setDate(now.getDate() + 1);
-    }
-    return now;
+    return new Date();
   });
   const dateInputRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -133,8 +128,9 @@ function App() {
       today.setHours(0,0,0,0);
       const dDate = new Date(displayDate);
       dDate.setHours(0,0,0,0);
-      // Determine if the selected card is in the future relative to today
-      const isShowingFuture = dDate > today;
+
+      const isToday = dDate.getTime() === today.getTime();
+      const isFuture = dDate > today;
 
       const nowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
 
@@ -170,7 +166,7 @@ function App() {
       // Only these conditions now filter races
       const [rH, rM] = race.time.split(':').map(Number);
       const raceMinutes = rH * 60 + rM;
-      const matchesFollow = !followRacing || isShowingFuture || nowMinutes <= (raceMinutes + 3);
+      const matchesFollow = !followRacing || isFuture || !isToday || nowMinutes <= (raceMinutes + 3);
       return matchesPlace && matchesHandicap && matchesFollow;
     });
 
