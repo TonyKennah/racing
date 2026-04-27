@@ -11,8 +11,13 @@ import './css/App.css';
 
 function App() {
   const [races, setRaces] = useState([]);
-  const [selectedPlaces, setSelectedPlaces] = useState([]);
-  const [handicapOnly, setHandicapOnly] = useState(false);
+  const [filters, setFilters] = useState({
+    places: [],
+    handicap: false,
+    follow: false,
+    value: false,
+    fiddle: false
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const hasScrolled = useRef(false);
@@ -23,12 +28,9 @@ function App() {
   });
 
   const [showNextRaceBanner, setShowNextRaceBanner] = useState(false);
-  const [followRacing, setFollowRacing] = useState(false);
   const [showMovementModal, setShowMovementModal] = useState(false);
-  const [valueOnly, setValueOnly] = useState(false);
   const [showFavoriteModal, setShowFavoriteModal] = useState(false);
   const [refreshCooldown, setRefreshCooldown] = useState(false);
-  const [fiddleOnly, setFiddleOnly] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [displayDate, setDisplayDate] = useState(() => {
     return new Date();
@@ -149,17 +151,17 @@ function App() {
       return pool
         .filter(race => {
           if (!race?.time) return false;
-          const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
-          const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
+          const matchesPlace = filters.places.length === 0 || filters.places.includes(race.place);
+          const matchesHandicap = !filters.handicap || (race.detail && race.detail.toLowerCase().includes('handicap'));
 
           const [rH, rM] = race.time.split(':').map(Number);
           const raceMinutes = rH * 60 + rM;
-          const matchesFollow = !followRacing || isFuture || !isToday || nowMinutes <= (raceMinutes + 3);
+          const matchesFollow = !filters.follow || isFuture || !isToday || nowMinutes <= (raceMinutes + 3);
           return matchesPlace && matchesHandicap && matchesFollow;
         })
         .map(augmentRaceWithStats);
     },
-    [races, selectedPlaces, handicapOnly, followRacing, currentTime, displayDate, fiddleOnly, valueOnly]
+    [races, filters, currentTime, displayDate]
   );
 
   // Track changes to show a "Next Race" transition message
@@ -176,7 +178,7 @@ function App() {
 
     // If followRacing is active and the count dropped because time moved forward
     if (
-      followRacing && 
+      filters.follow && 
       currentTime.getTime() !== prevTime.getTime() && 
       filteredRaces.length < prevCount && 
       prevCount > 0
@@ -185,7 +187,7 @@ function App() {
       const timer = setTimeout(() => setShowNextRaceBanner(false), 4000);
       return () => clearTimeout(timer);
     }
-  }, [filteredRaces.length, currentTime, followRacing]);
+  }, [filteredRaces.length, currentTime, filters.follow]);
 
   useEffect(() => {
     if (!loading && filteredRaces.length > 0 && !hasScrolled.current) {
@@ -367,20 +369,21 @@ function App() {
 
       <div className="place-filters">
         <button
-          onClick={() => setHandicapOnly(!handicapOnly)}
-          className={`filter-btn handicap-btn ${handicapOnly ? 'active' : ''}`}
+          onClick={() => setFilters(f => ({ ...f, handicap: !f.handicap }))}
+          className={`filter-btn handicap-btn ${filters.handicap ? 'active' : ''}`}
         >
           Handicap Only
         </button>
 
         {uniquePlaces.map(place => {
-          const isActive = selectedPlaces.includes(place);
+          const isActive = filters.places.includes(place);
           return (
             <button
               key={place}
-              onClick={() => setSelectedPlaces(prev => 
-                isActive ? prev.filter(p => p !== place) : [...prev, place]
-              )}
+              onClick={() => setFilters(f => ({
+                ...f,
+                places: isActive ? f.places.filter(p => p !== place) : [...f.places, place]
+              }))}
               className={`filter-btn ${isActive ? 'active' : ''}`}
             >
               {place}
@@ -393,8 +396,8 @@ function App() {
 
       <div className="summary-controls">
         <button 
-          className={`filter-btn follow-btn ${followRacing ? 'active' : ''}`}
-          onClick={() => setFollowRacing(!followRacing)}
+          className={`filter-btn follow-btn ${filters.follow ? 'active' : ''}`}
+          onClick={() => setFilters(f => ({ ...f, follow: !f.follow }))}
           title="Only show races that haven't run yet"
         >
           ⏱️ Follow
@@ -407,8 +410,8 @@ function App() {
           📊 Odds 
         </button>
         <button 
-          className={`filter-btn interesting-selections-btn ${valueOnly ? 'active' : ''}`}
-          onClick={() => setValueOnly(!valueOnly)}
+          className={`filter-btn interesting-selections-btn ${filters.value ? 'active' : ''}`}
+          onClick={() => setFilters(f => ({ ...f, value: !f.value }))}
           title="Highlight well rated big prices"
         >
           ⭐ Value
@@ -421,8 +424,8 @@ function App() {
           🎯 Short
         </button>
         <button 
-          className={`filter-btn fiddle-btn ${fiddleOnly ? 'active' : ''}`}
-          onClick={() => setFiddleOnly(!fiddleOnly)}
+          className={`filter-btn fiddle-btn ${filters.fiddle ? 'active' : ''}`}
+          onClick={() => setFilters(f => ({ ...f, fiddle: !f.fiddle }))}
           title="Highlight well connected horses"
         >
           🎻 Fiddles
@@ -462,8 +465,8 @@ function App() {
           key={`${race.time}-${race.place}`} 
           race={race} 
           allRaces={filteredRaces} 
-          highlightFiddles={fiddleOnly}
-          highlightValues={valueOnly}
+          highlightFiddles={filters.fiddle}
+          highlightValues={filters.value}
         />
       ))}
     </main>
