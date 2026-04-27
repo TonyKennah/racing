@@ -10,8 +10,10 @@ import SearchOverlay from './components/SearchOverlay';
 import FilterBar from './components/FilterBar';
 import RaceGrid from './components/RaceGrid';
 import { useFilteredRaces } from './hooks/useFilteredRaces';
+import { useAutoScroll } from './hooks/useAutoScroll';
 import { useRaces } from './hooks/useRaces';
 import { useTheme } from './hooks/useTheme';
+import { formatDisplayDateTime } from './utils/dateUtils';
 import './css/App.css';
 
 function App() {
@@ -25,7 +27,6 @@ function App() {
     value: false,
     fiddle: false
   });
-  const hasScrolled = useRef(false);
   const [theme, setTheme] = useTheme();
 
   useEffect(() => {
@@ -40,22 +41,7 @@ function App() {
   const [showFavoriteModal, setShowFavoriteModal] = useState(false);
 
   const formattedDateTime = useMemo(() => {
-    const time = currentTime.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    }).replace(/\s/g, '');
-
-    const getOrdinal = (n) => {
-      const s = ["th", "st", "nd", "rd"];
-      const v = n % 100;
-      return n + (s[(v - 20) % 10] || s[v] || s[0]);
-    };
-
-    const day = displayDate.getDate();
-    const month = displayDate.toLocaleString('default', { month: 'long' });
-
-    return `for ${getOrdinal(day)} ${month} (${time})`;
+    return formatDisplayDateTime(displayDate, currentTime);
   }, [currentTime, displayDate]);
 
   const uniquePlaces = useMemo(() => 
@@ -64,6 +50,7 @@ function App() {
   );
 
   const filteredRaces = useFilteredRaces(races, filters, currentTime, displayDate);
+  useAutoScroll(loading, filteredRaces);
 
   const prevCountRef = useRef(filteredRaces.length);
   const prevTimeRef = useRef(currentTime);
@@ -80,41 +67,6 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [filteredRaces.length, currentTime, filters.follow]);
-
-  useEffect(() => {
-    if (!loading && filteredRaces.length > 0 && !hasScrolled.current) {
-      const now = new Date();
-      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      
-      const nextRace = filteredRaces.find(r => r.time >= timeStr);
-      
-      if (nextRace) {
-        setTimeout(() => {
-          const hash = window.location.hash.substring(1);
-          const hashedElement = hash ? document.getElementById(hash) : null;
-
-          if (hashedElement) {
-            hashedElement.scrollIntoView({ behavior: 'auto', block: 'start' });
-            hasScrolled.current = true;
-          } else {
-            const [h, m] = nextRace.time.split(':').map(Number);
-            const nextRaceTime = new Date(now);
-            nextRaceTime.setHours(h, m, 0, 0);
-            const diffMs = nextRaceTime - now;
-
-            if (diffMs >= 0 && diffMs <= 10 * 60 * 1000) {
-              const id = `${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
-              const element = document.getElementById(id);
-              if (element) {
-                element.scrollIntoView({ behavior: 'auto', block: 'start' });
-                hasScrolled.current = true;
-              }
-            }
-          }
-        }, 600);
-      }
-    }
-  }, [loading, filteredRaces]);
 
   if (loading) {
     return (
