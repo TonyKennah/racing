@@ -118,7 +118,7 @@
 }
 
 .horse-row:hover {
-  background-color: var(--accent-bg);
+  background-color: var(--accent-bg) !important;
 }
 
 .fiddle-highlight {
