@@ -18,7 +18,8 @@ const CustomDot = (props) => {
 };
 
 const OddsChart = ({ horses }) => {
-  const [under12Only, setUnder12Only] = useState(false);
+  const [minOdds, setMinOdds] = useState(0);
+  const [maxOdds, setMaxOdds] = useState(100);
 
   const getLatestOdds = (h) => {
     const odds = h.odds || [];
@@ -34,8 +35,12 @@ const OddsChart = ({ horses }) => {
   ];
 
   const visibleHorses = useMemo(() => {
-    return under12Only ? horses.filter(h => getLatestOdds(h) < 12) : horses;
-  }, [horses, under12Only]);
+    return horses.filter(h => {
+      const odds = getLatestOdds(h);
+      if (odds === Infinity) return false; // Exclude non-runners from the chart
+      return odds >= minOdds && (maxOdds === 100 ? true : odds <= maxOdds);
+    });
+  }, [horses, minOdds, maxOdds]);
 
   const chartData = useMemo(() => {
     if (visibleHorses.length === 0) return [];
@@ -73,20 +78,56 @@ const OddsChart = ({ horses }) => {
     return data;
   }, [visibleHorses]);
 
-  // If no odds data exists yet
-  if (chartData.length === 0) {
-    return <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text)' }}>No horses match the current filter.</div>;
-  }
-
   return (
     <div className="form-chart-container">
-      <div className="chart-controls" style={{ marginBottom: '10px', textAlign: 'right' }}>
-        <button 
-          className={`race-analytics-btn ${under12Only ? 'active' : ''}`}
-          onClick={() => setUnder12Only(!under12Only)}
-        >
-          {under12Only ? 'Showing Odds < 12' : 'Filter Odds < 12'}
-        </button>
+      <div className="chart-controls" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        {/* Min Odds Slider */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '10px',
+          padding: '2px 12px',
+          borderRadius: '20px',
+          border: '1px solid var(--border)',
+          backgroundColor: minOdds > 0 ? 'var(--accent)' : 'transparent',
+          color: minOdds > 0 ? 'var(--bg)' : 'var(--text)',
+          fontSize: '13px'
+        }}>
+          <span style={{ whiteSpace: 'nowrap' }}>Min: {minOdds === 0 ? 'Any' : minOdds}</span>
+          <input 
+            type="range" 
+            min="0" 
+            max="50" 
+            step="1" 
+            value={minOdds} 
+            onChange={(e) => setMinOdds(Number(e.target.value))}
+            style={{ width: '60px', cursor: 'pointer', accentColor: minOdds > 0 ? 'var(--bg)' : 'var(--accent)' }}
+          />
+        </div>
+
+        {/* Max Odds Slider */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '10px',
+          padding: '2px 12px',
+          borderRadius: '20px',
+          border: '1px solid var(--border)',
+          backgroundColor: maxOdds < 100 ? 'var(--accent)' : 'transparent',
+          color: maxOdds < 100 ? 'var(--bg)' : 'var(--text)',
+          fontSize: '13px'
+        }}>
+          <span style={{ whiteSpace: 'nowrap' }}>Max: {maxOdds === 100 ? 'Any' : maxOdds}</span>
+          <input 
+            type="range" 
+            min="0" 
+            max="100" 
+            step="10" 
+            value={maxOdds} 
+            onChange={(e) => setMaxOdds(Number(e.target.value))}
+            style={{ width: '60px', cursor: 'pointer', accentColor: maxOdds < 100 ? 'var(--bg)' : 'var(--accent)' }}
+          />
+        </div>
       </div>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
