@@ -8,14 +8,13 @@ import OddsMovementSummary from './components/OddsMovementSummary';
 import FavoriteSelections from './components/FavoriteSelections';
 import { isFiddleHorse, augmentRaceWithStats } from './utils/racingLogic';
 import { useRaces } from './hooks/useRaces';
+import { useTheme } from './hooks/useTheme';
 import './css/App.css';
 
 function App() {
   const [displayDate, setDisplayDate] = useState(() => new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
-
   const { races, loading, error, refreshCooldown, handleManualRefresh } = useRaces(displayDate);
-
   const [filters, setFilters] = useState({
     places: [],
     handicap: false,
@@ -24,11 +23,7 @@ function App() {
     fiddle: false
   });
   const hasScrolled = useRef(false);
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved) return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
+  const [theme, setTheme] = useTheme();
 
   const [showNextRaceBanner, setShowNextRaceBanner] = useState(false);
   const [showMovementModal, setShowMovementModal] = useState(false);
@@ -69,11 +64,6 @@ function App() {
     }, 60000);
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
 
   const formattedDateTime = useMemo(() => {
     const time = currentTime.toLocaleTimeString('en-US', {
