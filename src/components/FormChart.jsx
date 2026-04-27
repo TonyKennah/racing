@@ -70,7 +70,9 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
   };
 
   const [top2Only, setTop2Only] = useState(false);
-  const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin
+  const [positionFilter, setPositionFilter] = useState(0); // 0 = All, 1 = 1st, 2 = 1st or 2nd, etc.
+  const [distanceBeatenFilter, setDistanceBeatenFilter] = useState(0); // 0 = All, 1 = within 1 length, etc.
+  const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin for race distance
 
   const chartData = useMemo(() => {
     const map = {};
@@ -90,30 +92,37 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
 
       horse.past.forEach(race => {
         const posStr = race.position ? race.position.toString().trim() : "";
-        const actualPos = posStr.split('/')[0]; // Extract the finishing position from format "3/4"
-        const isWinner = actualPos === "1";
+        const actualPos = parseInt(posStr.split('/')[0], 10); // Extract the finishing position as a number
+        const isWinner = actualPos === 1;
         const raceFurlongs = parseDistanceToFurlongs(race.distance);
         const diff = Math.abs(raceFurlongs - todayFurlongs);
         const isSameDist = todayFurlongs > 0 && diff <= (distMargin === -1 ? 0 : distMargin);
 
-        // Filter logic: If top2Only is active, include 1st, 2nd, or beaten < 2 lengths
-        if (top2Only) {
-            const isTop2 = isWinner || actualPos === "2";
-            
-            let isClose = false;
-            if (race.distBeaten) {
-                const distStr = race.distBeaten.toLowerCase().trim();
-                // Handle common racing abbreviations for small distances (shd, hd, nk, etc.)
-                const abbreviations = ['shd', 'hd', 'nk', 'ns', 'dh'];
-                if (abbreviations.includes(distStr)) {
-                    isClose = true;
-                } else {
-                    const distNum = parseFloat(distStr);
-                    if (!isNaN(distNum) && distNum < 2) isClose = true;
-                }
+        // Apply Position Filter
+        if (positionFilter > 0 && (isNaN(actualPos) || actualPos > positionFilter)) {
+          return; // Exclude if position filter is active and horse didn't meet it
+        }
+
+        // Apply Distance Beaten Filter
+        if (distanceBeatenFilter > 0) {
+          let meetsDistanceBeaten = false;
+          if (isWinner) {
+            meetsDistanceBeaten = true; // Winners are considered to have beaten by 0 lengths
+          } else if (race.distBeaten) {
+            const distStr = race.distBeaten.toLowerCase().trim();
+            const abbreviations = ['shd', 'hd', 'nk', 'ns', 'dh'];
+            if (abbreviations.includes(distStr)) {
+              meetsDistanceBeaten = true; // Always include if it's an abbreviation for small margin
+            } else {
+              const distNum = parseFloat(distStr);
+              if (!isNaN(distNum) && distNum <= distanceBeatenFilter) {
+                meetsDistanceBeaten = true;
+              }
             }
-            
-            if (!isTop2 && !isClose) return;
+          }
+          if (!meetsDistanceBeaten) {
+            return;
+          }
         }
 
         // Filter logic: Apply distance margin if active
@@ -155,7 +164,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
     });
 
     return sortedData;
-  }, [horses, top2Only, distMargin, todayDistance]);
+  }, [horses, positionFilter, distanceBeatenFilter, distMargin, todayDistance]);
 
   const LINE_COLORS = [
     '#e6194b', '#3cb44b', '#3b7944', '#4363d8', '#f58231', 
@@ -174,13 +183,56 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             </button>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            className={`race-analytics-btn ${top2Only ? 'active' : ''}`}
-            onClick={() => setTop2Only(!top2Only)}
-          >
-            {top2Only ? 'Showing Top 2' : 'Filter Top 2'}
-          </button>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {/* Position Filter Slider */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            padding: '2px 12px',
+            borderRadius: '20px',
+            border: '1px solid var(--border)',
+            backgroundColor: positionFilter > 0 ? 'var(--accent)' : 'transparent',
+            color: positionFilter > 0 ? 'var(--bg)' : 'var(--text)',
+            fontSize: '13px'
+          }}>
+            <span style={{ whiteSpace: 'nowrap' }}>Pos: {positionFilter === 0 ? 'Off' : `${positionFilter}`}</span>
+            <input 
+              type="range" 
+              min="0" 
+              max="5" // Max 5 positions, adjust as needed
+              step="1" 
+              value={positionFilter} 
+              onChange={(e) => setPositionFilter(parseInt(e.target.value, 10))}
+              style={{ width: '60px', cursor: 'pointer', accentColor: positionFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
+            />
+          </div>
+
+          {/* Distance Beaten Filter Slider */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            padding: '2px 12px',
+            borderRadius: '20px',
+            border: '1px solid var(--border)',
+            backgroundColor: distanceBeatenFilter > 0 ? 'var(--accent)' : 'transparent',
+            color: distanceBeatenFilter > 0 ? 'var(--bg)' : 'var(--text)',
+            fontSize: '13px'
+          }}>
+            <span style={{ whiteSpace: 'nowrap' }}>Btn: {distanceBeatenFilter === 0 ? 'Off' : `<${distanceBeatenFilter}L`}</span>
+            <input 
+              type="range" 
+              min="0" 
+              max="5" // Max 5 lengths, adjust as needed
+              step="1" 
+              value={distanceBeatenFilter} 
+              onChange={(e) => setDistanceBeatenFilter(parseInt(e.target.value, 10))}
+              style={{ width: '60px', cursor: 'pointer', accentColor: distanceBeatenFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
+            />
+          </div>
+
+          {/* Existing Distance Margin Slider */}
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -196,7 +248,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             <input 
               type="range" 
               min="-1" 
-              max="4" 
+              max="4" // Max 4 furlongs margin, adjust as needed
               step="1" 
               value={distMargin} 
               onChange={(e) => setDistMargin(parseInt(e.target.value, 10))}
