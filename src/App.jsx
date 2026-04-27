@@ -6,32 +6,8 @@ import RaceTimeline from './components/RaceTimeline';
 import Modal from './components/Modal';
 import OddsMovementSummary from './components/OddsMovementSummary';
 import FavoriteSelections from './components/FavoriteSelections';
+import { isFiddleHorse, augmentRaceWithStats } from './utils/racingLogic';
 import './css/App.css';
-
-const HOT_OWNERS = ["John P McManus"];
-const HOT_TRAINERS = [
-  "A P O'Brien", "T D Easterby", "L Russell & M Scudamore",
-  "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell",
-  "G & J Moore", "R A Fahey", "Ian Williams"
-];
-
-const isFiddleHorse = (horse) => {
-  if (!horse) return false;
-  const oddsArray = horse.odds || [];
-  const latestOddRaw = oddsArray[oddsArray.length - 1];
-  if (!latestOddRaw || latestOddRaw === "null" || latestOddRaw === "NR") return false;
-  
-  if(horse.owner?.startsWith("STAR"))
-    return true;
-  
-  const currentOdds = parseFloat(latestOddRaw);
-  if (isNaN(currentOdds) || currentOdds <= 9) return false;
-
-  const owner = (horse.owner || "").toLowerCase();
-  const trainer = (horse.trainer || "").toLowerCase();
-  return HOT_OWNERS.some(o => owner.includes(o.toLowerCase())) ||
-         HOT_TRAINERS.some(t => trainer.includes(t.toLowerCase()));
-};
 
 function App() {
   const [races, setRaces] = useState([]);
@@ -168,78 +144,21 @@ function App() {
       const isFuture = dDate > today;
 
       const nowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-
       const pool = Array.isArray(races) ? races : [];
 
-      const filtered = pool.filter(race => {
-      if (!race?.time) return false;
-      const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
-      const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
+      return pool
+        .filter(race => {
+          if (!race?.time) return false;
+          const matchesPlace = selectedPlaces.length === 0 || selectedPlaces.includes(race.place);
+          const matchesHandicap = !handicapOnly || (race.detail && race.detail.toLowerCase().includes('handicap'));
 
-      // Value Selections Logic: Top 2 rated, Odds > 9, > 80% FORM
-      // This logic is still needed to determine 'isValue' for horses, but not for filtering races here.
-      const formMatch = race.detail?.match(/FORM\s+(\d+)%/i);
-      const formPercentage = formMatch ? parseInt(formMatch[1], 10) : 0;
-      
-      const activeHorsesStats = (race.horses || []).filter(h => {
-        const lastOdd = h.odds?.[h.odds.length - 1];
-        return lastOdd && lastOdd !== "null" && lastOdd !== "NR";
-      }).map(h => {
-        const ratings = (h.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
-        const max = ratings.length > 0 ? Math.max(...ratings) : 0;
-        const lastOdd = h.odds?.[h.odds.length - 1];
-        const odds = parseFloat(lastOdd);
-        return { max, odds };
-      });
-
-      const uniqueRatings = [...new Set(activeHorsesStats.map(s => s.max))].sort((a, b) => b - a);
-      const top1 = uniqueRatings[0] || 0;
-      const top2 = uniqueRatings[1] || 0;
-      // The 'hasValue' check is moved to the map function below to set the 'isValue' flag on horses.
-      // It is no longer used to filter races at this stage.
-
-      // Only these conditions now filter races
-      const [rH, rM] = race.time.split(':').map(Number);
-      const raceMinutes = rH * 60 + rM;
-      const matchesFollow = !followRacing || isFuture || !isToday || nowMinutes <= (raceMinutes + 3);
-      return matchesPlace && matchesHandicap && matchesFollow;
-    });
-
-    return filtered.map(race => {
-      const formMatch = race.detail?.match(/FORM\s+(\d+)%/i);
-      const formPercentage = formMatch ? parseInt(formMatch[1], 10) : 0;
-      const activeHorses = (race.horses || []).filter(h => {
-        const lastOdd = h.odds?.[h.odds.length - 1];
-        return lastOdd && lastOdd !== "null" && lastOdd !== "NR";
-      });
-      const ratingsPool = activeHorses.map(h => {
-        const pr = (h.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
-        return pr.length > 0 ? Math.max(...pr) : 0;
-      });
-      const uniqueRatings = [...new Set(ratingsPool)].sort((a, b) => b - a);
-      const top1 = uniqueRatings[0] || 0;
-      const top2 = uniqueRatings[1] || 0;
-
-      return {
-        ...race,
-        horses: (race.horses || []).map(h => {
-          const lastOdd = h.odds?.[h.odds.length - 1];
-          const currentOdds = (lastOdd && lastOdd !== "null" && lastOdd !== "NR") ? parseFloat(lastOdd) : 0;
-          const pr = (h.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
-          const maxRating = pr.length > 0 ? Math.max(...pr) : 0;
-          
-          // isFiddle and isValue are now calculated here for each horse
-          // and used for highlighting, not for filtering races.
-          const isValue = formPercentage >= 80 && maxRating > 0 && (maxRating === top1 || maxRating === top2) && currentOdds > 9;
-          
-          return {
-            ...h,
-            isFiddle: isFiddleHorse(h),
-            isValue: isValue
-          };
+          const [rH, rM] = race.time.split(':').map(Number);
+          const raceMinutes = rH * 60 + rM;
+          const matchesFollow = !followRacing || isFuture || !isToday || nowMinutes <= (raceMinutes + 3);
+          return matchesPlace && matchesHandicap && matchesFollow;
         })
-      };
-    })},
+        .map(augmentRaceWithStats);
+    },
     [races, selectedPlaces, handicapOnly, followRacing, currentTime, displayDate, fiddleOnly, valueOnly]
   );
 
