@@ -7,10 +7,15 @@ import Modal from './components/Modal';
 import OddsMovementSummary from './components/OddsMovementSummary';
 import FavoriteSelections from './components/FavoriteSelections';
 import { isFiddleHorse, augmentRaceWithStats } from './utils/racingLogic';
+import { useRaces } from './hooks/useRaces';
 import './css/App.css';
 
 function App() {
-  const [races, setRaces] = useState([]);
+  const [displayDate, setDisplayDate] = useState(() => new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  const { races, loading, error, refreshCooldown, handleManualRefresh } = useRaces(displayDate);
+
   const [filters, setFilters] = useState({
     places: [],
     handicap: false,
@@ -18,8 +23,6 @@ function App() {
     value: false,
     fiddle: false
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const hasScrolled = useRef(false);
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -30,47 +33,8 @@ function App() {
   const [showNextRaceBanner, setShowNextRaceBanner] = useState(false);
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [showFavoriteModal, setShowFavoriteModal] = useState(false);
-  const [refreshCooldown, setRefreshCooldown] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [displayDate, setDisplayDate] = useState(() => {
-    return new Date();
-  });
   const dateInputRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
-
-  const fetchRaces = useCallback((showSkeleton = true) => {
-    if (showSkeleton) setLoading(true);
-    setError(null);
-    const day = String(displayDate.getDate()).padStart(2, '0');
-    const month = String(displayDate.getMonth() + 1).padStart(2, '0');
-    const year = displayDate.getFullYear();
-    const dateString = `${day}-${month}-${year}`;
-
-    fetch(`https://www.pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' })
-      .then((response) => {
-        if (!response.ok) throw new Error('Races for this date are not available');
-        return response.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) setRaces(data);
-        else throw new Error('Unexpected data format from server');
-      })
-      .catch((err) => {
-        setError(err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [displayDate]);
-
-  const handleManualRefresh = () => {
-    if (refreshCooldown) return;
-    
-    fetchRaces(false);
-    setRefreshCooldown(true);
-    // Re-enable the button after 60 seconds
-    setTimeout(() => setRefreshCooldown(false), 600000);
-  };
 
   const searchResults = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -226,10 +190,6 @@ function App() {
       }
     }
   }, [loading, filteredRaces]);
-
-  useEffect(() => {
-    fetchRaces(true);
-  }, [fetchRaces]);
 
   const handleOpenDatePicker = () => {
     if (dateInputRef.current) {
