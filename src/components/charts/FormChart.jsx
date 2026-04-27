@@ -70,6 +70,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
     return result || (furlongs === 0 ? '0f' : furlongsStr);
   };
 
+  const [selectedHorse, setSelectedHorse] = useState('All');
   const [top2Only, setTop2Only] = useState(false);
   const [positionFilter, setPositionFilter] = useState(0); // 0 = All, 1 = 1st, 2 = 1st or 2nd, etc.
   const [distanceBeatenFilter, setDistanceBeatenFilter] = useState(0); // 0 = All, 1 = within 1 length, etc.
@@ -79,8 +80,9 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
     const map = {};
     const horseMaxRatings = {};
     const todayFurlongs = parseDistanceToFurlongs(todayDistance);
+    const filteredHorses = selectedHorse === 'All' ? horses : horses.filter(h => h.name === selectedHorse);
 
-    horses.forEach(horse => {
+    filteredHorses.forEach(horse => {
       // Skip non-runners
       const lastOdd = horse.odds?.[horse.odds.length - 1];
       if (lastOdd === "null" || lastOdd === "NR") return;
@@ -165,7 +167,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
     });
 
     return sortedData;
-  }, [horses, positionFilter, distanceBeatenFilter, distMargin, todayDistance]);
+  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance]);
   return (
     <div className="form-chart-container">
       <div className="chart-controls" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -177,6 +179,37 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
           )}
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {/* Horse Selector */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            padding: '2px 12px',
+            borderRadius: '20px',
+            border: '1px solid var(--border)',
+            backgroundColor: selectedHorse !== 'All' ? 'var(--accent)' : 'transparent',
+            color: selectedHorse !== 'All' ? 'var(--bg)' : 'var(--text)',
+            fontSize: '13px'
+          }}>
+            <select 
+              value={selectedHorse} 
+              onChange={(e) => setSelectedHorse(e.target.value)}
+              style={{ 
+                background: 'transparent', 
+                color: 'inherit', 
+                border: 'none', 
+                cursor: 'pointer', 
+                outline: 'none',
+                fontWeight: selectedHorse !== 'All' ? 'bold' : 'normal'
+              }}
+            >
+              <option value="All" style={{ color: 'black' }}>All Runners</option>
+              {horses.filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null").map(h => (
+                <option key={h.name} value={h.name} style={{ color: 'black' }}>{h.name}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Position Filter Slider */}
           <div style={{ 
             display: 'flex', 
@@ -306,17 +339,19 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
               ];
             }}
           />
-          {horses.map((horse, index) => (
-            <Line 
-              key={horse.name}
-              type="linear" 
-              dataKey={horse.name} 
-              stroke={LINE_COLORS[index % LINE_COLORS.length]} 
-              strokeWidth={2}
-              dot={<CustomDot />}
-              connectNulls
-            />
-          ))}
+          {horses
+            .filter(h => selectedHorse === 'All' || h.name === selectedHorse)
+            .map((horse, index) => (
+              <Line 
+                key={horse.name}
+                type="linear" 
+                dataKey={horse.name} 
+                stroke={LINE_COLORS[horses.indexOf(horse) % LINE_COLORS.length]} 
+                strokeWidth={2}
+                dot={<CustomDot />}
+                connectNulls
+              />
+            ))}
         </LineChart>
       </ResponsiveContainer>
     </div>
