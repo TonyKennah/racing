@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { LINE_COLORS } from '../../constants/chartConstants';
 import '../../css/FormChart.css';
@@ -70,17 +70,28 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
     return result || (furlongs === 0 ? '0f' : furlongsStr);
   };
 
-  const [selectedHorse, setSelectedHorse] = useState('All');
+  const [selectedHorse, setSelectedHorse] = useState([]);
   const [top2Only, setTop2Only] = useState(false);
   const [positionFilter, setPositionFilter] = useState(0); // 0 = All, 1 = 1st, 2 = 1st or 2nd, etc.
   const [distanceBeatenFilter, setDistanceBeatenFilter] = useState(0); // 0 = All, 1 = within 1 length, etc.
   const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin for race distance
 
+  // Clean up selection when moving between races to prevent "ghost" filters
+  useEffect(() => {
+    setSelectedHorse(prev => {
+      const validNames = prev.filter(name => horses.some(h => h.name === name));
+      // Only update state if the filtered list is actually different to avoid render loops
+      return validNames.length === prev.length ? prev : validNames;
+    });
+  }, [horses]);
+
   const chartData = useMemo(() => {
     const map = {};
     const horseMaxRatings = {};
     const todayFurlongs = parseDistanceToFurlongs(todayDistance);
-    const filteredHorses = selectedHorse === 'All' ? horses : horses.filter(h => h.name === selectedHorse);
+    const filteredHorses = selectedHorse.length === 0 
+      ? horses 
+      : horses.filter(h => selectedHorse.includes(h.name));
 
     filteredHorses.forEach(horse => {
       // Skip non-runners
@@ -187,25 +198,30 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             padding: '2px 12px',
             borderRadius: '20px',
             border: '1px solid var(--border)',
-            backgroundColor: selectedHorse !== 'All' ? 'var(--accent)' : 'transparent',
-            color: selectedHorse !== 'All' ? 'var(--bg)' : 'var(--text)',
+            backgroundColor: selectedHorse.length > 0 ? 'var(--accent)' : 'transparent',
+            color: selectedHorse.length > 0 ? 'var(--bg)' : 'var(--text)',
             fontSize: '13px'
           }}>
+            <span style={{ whiteSpace: 'nowrap' }}>Horses:</span>
             <select 
+              multiple
+              size={1}
               value={selectedHorse} 
-              onChange={(e) => setSelectedHorse(e.target.value)}
+              onChange={(e) => {
+                const values = Array.from(e.target.selectedOptions, option => option.value);
+                setSelectedHorse(values);
+              }}
               style={{ 
                 background: 'transparent', 
                 color: 'inherit', 
                 border: 'none', 
                 cursor: 'pointer', 
                 outline: 'none',
-                fontWeight: selectedHorse !== 'All' ? 'bold' : 'normal'
+                fontWeight: selectedHorse.length > 0 ? 'bold' : 'normal'
               }}
             >
-              <option value="All" style={{ color: 'black' }}>All Runners</option>
               {horses.filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null").map(h => (
-                <option key={h.name} value={h.name} style={{ color: 'black' }}>{h.name}</option>
+                <option key={h.name} value={h.name} style={{ color: 'var(--text)' }}>{h.name}</option>
               ))}
             </select>
           </div>
@@ -340,7 +356,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             }}
           />
           {horses
-            .filter(h => selectedHorse === 'All' || h.name === selectedHorse)
+            .filter(h => selectedHorse.length === 0 || selectedHorse.includes(h.name))
             .map((horse, index) => (
               <Line 
                 key={horse.name}
