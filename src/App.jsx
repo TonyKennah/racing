@@ -11,6 +11,8 @@ import FilterBar from './components/FilterBar';
 import RaceGrid from './components/RaceGrid';
 import { useFilteredRaces } from './hooks/useFilteredRaces';
 import { useAutoScroll } from './hooks/useAutoScroll';
+import { useClock } from './hooks/useClock';
+import { useNextRaceBanner } from './hooks/useNextRaceBanner';
 import { useRaces } from './hooks/useRaces';
 import { useTheme } from './hooks/useTheme';
 import { formatDisplayDateTime } from './utils/dateUtils';
@@ -18,7 +20,7 @@ import './css/App.css';
 
 function App() {
   const [displayDate, setDisplayDate] = useState(() => new Date());
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const currentTime = useClock();
   const { races, loading, error, refreshCooldown, handleManualRefresh } = useRaces(displayDate);
   const [filters, setFilters] = useState({
     places: [],
@@ -29,14 +31,6 @@ function App() {
   });
   const [theme, setTheme] = useTheme();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const [showNextRaceBanner, setShowNextRaceBanner] = useState(false);
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [showFavoriteModal, setShowFavoriteModal] = useState(false);
 
@@ -50,23 +44,9 @@ function App() {
   );
 
   const filteredRaces = useFilteredRaces(races, filters, currentTime, displayDate);
+  const showNextRaceBanner = useNextRaceBanner(filteredRaces.length, currentTime, filters.follow);
+  
   useAutoScroll(loading, filteredRaces);
-
-  const prevCountRef = useRef(filteredRaces.length);
-  const prevTimeRef = useRef(currentTime);
-
-  useEffect(() => {
-    const prevCount = prevCountRef.current;
-    const prevTime = prevTimeRef.current;
-    prevCountRef.current = filteredRaces.length;
-    prevTimeRef.current = currentTime;
-
-    if (filters.follow && currentTime.getTime() !== prevTime.getTime() && filteredRaces.length < prevCount && prevCount > 0) {
-      setShowNextRaceBanner(true);
-      const timer = setTimeout(() => setShowNextRaceBanner(false), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [filteredRaces.length, currentTime, filters.follow]);
 
   if (loading) {
     return (
