@@ -6,7 +6,7 @@ import RaceTimeline from './components/RaceTimeline';
 import Modal from './components/Modal';
 import OddsMovementSummary from './components/OddsMovementSummary';
 import FavoriteSelections from './components/FavoriteSelections';
-import { isFiddleHorse, augmentRaceWithStats } from './utils/racingLogic';
+import { useFilteredRaces } from './hooks/useFilteredRaces';
 import { useRaces } from './hooks/useRaces';
 import { useTheme } from './hooks/useTheme';
 import './css/App.css';
@@ -89,34 +89,7 @@ function App() {
     [races]
   );
 
-  const filteredRaces = useMemo(() =>
-    {
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      const dDate = new Date(displayDate);
-      dDate.setHours(0,0,0,0);
-
-      const isToday = dDate.getTime() === today.getTime();
-      const isFuture = dDate > today;
-
-      const nowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-      const pool = Array.isArray(races) ? races : [];
-
-      return pool
-        .filter(race => {
-          if (!race?.time) return false;
-          const matchesPlace = filters.places.length === 0 || filters.places.includes(race.place);
-          const matchesHandicap = !filters.handicap || (race.detail && race.detail.toLowerCase().includes('handicap'));
-
-          const [rH, rM] = race.time.split(':').map(Number);
-          const raceMinutes = rH * 60 + rM;
-          const matchesFollow = !filters.follow || isFuture || !isToday || nowMinutes <= (raceMinutes + 3);
-          return matchesPlace && matchesHandicap && matchesFollow;
-        })
-        .map(augmentRaceWithStats);
-    },
-    [races, filters, currentTime, displayDate]
-  );
+  const filteredRaces = useFilteredRaces(races, filters, currentTime, displayDate);
 
   // Track changes to show a "Next Race" transition message
   const prevCountRef = useRef(filteredRaces.length);
