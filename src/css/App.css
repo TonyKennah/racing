@@ -189,6 +189,7 @@ body {
 
 .date-header {
   cursor: pointer;
+  text-align: center;
 }
 
 .date-icon {
@@ -206,6 +207,20 @@ body {
   align-items: center;
   gap: 10px;
   margin-bottom: 15px;
+}
+
+.navigation-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.top-bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 /* Search Bar Styles */
