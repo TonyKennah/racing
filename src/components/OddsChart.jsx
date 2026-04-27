@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LINE_COLORS } from '../constants/chartConstants';
 import '../css/FormChart.css';
 
 const CustomDot = (props) => {
@@ -26,13 +27,6 @@ const OddsChart = ({ horses }) => {
     const last = odds[odds.length - 1];
     return (last && last !== "null" && last !== "NR" && !isNaN(last)) ? parseFloat(last) : Infinity;
   };
-
-  const LINE_COLORS = [
-    '#e6194b', '#3cb44b', '#3b7944', '#4363d8', '#f58231', 
-    '#911eb4', '#46f0f0', '#f032e6', '#b5d44f', '#fabebe', 
-    '#008080', '#e6beff', '#9a6324', '#854779', '#bb6868', 
-    '#134b56', '#808000', '#ffd8b1', '#656591', '#808080'
-  ];
 
   const visibleHorses = useMemo(() => {
     return horses.filter(h => {
