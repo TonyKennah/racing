@@ -70,7 +70,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
   };
 
   const [top2Only, setTop2Only] = useState(false);
-  const [distOnly, setDistOnly] = useState(false);
+  const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin
 
   const chartData = useMemo(() => {
     const map = {};
@@ -92,7 +92,9 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
         const posStr = race.position ? race.position.toString().trim() : "";
         const actualPos = posStr.split('/')[0]; // Extract the finishing position from format "3/4"
         const isWinner = actualPos === "1";
-        const isSameDist = parseDistanceToFurlongs(race.distance) === todayFurlongs && todayFurlongs > 0;
+        const raceFurlongs = parseDistanceToFurlongs(race.distance);
+        const diff = Math.abs(raceFurlongs - todayFurlongs);
+        const isSameDist = todayFurlongs > 0 && diff <= (distMargin === -1 ? 0 : distMargin);
 
         // Filter logic: If top2Only is active, include 1st, 2nd, or beaten < 2 lengths
         if (top2Only) {
@@ -114,9 +116,9 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             if (!isTop2 && !isClose) return;
         }
 
-        // Filter logic: If distOnly is active, skip races that aren't the same distance
-        if (distOnly && !isSameDist) {
-            return;
+        // Filter logic: Apply distance margin if active
+        if (distMargin !== -1 && !isSameDist) {
+          return;
         }
 
         const [d, m, y] = race.date.split('/');
@@ -153,7 +155,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
     });
 
     return sortedData;
-  }, [horses, top2Only, distOnly, todayDistance]);
+  }, [horses, top2Only, distMargin, todayDistance]);
 
   const LINE_COLORS = [
     '#e6194b', '#3cb44b', '#3b7944', '#4363d8', '#f58231', 
@@ -179,12 +181,28 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
           >
             {top2Only ? 'Showing Top 2' : 'Filter Top 2'}
           </button>
-          <button 
-            className={`race-analytics-btn ${distOnly ? 'active' : ''}`}
-            onClick={() => setDistOnly(!distOnly)}
-          >
-            {distOnly ? 'Showing Same Dist' : 'Filter Same Dist'}
-          </button>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            padding: '2px 12px',
+            borderRadius: '20px',
+            border: '1px solid var(--border)',
+            backgroundColor: distMargin >= 0 ? 'var(--accent)' : 'transparent',
+            color: distMargin >= 0 ? 'var(--bg)' : 'var(--text)',
+            fontSize: '13px'
+          }}>
+            <span style={{ whiteSpace: 'nowrap' }}>Dist: {distMargin === -1 ? 'Off' : (distMargin === 0 ? '±0f' : `±${distMargin}f`)}</span>
+            <input 
+              type="range" 
+              min="-1" 
+              max="4" 
+              step="1" 
+              value={distMargin} 
+              onChange={(e) => setDistMargin(parseInt(e.target.value, 10))}
+              style={{ width: '60px', cursor: 'pointer', accentColor: distMargin >= 0 ? 'var(--bg)' : 'var(--accent)' }}
+            />
+          </div>
         </div>
 
         <div style={{ flex: 1, textAlign: 'right' }}>

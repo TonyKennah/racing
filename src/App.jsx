@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import RaceCard from './components/Racecard';
 import SkeletonRaceCard from './components/SkeletonRaceCard';
 import SkeletonRaceTimeline from './components/SkeletonRaceTimeline';
@@ -51,6 +51,7 @@ function App() {
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [valueOnly, setValueOnly] = useState(false);
   const [showFavoriteModal, setShowFavoriteModal] = useState(false);
+  const [refreshCooldown, setRefreshCooldown] = useState(false);
   const [fiddleOnly, setFiddleOnly] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [displayDate, setDisplayDate] = useState(() => {
@@ -58,6 +59,40 @@ function App() {
   });
   const dateInputRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const fetchRaces = useCallback((showSkeleton = true) => {
+    if (showSkeleton) setLoading(true);
+    setError(null);
+    const day = String(displayDate.getDate()).padStart(2, '0');
+    const month = String(displayDate.getMonth() + 1).padStart(2, '0');
+    const year = displayDate.getFullYear();
+    const dateString = `${day}-${month}-${year}`;
+
+    fetch(`https://www.pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' })
+      .then((response) => {
+        if (!response.ok) throw new Error('Races for this date are not available');
+        return response.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) setRaces(data);
+        else throw new Error('Unexpected data format from server');
+      })
+      .catch((err) => {
+        setError(err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [displayDate]);
+
+  const handleManualRefresh = () => {
+    if (refreshCooldown) return;
+    
+    fetchRaces(false);
+    setRefreshCooldown(true);
+    // Re-enable the button after 60 seconds
+    setTimeout(() => setRefreshCooldown(false), 600000);
+  };
 
   const searchResults = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -272,34 +307,8 @@ function App() {
   }, [loading, filteredRaces]);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    const day = String(displayDate.getDate()).padStart(2, '0');
-    const month = String(displayDate.getMonth() + 1).padStart(2, '0');
-    const year = displayDate.getFullYear();
-    const dateString = `${day}-${month}-${year}`;
-
-    fetch(`https://www.pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Races for this date are not available');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        // Ensure data is an array before setting state
-        if (Array.isArray(data)) {
-          setRaces(data);
-        } else {
-          throw new Error('Unexpected data format from server');
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, [displayDate]);
+    fetchRaces(true);
+  }, [fetchRaces]);
 
   const handleOpenDatePicker = () => {
     if (dateInputRef.current) {
@@ -356,6 +365,15 @@ function App() {
           </div>
         )}
       </div>
+      
+      <button 
+        className={`filter-btn refresh-btn ${refreshCooldown ? 'disabled' : ''}`}
+        onClick={handleManualRefresh}
+        disabled={refreshCooldown}
+        title={refreshCooldown ? "Cooldown active" : "Refresh data"}
+      >
+        ↻
+      </button>
       <div> 
         <form action="https://www.paypal.com/donate" method="post" target="_blank"><input type="hidden" name="hosted_button_id" value="P9PLRQL24TBAN" /><input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" /><img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" /></form>
       </div>

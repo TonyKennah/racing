@@ -158,6 +158,19 @@ body {
     background-color: var(--accent);
 }
 
+.refresh-btn {
+  font-size: 1.2rem;
+  padding: 2px 10px;
+  display: flex;
+  align-items: center;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--border);
+}
+
 .fiddle-highlight {
   background-color: rgba(255, 159, 67, 0.15) !important;
   border-left: 4px solid #ff9f43 !important;
