@@ -22,27 +22,17 @@ function App() {
   const [displayDate, setDisplayDate] = useState(() => new Date());
   const currentTime = useClock();
   const { races, loading, error, refreshCooldown, handleManualRefresh } = useRaces(displayDate);
-  const [filters, setFilters] = useState({
-    places: [],
-    handicap: false,
-    follow: false,
-    value: false,
-    fiddle: false
-  });
+  const [filters, setFilters] = useState({places: [], handicap: false, follow: false, value: false, fiddle: false});
   const [theme, setTheme] = useTheme();
-
   const [showMovementModal, setShowMovementModal] = useState(false);
   const [showFavoriteModal, setShowFavoriteModal] = useState(false);
-
   const formattedDateTime = useMemo(() => {
     return formatDisplayDateTime(displayDate, currentTime);
   }, [currentTime, displayDate]);
-
   const uniquePlaces = useMemo(() => 
     [...new Set((Array.isArray(races) ? races : []).map(r => r.place))].sort(),
     [races]
   );
-
   const filteredRaces = useFilteredRaces(races, filters, currentTime, displayDate);
   const showNextRaceBanner = useNextRaceBanner(filteredRaces.length, currentTime, filters.follow);
   
@@ -113,6 +103,12 @@ function App() {
 
       <RaceTimeline races={filteredRaces} theme={theme} />
 
+      {showNextRaceBanner && (
+        <div className="next-race-banner">
+          🕒 Race finished. Moved to next scheduled off...
+        </div>
+      )}
+
       <Modal isOpen={showMovementModal} onClose={() => setShowMovementModal(false)} title="Card-wide Odds Movement">
         <OddsMovementSummary races={filteredRaces} onClose={() => setShowMovementModal(false)} />
       </Modal>
@@ -120,12 +116,6 @@ function App() {
       <Modal isOpen={showFavoriteModal} onClose={() => setShowFavoriteModal(false)} title="Strong Favourites (Top Rated & Shortest Odds)">
         <FavoriteSelections races={filteredRaces} onClose={() => setShowFavoriteModal(false)} />
       </Modal>
-
-      {showNextRaceBanner && (
-        <div className="next-race-banner">
-          🕒 Race finished. Moved to next scheduled off...
-        </div>
-      )}
       
       <RaceGrid races={filteredRaces} filters={filters} />
 
