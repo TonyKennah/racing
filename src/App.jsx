@@ -1,14 +1,14 @@
 import React from 'react';
 import { useAppState } from './hooks/useAppState';
-import SkeletonRaceCard from './components/SkeletonRaceCard';
-import SkeletonRaceTimeline from './components/SkeletonRaceTimeline';
-import RaceTimeline from './components/RaceTimeline';
-import Modal from './components/Modal';
-import OddsMovementSummary from './components/OddsMovementSummary';
-import FavoriteSelections from './components/FavoriteSelections';
-import Layout from './components/Layout';
-import FilterBar from './components/FilterBar';
-import RaceGrid from './components/RaceGrid';
+import SkeletonRaceCard from './components/skeletons/SkeletonRaceCard';
+import SkeletonRaceTimeline from './components/skeletons/SkeletonRaceTimeline';
+import RaceTimeline from './components/race/RaceTimeline';
+import Modal from './components/common/Modal';
+import OddsMovementSummary from './components/modals/OddsMovementSummary';
+import FavoriteSelections from './components/modals/FavoriteSelections';
+import Layout from './components/layout/Layout';
+import FilterBar from './components/filters/FilterBar';
+import RaceGrid from './components/race/RaceGrid';
 import './css/App.css';
 
 function App() {

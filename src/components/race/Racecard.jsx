@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import HorseRow from './HorseRow';
-import FormChart from './FormChart';
-import OddsChart from './OddsChart';
-import Modal from './Modal';
-import '../css/RaceCard.css';
+import FormChart from '../charts/FormChart';
+import OddsChart from '../charts/OddsChart';
+import Modal from '../common/Modal';
+import '../../css/RaceCard.css';
 
 const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) => {
   const [showChart, setShowChart] = useState(false);

@@ -1,5 +1,5 @@
 import React from 'react';
-import '../css/SkeletonRaceTimeline.css';
+import '../../css/SkeletonRaceTimeline.css';
 
 const SkeletonRaceTimeline = ({ height = 160 }) => {
   return (

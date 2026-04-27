@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import '../css/OddsMovementSummary.css';
+import '../../css/OddsMovementSummary.css';
 
 const OddsMovementSummary = ({ races, onClose }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'diff', direction: 'asc' });

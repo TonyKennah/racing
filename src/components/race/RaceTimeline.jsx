@@ -1,7 +1,7 @@
 import React from 'react';
 import { Chart } from 'react-google-charts';
-import SkeletonRaceTimeline from './SkeletonRaceTimeline';
-import '../css/RaceTimeline.css';
+import SkeletonRaceTimeline from '../skeletons/SkeletonRaceTimeline';
+import '../../css/RaceTimeline.css';
 
 const RaceTimeline = ({ races, theme: currentTheme }) => {
   const columns = [

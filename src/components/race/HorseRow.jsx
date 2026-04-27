@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PastRace from './PastRace';
-import '../css/HorseRow.css';
+import '../../css/HorseRow.css';
 
 const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue }) => {
   const [showForm, setShowForm] = useState(false);

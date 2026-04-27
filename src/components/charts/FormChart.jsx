@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { LINE_COLORS } from '../constants/chartConstants';
-import '../css/FormChart.css';
+import { LINE_COLORS } from '../../constants/chartConstants';
+import '../../css/FormChart.css';
 
 const CustomDot = (props) => {
   const { cx, cy, stroke, payload, dataKey } = props;

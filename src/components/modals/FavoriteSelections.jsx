@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import '../css/FavoriteSelections.css';
+import '../../css/FavoriteSelections.css';
 
 const FavoriteSelections = ({ races, onClose }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'time', direction: 'asc' });

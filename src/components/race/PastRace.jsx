@@ -1,5 +1,5 @@
 import React from 'react';
-import '../css/PastRace.css';
+import '../../css/PastRace.css';
 
 const PastRace = ({ race }) => {
   // Destructuring the JSON properties for cleaner code
