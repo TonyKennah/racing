@@ -101,13 +101,13 @@ function App() {
         onShowFavorites={() => setShowFavoriteModal(true)} 
       />
 
-      <RaceTimeline races={filteredRaces} theme={theme} />
-
       {showNextRaceBanner && (
         <div className="next-race-banner">
           🕒 Race finished. Moved to next scheduled off...
         </div>
       )}
+      
+      <RaceTimeline races={filteredRaces} theme={theme} />
 
       <Modal isOpen={showMovementModal} onClose={() => setShowMovementModal(false)} title="Card-wide Odds Movement">
         <OddsMovementSummary races={filteredRaces} onClose={() => setShowMovementModal(false)} />

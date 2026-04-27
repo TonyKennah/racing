@@ -51,7 +51,7 @@
   border-radius: 4px;
   border: 1px solid var(--border);
   font-size: 13px;
-  background-color: var(--bg);
+  background-color: lightslategray;
   color: var(--text-h);
   cursor: pointer;
   transition: border-color 0.2s;

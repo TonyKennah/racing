@@ -101,17 +101,17 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
             className="race-sort-select"
           >
             <option value="odds">Odds</option>
-            <option value="number">Number</option>
-            <option value="avg">Avg (L3)</option>
-            <option value="last">Last Run</option>
-            <option value="high">Highest</option>
-            <option value="all">Avg (All)</option>
+            <option value="number">#</option>
+            <option value="avg">Avg 3</option>
+            <option value="last">1 Run</option>
+            <option value="high">High</option>
+            <option value="all">Avg</option>
           </select>
           <button onClick={() => setShowOdds(!showOdds)} className="race-analytics-btn">
             Odds
           </button>
           <button onClick={openChart} className="race-analytics-btn">
-            Form
+            Past
           </button>
         </div>
       </header>

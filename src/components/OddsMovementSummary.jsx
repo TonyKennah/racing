@@ -21,6 +21,7 @@ const OddsMovementSummary = ({ races, onClose }) => {
           const biggest = Math.max(...validOdds);
           const current = validOdds[validOdds.length - 1];
           const diff = current - biggest;
+          const percent = biggest > 0 ? ((biggest - current) / biggest) * 100 : 0;
           
           list.push({
             name: horse.name,
@@ -29,7 +30,8 @@ const OddsMovementSummary = ({ races, onClose }) => {
             place: race.place,
             biggest,
             current,
-            diff: parseFloat(diff.toFixed(2))
+            diff: parseFloat(diff.toFixed(2)),
+            percent: parseFloat(percent.toFixed(1))
           });
         }
       });
@@ -99,6 +101,9 @@ const OddsMovementSummary = ({ races, onClose }) => {
             <th onClick={() => requestSort('diff')} className="sortable">
               Diff{getSortIndicator('diff')}
             </th>
+            <th onClick={() => requestSort('percent')} className="sortable">
+              % Move{getSortIndicator('percent')}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -115,6 +120,9 @@ const OddsMovementSummary = ({ races, onClose }) => {
               <td>{item.current}</td>
               <td className={item.diff < 0 ? 'move-down' : item.diff > 0 ? 'move-up' : ''}>
                 {item.diff > 0 ? `+${item.diff}` : item.diff}
+              </td>
+              <td className={item.percent > 0 ? 'move-down' : item.percent < 0 ? 'move-up' : ''}>
+                {item.percent}%
               </td>
             </tr>
           ))}
