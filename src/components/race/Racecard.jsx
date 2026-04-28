@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import HorseRow from './HorseRow';
 import FormChart from '../charts/FormChart';
 import OddsChart from '../charts/OddsChart';
@@ -10,6 +10,32 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
   const [activeChartRace, setActiveChartRace] = useState(race);
+
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [hasPlayed, setHasPlayed] = useState(false);
+
+  // Logic to play music 2 minutes before the race time
+  useEffect(() => {
+    if (!audioEnabled || hasPlayed || !race.time || !race.time.includes(':')) return;
+
+    const checkTime = () => {
+      const now = new Date();
+      const [hours, minutes] = race.time.split(':').map(Number);
+      const raceTime = new Date();
+      raceTime.setHours(hours, minutes, 0, 0);
+
+      const triggerTime = raceTime.getTime() - 120000; // 120,000ms = 2 minutes
+
+      if (now.getTime() >= triggerTime && now.getTime() < raceTime.getTime()) {
+        const audio = new Audio('/music.mp3'); // References public/music.mp3
+        audio.play().catch(err => console.error("Audio playback blocked or failed:", err));
+        setHasPlayed(true);
+      }
+    };
+
+    const timer = setInterval(checkTime, 10000); // Check every 10 seconds
+    return () => clearInterval(timer);
+  }, [audioEnabled, hasPlayed, race.time]);
 
   const getAvg = (h) => {
     const past = h.past || [];
@@ -84,6 +110,13 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
       <header className="race-header">
         <div className="race-title-group">
           <h2>
+            <input 
+              type="checkbox" 
+              checked={audioEnabled}
+              onChange={(e) => setAudioEnabled(e.target.checked)}
+              style={{ marginRight: '10px', verticalAlign: 'middle', cursor: 'pointer' }}
+              title="Play alarm 2 mins before race"
+            />
             <a href="#home" className="home-link" title="Return to top">
               🏠
             </a>
