@@ -244,9 +244,12 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
                 fontWeight: selectedHorse.length > 0 ? 'bold' : 'normal'
               }}
             >
-              {horses.filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null").map(h => (
-                <option key={h.name} value={h.name} style={{ color: 'white' }}>{h.name}</option>
-              ))}
+              {horses
+                .filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null")
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map(h => (
+                  <option key={h.name} value={h.name} style={{ color: 'white' }}>{h.name}</option>
+                ))}
             </select>
           </div>
 
