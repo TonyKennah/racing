@@ -27,7 +27,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
       const triggerTime = raceTime.getTime() - 120000; // 120,000ms = 2 minutes
 
       if (now.getTime() >= triggerTime && now.getTime() < raceTime.getTime()) {
-        const audio = new Audio('/music.mp3'); // References public/music.mp3
+        const audio = new Audio(`racing/music.mp3`); // References public/music.mp3
         audio.play().catch(err => console.error("Audio playback blocked or failed:", err));
         setHasPlayed(true);
       }
@@ -128,7 +128,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
                 padding: 0,
                 verticalAlign: 'middle',
                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                filter: audioEnabled ? 'drop-shadow(0 0 5px #ffcc00) brightness(1.1)' : 'grayscale(1) opacity(0.3)',
+                filter: audioEnabled ? 'drop-shadow(0 0 5px #ffcc00) brightness(1.1)' : 'grayscale(1) opacity(0.8)',
                 transform: audioEnabled ? 'scale(1.15)' : 'scale(1)'
               }}
             >
