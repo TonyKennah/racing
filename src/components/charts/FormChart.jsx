@@ -325,14 +325,14 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             color: monthsFilter > 0 ? 'var(--bg)' : 'var(--text)',
             fontSize: '13px'
           }}>
-            <span style={{ whiteSpace: 'nowrap' }}>Months: {monthsFilter === 0 ? 'All' : `${monthsFilter}`}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>Months: {monthsFilter === 0 ? 'Off' : `${monthsFilter}`}</span>
             <input 
               type="range" 
               min="0" 
-              max="5" // 0 = All, 1-5 months
+              max="5" 
               step="1" 
-              value={monthsFilter} 
-              onChange={(e) => setMonthsFilter(parseInt(e.target.value, 10))}
+              value={monthsFilter === 0 ? 0 : 6 - monthsFilter} 
+              onChange={(e) => { const v = parseInt(e.target.value, 10); setMonthsFilter(v === 0 ? 0 : 6 - v); }}
               style={{ width: '60px', cursor: 'pointer', accentColor: monthsFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
             />
           </div>
