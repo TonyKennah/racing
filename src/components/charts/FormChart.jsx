@@ -227,6 +227,21 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             color: selectedHorse.length > 0 ? 'var(--bg)' : 'var(--text)',
             fontSize: '13px'
           }}>
+            <button 
+              onClick={() => {
+                const allNames = horses
+                  .filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null")
+                  .map(h => h.name);
+                setSelectedHorse(selectedHorse.length === allNames.length ? [] : allNames);
+              }}
+              style={{
+                background: 'none', border: 'none', color: 'inherit', cursor: 'pointer',
+                fontSize: '11px', fontWeight: 'bold', borderRight: '1px solid currentColor',
+                marginRight: '5px', paddingRight: '8px', whiteSpace: 'nowrap'
+              }}
+            >
+              {selectedHorse.length > 0 ? 'Deselect' : 'All'}
+            </button>
             <select 
               multiple
               size={1}
