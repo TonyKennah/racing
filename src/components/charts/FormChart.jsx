@@ -74,6 +74,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
   const [top2Only, setTop2Only] = useState(false);
   const [positionFilter, setPositionFilter] = useState(0); // 0 = All, 1 = 1st, 2 = 1st or 2nd, etc.
   const [distanceBeatenFilter, setDistanceBeatenFilter] = useState(0); // 0 = All, 1 = within 1 length, etc.
+  const [monthsFilter, setMonthsFilter] = useState(0); // 0 = All, 1-5 = months back
   const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin for race distance
 
   // Clean up selection when moving between races to prevent "ghost" filters
@@ -92,6 +93,14 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
     const filteredHorses = selectedHorse.length === 0 
       ? horses 
       : horses.filter(h => selectedHorse.includes(h.name));
+
+    // Calculate the cutoff date for the months filter
+    let cutoffDate = null;
+    if (monthsFilter > 0) {
+      cutoffDate = new Date();
+      cutoffDate.setMonth(cutoffDate.getMonth() - monthsFilter);
+      cutoffDate.setHours(0, 0, 0, 0); // Normalize to start of day for consistent comparison
+    }
 
     filteredHorses.forEach(horse => {
       // Skip non-runners
@@ -144,7 +153,14 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
           return;
         }
 
+        // Apply Weeks Filter: Skip races older than the selected timeframe
         const [d, m, y] = race.date.split('/');
+        const raceDate = new Date(y, m - 1, d); // Month is 0-indexed
+        raceDate.setHours(0, 0, 0, 0);
+
+        if (cutoffDate && raceDate < cutoffDate) {
+          return;
+        }
         const timestamp = new Date(y, m - 1, d).getTime();
 
         if (!map[timestamp]) map[timestamp] = { timestamp, date: race.date };
@@ -177,8 +193,8 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
       });
     });
 
-    return sortedData;
-  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance]);
+    return sortedData; // Add weeksFilter to dependencies
+  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance, monthsFilter]);
   return (
     <div className="form-chart-container">
       <div className="chart-controls" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -294,6 +310,30 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
               value={distMargin} 
               onChange={(e) => setDistMargin(parseInt(e.target.value, 10))}
               style={{ width: '60px', cursor: 'pointer', accentColor: distMargin >= 0 ? 'var(--bg)' : 'var(--accent)' }}
+            />
+          </div>
+
+          {/* NEW: Months Filter Slider */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            padding: '2px 12px',
+            borderRadius: '20px',
+            border: '1px solid var(--border)',
+            backgroundColor: monthsFilter > 0 ? 'var(--accent)' : 'transparent',
+            color: monthsFilter > 0 ? 'var(--bg)' : 'var(--text)',
+            fontSize: '13px'
+          }}>
+            <span style={{ whiteSpace: 'nowrap' }}>Months: {monthsFilter === 0 ? 'All' : `${monthsFilter}`}</span>
+            <input 
+              type="range" 
+              min="0" 
+              max="5" // 0 = All, 1-5 months
+              step="1" 
+              value={monthsFilter} 
+              onChange={(e) => setMonthsFilter(parseInt(e.target.value, 10))}
+              style={{ width: '60px', cursor: 'pointer', accentColor: monthsFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
             />
           </div>
         </div>
