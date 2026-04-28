@@ -202,7 +202,6 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             color: selectedHorse.length > 0 ? 'var(--bg)' : 'var(--text)',
             fontSize: '13px'
           }}>
-            <span style={{ whiteSpace: 'nowrap' }}>Horses:</span>
             <select 
               multiple
               size={1}
@@ -221,7 +220,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
               }}
             >
               {horses.filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null").map(h => (
-                <option key={h.name} value={h.name} style={{ color: 'var(--text)' }}>{h.name}</option>
+                <option key={h.name} value={h.name} style={{ color: 'white' }}>{h.name}</option>
               ))}
             </select>
           </div>
