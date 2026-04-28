@@ -211,8 +211,8 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
                 setSelectedHorse(values);
               }}
               style={{ 
-                background: 'transparent', 
-                color: 'inherit', 
+                background: 'white', 
+                color: 'black', 
                 border: 'none', 
                 cursor: 'pointer', 
                 outline: 'none',
