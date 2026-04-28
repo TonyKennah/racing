@@ -89,7 +89,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
   const chartData = useMemo(() => {
     const map = {};
     const horseMaxRatings = {};
-    const todayFurlongs = parseDistanceToFurlongs(todayDistance);
+    const horseEligibleRatings = {}; // To store ratings of races that pass filters for each horse
     const filteredHorses = selectedHorse.length === 0 
       ? horses 
       : horses.filter(h => selectedHorse.includes(h.name));
@@ -103,13 +103,12 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
     }
 
     filteredHorses.forEach(horse => {
+      // Initialize eligible ratings for the current horse
+      horseEligibleRatings[horse.name] = [];
+
       // Skip non-runners
       const lastOdd = horse.odds?.[horse.odds.length - 1];
       if (lastOdd === "null" || lastOdd === "NR") return;
-
-      // Pre-calculate the career max rating for each horse to avoid redundant calculations
-      const ratings = horse.past.map(pr => parseFloat(pr.name)).filter(n => !isNaN(n));
-      horseMaxRatings[horse.name] = ratings.length > 0 ? Math.max(...ratings) : -1;
 
       const displayOdd = lastOdd === "null" ? "NR" : (lastOdd ? (isNaN(lastOdd) ? lastOdd : Number(lastOdd)) : "x");
 
@@ -117,6 +116,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
         const posStr = race.position ? race.position.toString().trim() : "";
         const actualPos = parseInt(posStr.split('/')[0], 10); // Extract the finishing position as a number
         const isWinner = actualPos === 1;
+        const todayFurlongs = parseDistanceToFurlongs(todayDistance); // Moved here to ensure it's available
         const raceFurlongs = parseDistanceToFurlongs(race.distance);
         const diff = Math.abs(raceFurlongs - todayFurlongs);
         const isSameDist = todayFurlongs > 0 && diff <= (distMargin === -1 ? 0 : distMargin);
@@ -161,6 +161,9 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
         if (cutoffDate && raceDate < cutoffDate) {
           return;
         }
+
+        // If race passes all filters, add its rating to eligible ratings for this horse
+        horseEligibleRatings[horse.name].push(parseFloat(race.name));
         const timestamp = new Date(y, m - 1, d).getTime();
 
         if (!map[timestamp]) map[timestamp] = { timestamp, date: race.date };
@@ -177,12 +180,18 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
           `Pos: ${race.position}${beaten} | Wt: ${race.weight}`;
       });
     });
+    
+    // After all races have been processed and filtered, determine the max rating from eligible races
+    filteredHorses.forEach(horse => {
+      const ratings = horseEligibleRatings[horse.name];
+      horseMaxRatings[horse.name] = (ratings && ratings.length > 0) ? Math.max(...ratings) : -1;
+    });
 
     const sortedData = Object.values(map).sort((a, b) => a.timestamp - b.timestamp);
 
     // Single-annotation pass: Mark only the chronologically first occurrence of the max rating
-    const annotatedHorses = new Set();
     const horseNames = Object.keys(horseMaxRatings);
+    const annotatedHorses = new Set();
 
     sortedData.forEach(point => {
       horseNames.forEach(horseName => {
@@ -346,7 +355,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
           )}
         </div>
       </div>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minHeight={400}>
         <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <XAxis 
             dataKey="timestamp" 
