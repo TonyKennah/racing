@@ -140,13 +140,24 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             <a href={`#${raceId}`} className="race-title-link">
               {race.time} {race.place}
             </a>
-            <input 
-              type="checkbox" 
-              checked={audioEnabled}
-              onChange={(e) => setAudioEnabled(e.target.checked)}
-              style={{ marginRight: '10px', verticalAlign: 'middle', cursor: 'pointer' }}
-              title="Play alarm 2 mins before race"
-            />
+           <button 
+              onClick={() => setAudioEnabled(!audioEnabled)}
+              title={audioEnabled ? "Alarm active (2 mins before start)" : "Click to set alarm for this race"}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                marginRight: '10px',
+                padding: 0,
+                verticalAlign: 'middle',
+                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                filter: audioEnabled ? 'drop-shadow(0 0 5px #ffcc00) brightness(1.1)' : 'grayscale(1) opacity(0.3)',
+                transform: audioEnabled ? 'scale(1.15)' : 'scale(1)'
+              }}
+            >
+              🔔
+            </button>
           </h2>
           <h5 className="race-detail">{race.detail} {race.going}</h5>
         </div>
