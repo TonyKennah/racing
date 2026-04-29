@@ -4,7 +4,8 @@ export const HOT_OWNERS = [
 export const HOT_TRAINERS = [
   "A P O'Brien", "T D Easterby", "L Russell & M Scudamore",
   "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell",
-  "G & J Moore", "R A Fahey", "Ian Williams", "A W Carroll"
+  "G & J Moore", "R A Fahey", "Ian Williams", "A W Carroll",
+  "K R Burke"
 ];
 
 /**
@@ -19,7 +20,7 @@ export const isFiddleHorse = (horse) => {
   if (horse.owner?.startsWith("STAR")) return true;
   
   const currentOdds = parseFloat(latestOddRaw);
-  if (isNaN(currentOdds) || currentOdds <= 9) return false;
+  if (isNaN(currentOdds) || currentOdds <= 1) return false;
 
   const owner = (horse.owner || "").toLowerCase();
   const trainer = (horse.trainer || "").toLowerCase();
