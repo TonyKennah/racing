@@ -105,8 +105,8 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     const candidates = runners.filter(h => top4AvgNumbers.includes(h.number) && top4OddsNumbers.includes(h.number));
     if (candidates.length === 0) return null;
 
-    // If multiple candidates, the "Decider" is the one with the shortest odds
-    return candidates.sort((a, b) => getLatestOdds(a) - getLatestOdds(b))[0].number;
+    // If multiple candidates, the "Decider" is the one with the highest average rating
+    return candidates.sort((a, b) => getAvg(b) - getAvg(a))[0].number;
   }, [race.horses]);
 
   const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
