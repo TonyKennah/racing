@@ -126,6 +126,11 @@
   border-left: 4px solid gold !important; /* Gold border on the left */
 }
 
+.select-highlight {
+  background-color: rgba(241, 5, 5, 0.15) !important; /* Subtle red background */
+  border-left: 4px solid red !important; /* Blue border on the left */
+}
+
 .horse-row.non-runner {
   opacity: 0.4;
   filter: grayscale(0.8);

@@ -11,6 +11,7 @@ const RaceGrid = ({ races, filters }) => {
           allRaces={races} 
           highlightFiddles={filters.fiddle}
           highlightValues={filters.value}
+          highlightSelects={filters.select}
         />
       ))}
     </div>

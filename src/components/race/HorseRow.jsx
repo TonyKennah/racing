@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PastRace from './PastRace';
 import '../../css/HorseRow.css';
 
-const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue }) => {
+const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSelect }) => {
   const [showForm, setShowForm] = useState(false);
 
   const pastRuns = horse.past || [];
@@ -30,7 +30,13 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue }) => {
   }
 
   return (
-    <div className={`horse-row ${isNR ? 'non-runner' : ''} ${highlightFiddle ? 'fiddle-highlight' : ''} ${highlightValue ? 'value-highlight' : ''}`}>
+    <div className={`
+      horse-row 
+      ${isNR ? 'non-runner' : ''} 
+      ${highlightFiddle ? 'fiddle-highlight' : ''} 
+      ${highlightValue ? 'value-highlight' : ''}
+      ${highlightSelect ? 'select-highlight' : ''}
+    `}>
       <div className="horse-main">
         <div className="horse-info-container">
           <div className="horse-silks-wrapper">

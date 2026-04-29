@@ -5,7 +5,7 @@ import OddsChart from '../charts/OddsChart';
 import Modal from '../common/Modal';
 import '../../css/RaceCard.css';
 
-const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) => {
+const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects }) => {
   const [showChart, setShowChart] = useState(false);
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
@@ -27,7 +27,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
       const triggerTime = raceTime.getTime() - 120000; // 120,000ms = 2 minutes
 
       if (now.getTime() >= triggerTime && now.getTime() < raceTime.getTime()) {
-        const audio = new Audio(`music.mp3`); // References public/music.mp3
+        const audio = new Audio('/music.mp3'); // References public/music.mp3
         audio.play().catch(err => console.error("Audio playback blocked or failed:", err));
         setHasPlayed(true);
       }
@@ -85,6 +85,30 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
     [race.horses, sortBy]
   );
 
+  const selectHorseNumber = useMemo(() => {
+    const runners = race.horses.filter(h => getLatestOdds(h) !== Infinity);
+    if (runners.length === 0) return null;
+
+    // Identify Top 4 horses by Average Rating (Last 3 runs)
+    const top4AvgNumbers = [...runners]
+      .sort((a, b) => getAvg(b) - getAvg(a))
+      .slice(0, 4)
+      .map(h => h.number);
+
+    // Identify Top 4 horses by Odds (Shortest prices)
+    const top4OddsNumbers = [...runners]
+      .sort((a, b) => getLatestOdds(a) - getLatestOdds(b))
+      .slice(0, 4)
+      .map(h => h.number);
+
+    // Find horses that appear in both "Top 4" lists
+    const candidates = runners.filter(h => top4AvgNumbers.includes(h.number) && top4OddsNumbers.includes(h.number));
+    if (candidates.length === 0) return null;
+
+    // If multiple candidates, the "Decider" is the one with the shortest odds
+    return candidates.sort((a, b) => getLatestOdds(a) - getLatestOdds(b))[0].number;
+  }, [race.horses]);
+
   const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
 
   // Navigation logic for the FormChart Modal
@@ -116,24 +140,13 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
             <a href={`#${raceId}`} className="race-title-link">
               {race.time} {race.place}
             </a>
-            <button 
-              onClick={() => setAudioEnabled(!audioEnabled)}
-              title={audioEnabled ? "Alarm active (2 mins before start)" : "Click to set alarm for this race"}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '1.2rem',
-                marginRight: '10px',
-                padding: 0,
-                verticalAlign: 'middle',
-                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                filter: audioEnabled ? 'drop-shadow(0 0 5px #ffcc00) brightness(1.1)' : 'grayscale(1) opacity(0.8)',
-                transform: audioEnabled ? 'scale(1.15)' : 'scale(1)'
-              }}
-            >
-              🔔
-            </button>
+            <input 
+              type="checkbox" 
+              checked={audioEnabled}
+              onChange={(e) => setAudioEnabled(e.target.checked)}
+              style={{ marginRight: '10px', verticalAlign: 'middle', cursor: 'pointer' }}
+              title="Play alarm 2 mins before race"
+            />
           </h2>
           <h5 className="race-detail">{race.detail} {race.going}</h5>
         </div>
@@ -191,6 +204,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues }) =>
             sortBy={sortBy} 
             highlightFiddle={highlightFiddles && horse.isFiddle}
             highlightValue={highlightValues && horse.isValue}
+            highlightSelect={highlightSelects && horse.number === selectHorseNumber}
           />
         ))}
       </div>
