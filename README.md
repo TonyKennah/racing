@@ -4,7 +4,7 @@ A modern web application showing today's horse racing entries from the UK & Irel
 
 ## 🚀 Hosted Site
 
-Check out the live application here: [https://tonykennah.github.io/racing/](https://tonykennah.github.io/racing/)
+You need a "[pluckier](https://www.pluckier.co.uk)" login to check out the live application: [https://tonykennah.github.io/racing/](https://tonykennah.github.io/racing/)
 
 ## ✨ Key Features
 
