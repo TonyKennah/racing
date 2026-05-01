@@ -27,7 +27,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       const triggerTime = raceTime.getTime() - 120000; // 120,000ms = 2 minutes
 
       if (now.getTime() >= triggerTime && now.getTime() < raceTime.getTime()) {
-        const audio = new Audio('/music.mp3'); // References public/music.mp3
+        const audio = new Audio('music.mp3'); // References public/music.mp3
         audio.play().catch(err => console.error("Audio playback blocked or failed:", err));
         setHasPlayed(true);
       }
