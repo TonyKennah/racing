@@ -39,30 +39,19 @@ const AuthGuard = ({ children }) => {
 
       // 1. Check for token in URL first
       if (tokenInUrl) {
-        if (tokenInUrl === 'gary') {
-          validToken = 'gary';
-          validPayload = { sub: 'dev-user', name: 'Gary (Dev)', admin: true, iss: 'pluckier' };
-          document.cookie = `sid=gary; Max-Age=3600; path=/; SameSite=Lax`;
-        } else {
           const result = await verifyToken(tokenInUrl);
           if (result.success) {
             validToken = tokenInUrl;
             validPayload = result.payload;
           }
-        }
       } 
       // 2. Fallback to session cookie
       else if (sid) {
-        if (sid === 'gary') {
-          validToken = 'gary';
-          validPayload = { sub: 'dev-user', name: 'Gary (Dev)', admin: true, iss: 'pluckier' };
-        } else {
           const result = await verifyToken(sid);
           if (result.success) {
             validToken = sid;
             validPayload = result.payload;
           }
-        }
       }
 
       // 3. Final Decision
