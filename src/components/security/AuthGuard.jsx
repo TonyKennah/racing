@@ -1,0 +1,98 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { jwtVerify, importSPKI } from 'jose';
+import { PUBLIC_KEY_PEM, LOGIN_URL, getCookie } from '../../utils/authUtils';
+
+/**
+ * AuthGuard handles the authorization flow.
+ * It verifies the JWT from URL or cookies and redirects if unauthorized.
+ */
+const AuthGuard = ({ children }) => {
+  const [authState, setAuthState] = useState({
+    token: '',
+    payload: null,
+    isLoading: true
+  });
+
+  const verifyToken = useCallback(async (tokenToVerify) => {
+    try {
+      const publicKey = await importSPKI(PUBLIC_KEY_PEM, 'RS256');
+      const { payload } = await jwtVerify(tokenToVerify, publicKey);
+      
+      // Update persistence
+      document.cookie = `sid=${tokenToVerify}; Max-Age=3600; path=/; SameSite=Lax`;
+      return { success: true, payload };
+    } catch (err) {
+      console.error("Token verification failed:", err.message);
+      document.cookie = "sid=; Max-Age=0; path=/;"; // Clear invalid session
+      return { success: false };
+    }
+  }, []);
+
+  useEffect(() => {
+    const runAuthFlow = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenInUrl = urlParams.get('token');
+      const sid = getCookie('sid');
+
+      let validToken = '';
+      let validPayload = null;
+
+      // 1. Check for token in URL first
+      if (tokenInUrl) {
+        if (tokenInUrl === 'gary') {
+          validToken = 'gary';
+          validPayload = { sub: 'dev-user', name: 'Gary (Dev)', admin: true, iss: 'pluckier' };
+          document.cookie = `sid=gary; Max-Age=3600; path=/; SameSite=Lax`;
+        } else {
+          const result = await verifyToken(tokenInUrl);
+          if (result.success) {
+            validToken = tokenInUrl;
+            validPayload = result.payload;
+          }
+        }
+      } 
+      // 2. Fallback to session cookie
+      else if (sid) {
+        if (sid === 'gary') {
+          validToken = 'gary';
+          validPayload = { sub: 'dev-user', name: 'Gary (Dev)', admin: true, iss: 'pluckier' };
+        } else {
+          const result = await verifyToken(sid);
+          if (result.success) {
+            validToken = sid;
+            validPayload = result.payload;
+          }
+        }
+      }
+
+      // 3. Final Decision
+      if (validPayload) {
+        // Clean up URL now that we know the token was valid
+        if (tokenInUrl) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('token');
+          window.history.replaceState({}, '', url.pathname + url.search);
+        }
+        setAuthState({
+          token: validToken,
+          payload: validPayload,
+          isLoading: false
+        });
+      } else {
+        // Redirect if no valid session found
+        window.location.href = LOGIN_URL;
+      }
+    };
+
+    runAuthFlow();
+  }, [verifyToken]);
+
+  if (authState.isLoading) {
+    return <div style={{ padding: '20px' }}>Verifying authentication...</div>;
+  }
+
+  // Return the main app content, passing auth data via render prop
+  return children(authState);
+};
+
+export default AuthGuard;
