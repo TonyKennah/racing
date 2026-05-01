@@ -10,6 +10,7 @@ Check out the live application here: [https://tonykennah.github.io/racing/](http
 
 - **Today's Entries:** View full racecards for upcoming UK and IRE meetings.
 - **Advanced Sorting:** Rank runners by horse number, average rating of the last three runs, or highest career rating.
+- **🔒 Secure Access:** Protected by JWT-based authorization with third-party login integration.
 - **Performance Analytics:** Interactive line charts visualizing horse ratings over time using `recharts`.
 - **Smart Filtering & Highlighting:**
     - **📅 Date Picker:** Click on the main header to select a date to fetch that specific days race data.
@@ -21,6 +22,12 @@ Check out the live application here: [https://tonykennah.github.io/racing/](http
 - **Detailed Form:** Comprehensive breakdown of past performances including date, time, course conditions (distance/going), finishing position, and weight carried.
 - **Mobile Optimized:** Responsive design with a theme-aware interface (optimized for Dark Mode).
 
+## 🔐 Security
+
+The application implements a robust security layer using an `AuthGuard` pattern:
+- **JWT Authorization:** Access is controlled via JSON Web Tokens.
+- **Third-Party Integration:** Seamless authentication flow through a centralized login service.
+- **Session Persistence:** Secure cookie handling for maintaining user sessions.
 
 ## 🛠 Tech Stack
 
