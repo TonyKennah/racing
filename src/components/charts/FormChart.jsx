@@ -74,7 +74,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
   const [top2Only, setTop2Only] = useState(false);
   const [positionFilter, setPositionFilter] = useState(0); // 0 = All, 1 = 1st, 2 = 1st or 2nd, etc.
   const [distanceBeatenFilter, setDistanceBeatenFilter] = useState(0); // 0 = All, 1 = within 1 length, etc.
-  const [monthsFilter, setMonthsFilter] = useState(0); // 0 = All, 1-5 = months back
+  const [monthsFilter, setMonthsFilter] = useState(0); // 0 = All, 3-12 = months back
   const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin for race distance
 
   // Clean up selection when moving between races to prevent "ghost" filters
@@ -356,10 +356,10 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             <input 
               type="range" 
               min="0" 
-              max="5" 
+              max="4" 
               step="1" 
-              value={monthsFilter === 0 ? 0 : 6 - monthsFilter} 
-              onChange={(e) => { const v = parseInt(e.target.value, 10); setMonthsFilter(v === 0 ? 0 : 6 - v); }}
+              value={monthsFilter === 0 ? 0 : (15 - monthsFilter) / 3} 
+              onChange={(e) => { const v = parseInt(e.target.value, 10); setMonthsFilter(v === 0 ? 0 : 15 - (v * 3)); }}
               style={{ width: '60px', cursor: 'pointer', accentColor: monthsFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
             />
           </div>
