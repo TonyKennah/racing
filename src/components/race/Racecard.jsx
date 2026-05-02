@@ -5,6 +5,15 @@ import OddsChart from '../charts/OddsChart';
 import Modal from '../common/Modal';
 import '../../css/RaceCard.css';
 
+const SORT_MODES = ['odds', 'last', 'avg', 'high', 'all'];
+const SORT_LABELS = {
+  odds: 'Odds',
+  avg: 'Avg 3',
+  last: '1 Run',
+  high: 'High',
+  all: 'Avg'
+};
+
 const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects }) => {
   const [showChart, setShowChart] = useState(false);
   const [showOdds, setShowOdds] = useState(false);
@@ -162,19 +171,26 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
           <h5 className="race-detail">{race.detail} {race.going}</h5>
         </div>
         <div className="race-controls">
-          <select 
-            value={sortBy}
-            aria-label="Sort horses by"
-            onChange={(e) => setSortBy(e.target.value)}
-            className="race-sort-select"
-          >
-            <option value="odds">Odds</option>
-            <option value="number">#</option>
-            <option value="avg">Avg 3</option>
-            <option value="last">1 Run</option>
-            <option value="high">High</option>
-            <option value="all">Avg</option>
-          </select>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            padding: '2px 12px',
+            borderRadius: '20px',
+            border: '1px solid var(--border)',
+            fontSize: '13px'
+          }}>
+            <span style={{ whiteSpace: 'nowrap', minWidth: '45px' }}>{SORT_LABELS[sortBy]}</span>
+            <input 
+              type="range" 
+              min="0" 
+              max={SORT_MODES.length - 1} 
+              step="1" 
+              value={SORT_MODES.indexOf(sortBy)} 
+              onChange={(e) => setSortBy(SORT_MODES[parseInt(e.target.value, 10)])}
+              style={{ width: '70px', cursor: 'pointer', accentColor: 'var(--accent)' }}
+            />
+          </div>
           <button onClick={() => setShowOdds(!showOdds)} className="race-analytics-btn">
             Odds
           </button>
