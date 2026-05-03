@@ -49,7 +49,7 @@ const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, dis
 
       <label htmlFor="main-date-picker">
         <h2 onClick={handleOpenDatePicker} className="date-header" title="Click to change date">
-          The Racing {formattedDateTime}
+          The Racing {formattedDateTime.split(' (')[0]}
           <span className="date-icon">📅</span>
         </h2>
       </label>

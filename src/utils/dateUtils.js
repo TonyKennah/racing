@@ -8,7 +8,7 @@ export const formatDisplayDateTime = (displayDate, currentTime) => {
   const time = currentTime.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: false
   }).replace(/\s/g, '');
 
   const day = displayDate.getDate();

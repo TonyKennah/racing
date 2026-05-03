@@ -64,7 +64,10 @@ function App() {
                 </div>
               )}
               
-              <RaceTimeline races={s.filteredRaces} theme={s.theme} />
+              <details className="timeline-details" open>
+                <summary className="timeline-summary">⏱️ {s.formattedDateTime.match(/\d{2}:\d{2}/)?.[0]}</summary>
+                <RaceTimeline races={s.filteredRaces} theme={s.theme} />
+              </details>
 
               <Modal 
                 isOpen={!!s.activeModal} 
