@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, displayDate, setDisplayDate, formattedDateTime }) => {
+const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, displayDate, setDisplayDate, formattedDateTime, onShowChat }) => {
   const dateInputRef = useRef(null);
 
   const handleOpenDatePicker = () => {
@@ -28,6 +28,11 @@ const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, dis
           >
             ↻
           </button>
+          
+          <button className="filter-btn chat-btn" onClick={onShowChat} title="Open Chat">
+            💬
+          </button>
+
           <div className="donate-container"> 
             <form action="https://www.paypal.com/donate" method="post" target="_blank"><input type="hidden" name="hosted_button_id" value="P9PLRQL24TBAN" /><input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" /><img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" /></form>
           </div>

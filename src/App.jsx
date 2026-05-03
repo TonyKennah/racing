@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AuthGuard from './components/security/AuthGuard';
 import { useAppState } from './hooks/useAppState';
 import SkeletonRaceCard from './components/skeletons/SkeletonRaceCard';
@@ -10,13 +10,15 @@ import FavoriteSelections from './components/modals/FavoriteSelections';
 import Layout from './components/layout/Layout';
 import FilterBar from './components/filters/FilterBar';
 import RaceGrid from './components/race/RaceGrid';
+import Chatter from './components/chat/Chatter';
 import './css/App.css';
 
 function App() {
   const s = useAppState(); // 's' for state - keeping the JSX below ultra-concise
+  const [showChat, setShowChat] = useState(false);
 
   return (
-    <AuthGuard>
+   <AuthGuard>
       {({ token, payload }) => (
         <Layout 
           navProps={{
@@ -26,7 +28,8 @@ function App() {
             refreshCooldown: s.loading || s.refreshCooldown,
             displayDate: s.displayDate, 
             setDisplayDate: s.setDisplayDate,
-            formattedDateTime: s.formattedDateTime
+            formattedDateTime: s.formattedDateTime,
+            onShowChat: () => setShowChat(!showChat)
           }}
           searchRaces={s.loading || s.error ? [] : s.races}
         >
@@ -78,6 +81,8 @@ function App() {
               <RaceGrid races={s.filteredRaces} filters={s.filters} />
             </>
           )}
+
+          {showChat && <Chatter onClose={() => setShowChat(false)} />}
         </Layout>
       )}
     </AuthGuard>
