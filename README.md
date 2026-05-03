@@ -10,15 +10,17 @@ You need a "[pluckier](https://www.pluckier.co.uk)" login to check out the live 
 
 - **Today's Entries:** View full racecards for upcoming UK and IRE meetings.
 - **Advanced Sorting:** Rank runners by horse number, average rating of the last three runs, or highest career rating.
-- **🔒 Secure Access:** Protected by JWT-based authorization with third-party login integration.
+- **💬 Community Chat:** Real-time, anonymous WebSocket chat for discussing runners and sharing tips. Features a theme-aware, floating UI that stays accessible while you browse.
+- ** Secure Access:** Protected by JWT-based authorization with third-party login integration.
 - **Performance Analytics:** Interactive line charts visualizing horse ratings over time using `recharts`.
 - **Smart Filtering & Highlighting:**
     - **📅 Date Picker:** Click on the main header to select a date to fetch that specific days race data.
+    - **📅 Multi-Month History:** Flexible form history filtering (3, 6, 9, or 12 months) using a stepped slider.
     - **⏱️ Follow:** Real-time filtering to show only upcoming races, automatically removing finished events.
     - **📊 Odds Movement:** A summary view of price changes across the entire card.
-    - **⭐ Value Finder:** Highlights horses with high form ratings (>80%) that are priced at double digits (>9/1).
-    - **🎯 Short Prices:** Quickly identify the strongest favorites based on ratings and market position.
-    - **🎻 Fiddle Detection:** Identifies "well-connected" horses from high-profile owners and trainers when they are running at larger odds.
+    - **⭐ Value Finder:** Highlights horses with high form ratings (>80) that are priced at double digits (>9/1).
+    - **🎯 Short Prices:** Identify the strongest favorites based on rating consistency and market position.
+    - **� Fiddle Detection:** Identifies "well-connected" horses from high-profile owners and trainers when they are running at larger odds.
 - **Detailed Form:** Comprehensive breakdown of past performances including date, time, course conditions (distance/going), finishing position, and weight carried.
 - **Mobile Optimized:** Responsive design with a theme-aware interface (optimized for Dark Mode).
 
@@ -27,7 +29,13 @@ You need a "[pluckier](https://www.pluckier.co.uk)" login to check out the live 
 The application implements a robust security layer using an `AuthGuard` pattern:
 - **JWT Authorization:** Access is controlled via JSON Web Tokens.
 - **Third-Party Integration:** Seamless authentication flow through a centralized login service.
-- **Session Persistence:** Secure cookie handling for maintaining user sessions.
+- **Session Persistence & Validation:** Secure cookie handling with periodic background session pings to the `authservice` to ensure account validity.
+
+## 📈 SEO & Social Sharing
+
+The application is optimized for social platforms:
+- **Open Graph & Twitter Cards:** Custom metadata for rich link previews on Twitter, Facebook, and Discord.
+- **Dynamic Content Support:** Configured to handle sharing of specific race meeting views.
 
 ## 🛠 Tech Stack
 

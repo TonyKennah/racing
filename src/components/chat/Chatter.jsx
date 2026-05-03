@@ -61,10 +61,9 @@ const Chatter = ({ onClose }) => {
     >
       {/* Header - Stays visible when minimized */}
       <div className="chat-header">
-        <span>💬 Community Chat</span>
+        <span>💬 Chat</span>
         <div className="controls">
           <button onClick={() => setIsMinimized(!isMinimized)}>{isMinimized ? '▲' : '−'}</button>
-          <button onClick={handleClose}>×</button>
         </div>
       </div>
 

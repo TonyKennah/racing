@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, displayDate, setDisplayDate, formattedDateTime, onShowChat }) => {
+const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, displayDate, setDisplayDate, formattedDateTime, onShowChat, isChatOpen }) => {
   const dateInputRef = useRef(null);
 
   const handleOpenDatePicker = () => {
@@ -29,7 +29,11 @@ const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, dis
             ↻
           </button>
           
-          <button className="filter-btn chat-btn" onClick={onShowChat} title="Open Chat">
+          <button 
+            className={`filter-btn chat-btn ${isChatOpen ? 'active' : ''}`} 
+            onClick={onShowChat} 
+            title={isChatOpen ? "Close Chat" : "Open Chat"}
+          >
             💬
           </button>
 

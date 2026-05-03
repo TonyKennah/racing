@@ -29,7 +29,8 @@ function App() {
             displayDate: s.displayDate, 
             setDisplayDate: s.setDisplayDate,
             formattedDateTime: s.formattedDateTime,
-            onShowChat: () => setShowChat(!showChat)
+            onShowChat: () => setShowChat(!showChat),
+            isChatOpen: showChat
           }}
           searchRaces={s.loading || s.error ? [] : s.races}
         >
