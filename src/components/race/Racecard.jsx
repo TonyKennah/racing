@@ -5,13 +5,13 @@ import OddsChart from '../charts/OddsChart';
 import Modal from '../common/Modal';
 import '../../css/RaceCard.css';
 
-const SORT_MODES = ['odds', 'last', 'avg', 'high', 'all'];
+const SORT_MODES = ['odds', 'last', 'avg', 'all', 'high'];
 const SORT_LABELS = {
   odds: 'Odds',
   avg: 'Avg 3',
   last: '1 Run',
   high: 'High',
-  all: 'Avg'
+  all: 'All'
 };
 
 const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects }) => {

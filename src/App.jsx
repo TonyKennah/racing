@@ -18,8 +18,8 @@ function App() {
   const [showChat, setShowChat] = useState(false);
 
   return (
-   <AuthGuard>
-      {({ token, payload }) => (
+   //<AuthGuard>
+   //   {({ token, payload }) => (
         <Layout 
           navProps={{
             theme: s.theme, 
@@ -85,8 +85,8 @@ function App() {
 
           {showChat && <Chatter onClose={() => setShowChat(false)} />}
         </Layout>
-      )}
-    </AuthGuard>
+    //  )}
+    //</AuthGuard>
   );
 }
 
