@@ -177,7 +177,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
         const beaten = race.distBeaten ? ` (${race.distBeaten} l)` : '';
         map[timestamp][`${horse.name}_details`] = 
           `${race.time} ${race.course} (Class ${race.raceClass}, ${formatFurlongsToMiles(race.distance)}, ${race.going}) | ` +
-          `Pos: ${race.position}${beaten} | Wt: ${race.weight}`;
+          `Pos: ${race.position}${beaten} | Wt: ${race.weight} | ${horse.trainer}`;
       });
     });
     

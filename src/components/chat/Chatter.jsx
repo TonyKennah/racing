@@ -11,7 +11,7 @@ const Chatter = ({ onClose }) => {
   
   const socket = useRef(null);
   const scrollRef = useRef(null);
-  const WS_URL = 'ws://localhost:8080/chatservice';
+  const WS_URL = 'ws://localhost:8080/chatservice/racing';
 
   // Auto-scroll logic
   useEffect(() => {
