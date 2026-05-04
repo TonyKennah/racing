@@ -11,7 +11,6 @@ const Chatter = ({ onClose }) => {
   
   const socket = useRef(null);
   const scrollRef = useRef(null);
-  const WS_URL = 'ws://localhost:8080/chatservice/racing';
 
   // Auto-scroll logic
   useEffect(() => {
@@ -22,7 +21,7 @@ const Chatter = ({ onClose }) => {
 
   useEffect(() => {
     if (isJoined) {
-      socket.current = new WebSocket(WS_URL);
+      socket.current = new WebSocket(`wss://www.pluckier.co.uk/utils/chatservice/racing/${username}`);
 
       socket.current.onopen = () => {
         // Send join notification
