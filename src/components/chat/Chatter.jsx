@@ -11,6 +11,7 @@ const Chatter = ({ onClose }) => {
   
   const socket = useRef(null);
   const scrollRef = useRef(null);
+  const workerRef = useRef(null); // Ref for the heartbeat worker
 
   // Auto-scroll logic
   useEffect(() => {
@@ -19,23 +20,62 @@ const Chatter = ({ onClose }) => {
     }
   }, [messages, isMinimized]);
 
-  useEffect(() => {
-    if (isJoined) {
-      socket.current = new WebSocket(`wss://www.pluckier.co.uk/utils/chatservice/racing/${username}`);
+  const connectWebSocket = () => {
+    if (!isJoined) return;
 
-      socket.current.onopen = () => {
-        // Send join notification
-        const joinMsg = JSON.stringify({ type: 'SYSTEM', text: `${username} joined the chat` });
-        socket.current.send(joinMsg);
+    socket.current = new WebSocket(`wss://www.pluckier.co.uk/utils/chatservice/racing/${username}`);
+
+    // Initialize Worker if it doesn't exist
+    if (!workerRef.current) {
+      workerRef.current = new Worker('heartbeatWorker.js');
+      workerRef.current.onmessage = () => {
+        if (socket.current?.readyState === WebSocket.OPEN) {
+          console.log("Worker triggered PING");
+          socket.current.send("PING");
+        }
       };
+    }
+    workerRef.current.postMessage('START');
 
-      socket.current.onmessage = (event) => {
+    socket.current.onmessage = (event) => {
+      if (event.data === "PONG") {
+        console.log("Received PONG from server");
+        return;
+      }
+
+      if (typeof event.data === 'string' && event.data.startsWith('USERLIST:')) {
+        return;
+      }
+
+      try {
         const data = JSON.parse(event.data);
         setMessages((prev) => [...prev, data]);
-      };
+      } catch (e) {
+        console.error("Error parsing message JSON", e);
+      }
+    };
 
-      return () => socket.current.close();
+    socket.current.onclose = () => {
+      console.log("Chatter disconnected. Reconnecting in 5s...");
+      workerRef.current?.postMessage('STOP');
+      
+      // Auto-reconnect after 5 seconds if still joined
+      setTimeout(() => {
+        if (isJoined) connectWebSocket();
+      }, 5000);
+    };
+  };
+
+  useEffect(() => {
+    if (isJoined) {
+      connectWebSocket();
     }
+
+    return () => {
+      socket.current?.close();
+      workerRef.current?.terminate();
+      workerRef.current = null;
+    };
   }, [isJoined]);
 
   const sendMessage = (e) => {
@@ -49,16 +89,8 @@ const Chatter = ({ onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleClose = () => {
-    setIsOpen(false);
-    if (onClose) onClose();
-  };
-
   return (
-    <div 
-      className={`chat-modal ${isMinimized ? 'minimized' : ''}`}
-    >
-      {/* Header - Stays visible when minimized */}
+    <div className={`chat-modal ${isMinimized ? 'minimized' : ''}`}>
       <div className="chat-header">
         <span>💬 Chat</span>
         <div className="controls">
