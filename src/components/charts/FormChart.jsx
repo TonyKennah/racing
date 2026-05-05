@@ -171,8 +171,6 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
         }
 
         // Apply Going Filter (Exact Match)
-        console.log("TODAY GOING " + todayGoing);
-        console.log("PAST GOING " + race.going);
         if (goingFilter && todayGoing && race.going !== todayGoing) {
           return;
         }
@@ -386,7 +384,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
               cursor: 'pointer'
             }}
           >
-            <span style={{ whiteSpace: 'nowrap' }}>Going: {goingFilter ? todayGoing || 'Match' : 'All'}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>{goingFilter ? todayGoing || 'Match' : 'Going'}</span>
           </div>
 
           {/* NEW: Months Filter Slider */}
