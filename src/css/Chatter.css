@@ -79,3 +79,16 @@
 }
 
 .minimized { width: 200px; }
+
+/* Define the flashing animation */
+@keyframes chat-notify-flash {
+  0% { background-color: var(--header-bg); }
+  50% { background-color: #ff4b2b; } /* A bright color to grab attention */
+  100% { background-color: var(--header-bg); }
+}
+
+/* Apply the animation to the header when minimized and flashing */
+.chat-modal.minimized.flashing .chat-header {
+  animation: chat-notify-flash 0.6s ease-in-out infinite;
+}
+

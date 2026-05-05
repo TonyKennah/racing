@@ -8,10 +8,27 @@ const Chatter = ({ onClose }) => {
   const [isJoined, setIsJoined] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [isFlashing, setIsFlashing] = useState(false);
   
   const socket = useRef(null);
   const scrollRef = useRef(null);
   const workerRef = useRef(null); // Ref for the heartbeat worker
+  const prevMsgCount = useRef(messages.length);
+
+  // Trigger flashing if a new message arrives while minimized
+  useEffect(() => {
+    if (isMinimized && messages.length > prevMsgCount.current) {
+      setIsFlashing(true);
+      const timer = setTimeout(() => setIsFlashing(false), 3000); // Stop after 3 seconds
+      return () => clearTimeout(timer);
+    }
+    prevMsgCount.current = messages.length;
+  }, [messages.length, isMinimized]);
+
+  // Reset flashing immediately if the user expands the chat
+  useEffect(() => {
+    if (!isMinimized) setIsFlashing(false);
+  }, [isMinimized]);
 
   // Auto-scroll logic
   useEffect(() => {
@@ -87,7 +104,7 @@ const Chatter = ({ onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className={`chat-modal ${isMinimized ? 'minimized' : ''}`}>
+    <div className={`chat-modal ${isMinimized ? 'minimized' : ''} ${isFlashing ? 'flashing' : ''}`}>
       <div className="chat-header">
         <span>💬 Chat</span>
         <div className="controls">
