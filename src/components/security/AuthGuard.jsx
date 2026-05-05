@@ -13,6 +13,12 @@ const AuthGuard = ({ children }) => {
     isLoading: true
   });
 
+  // Centralized session termination logic
+  const terminateSession = useCallback(() => {
+    document.cookie = "sid=; Max-Age=0; path=/;"; // Clear the session cookie
+    window.location.href = LOGIN_URL; // Redirect to login
+  }, []);
+
   const verifyToken = useCallback(async (tokenToVerify) => {
     try {
       const publicKey = await importSPKI(PUBLIC_KEY_PEM, 'RS256');
@@ -68,13 +74,41 @@ const AuthGuard = ({ children }) => {
           isLoading: false
         });
       } else {
-        // Redirect if no valid session found
-        window.location.href = LOGIN_URL;
+        terminateSession();
       }
     };
 
     runAuthFlow();
-  }, [verifyToken]);
+  }, [verifyToken, terminateSession]);
+
+  // Periodic session validation (every 2 minutes)
+  useEffect(() => {
+    // Only start polling if we have a valid session
+    if (!authState.token || !authState.payload?.username) return;
+
+    const checkSession = async () => {
+      try {
+        const response = await fetch('https://pluckier.co.uk/utils/authservice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: authState.payload.username }) 
+        });
+
+        if (!response.ok) {
+          terminateSession();
+        }
+      } catch (err) {
+        console.error("Background session check failed:", err);
+        terminateSession();
+      }
+    };
+
+    // Set up the 2-minute interval (120,000 ms)
+    const intervalId = setInterval(checkSession, 120000);
+
+    // Clean up interval on unmount or if authState changes
+    return () => clearInterval(intervalId);
+  }, [authState.token, authState.payload, terminateSession]);
 
   if (authState.isLoading) {
     return <div style={{ padding: '20px' }}>Verifying authentication...</div>;

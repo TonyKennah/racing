@@ -4,13 +4,14 @@ import { LINE_COLORS } from '../../constants/chartConstants';
 import '../../css/FormChart.css';
 
 const CustomDot = (props) => {
-  const { cx, cy, stroke, payload, dataKey } = props;
+  const { cx, cy, stroke, payload, dataKey, onNodeClick } = props;
   const isHighest = payload[`${dataKey}_isHighest`];
   const isWin = payload[`${dataKey}_isWin`];
   const isSameDist = payload[`${dataKey}_isSameDist`];
 
   return (
-    <g>
+    <g onClick={() => onNodeClick && onNodeClick(payload, dataKey)} style={{ cursor: 'pointer' }}>
+      <circle cx={cx} cy={cy} r={12} fill="transparent" />
       {isWin ? (
         <text 
           x={cx} 
@@ -71,6 +72,22 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
   };
 
   const [selectedHorse, setSelectedHorse] = useState([]);
+  const [panelData, setPanelData] = useState(null);
+
+  const handleNodeClick = (payload, horseName) => {
+    console.log("Click Recorded");
+    setPanelData({
+      horse: horseName,
+      url: payload[`${horseName}_url`],
+      silks: payload[`${horseName}_silks`],
+      number: payload[`${horseName}_number`],
+      owner: payload[`${horseName}_owner`],
+      breeding: payload[`${horseName}_breeding`],
+      foaled: payload[`${horseName}_foaled`],
+      jockey: payload[`${horseName}_jockey`]
+    });
+  };
+
   const [top2Only, setTop2Only] = useState(false);
   const [positionFilter, setPositionFilter] = useState(0); // 0 = All, 1 = 1st, 2 = 1st or 2nd, etc.
   const [distanceBeatenFilter, setDistanceBeatenFilter] = useState(0); // 0 = All, 1 = within 1 length, etc.
@@ -173,6 +190,13 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
         map[timestamp][`${horse.name}_latestOdds`] = displayOdd;
         map[timestamp][`${horse.name}_isWin`] = isWinner;
         map[timestamp][`${horse.name}_isSameDist`] = isSameDist;
+        map[timestamp][`${horse.name}_url`] = race.url;
+        map[timestamp][`${horse.name}_silks`] = horse.silks;
+        map[timestamp][`${horse.name}_number`] = horse.number;
+        map[timestamp][`${horse.name}_owner`] = horse.owner;
+        map[timestamp][`${horse.name}_breeding`] = horse.breeding;
+        map[timestamp][`${horse.name}_foaled`] = horse.foaled;
+        map[timestamp][`${horse.name}_jockey`] = horse.jockey;
 
         const beaten = race.distBeaten ? ` (${race.distBeaten} l)` : '';
         map[timestamp][`${horse.name}_details`] = 
@@ -430,12 +454,38 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
                 dataKey={horse.name} 
                 stroke={LINE_COLORS[horses.indexOf(horse) % LINE_COLORS.length]} 
                 strokeWidth={2}
-                dot={<CustomDot />}
+                dot={<CustomDot onNodeClick={handleNodeClick} />}
                 connectNulls
               />
             ))}
         </LineChart>
       </ResponsiveContainer>
+
+      {panelData && (
+        <div className="chart-detail-panel">
+          <div className="panel-header">
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {panelData.silks && <img src={panelData.silks} alt="silks" style={{ height: '24px', marginRight: '10px' }} />}
+              <h4>{panelData.number ? `${panelData.number}. ` : ''}{panelData.horse}</h4>
+            </div>
+            <button onClick={() => setPanelData(null)} className="close-btn">×</button>
+          </div>
+          <div className="panel-content">
+            <p><strong>Owner:</strong> {panelData.owner}</p>
+            <p><strong>Breeding:</strong> {panelData.breeding}</p>
+            <p><strong>Foaled:</strong> {panelData.foaled}</p>
+            <p><strong>Jockey:</strong> {panelData.jockey}</p>
+            {panelData.url && (
+              <p>
+                <a href={panelData.url} target="_blank" rel="noopener noreferrer" 
+                   style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
+                  View Race
+                </a>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -30,7 +30,6 @@ const Chatter = ({ onClose }) => {
       workerRef.current = new Worker('heartbeatWorker.js');
       workerRef.current.onmessage = () => {
         if (socket.current?.readyState === WebSocket.OPEN) {
-          console.log("Worker triggered PING");
           socket.current.send("PING");
         }
       };
@@ -39,7 +38,6 @@ const Chatter = ({ onClose }) => {
 
     socket.current.onmessage = (event) => {
       if (event.data === "PONG") {
-        console.log("Received PONG from server");
         return;
       }
 
@@ -56,7 +54,6 @@ const Chatter = ({ onClose }) => {
     };
 
     socket.current.onclose = () => {
-      console.log("Chatter disconnected. Reconnecting in 5s...");
       workerRef.current?.postMessage('STOP');
       
       // Auto-reconnect after 5 seconds if still joined
