@@ -465,7 +465,15 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
         <div className="chart-detail-panel">
           <div className="panel-header">
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              {panelData.silks && <img src={panelData.silks} alt="silks" style={{ height: '24px', marginRight: '10px' }} />}
+              {panelData.silks && (
+                panelData.url ? (
+                  <a href={panelData.url} target="_blank" rel="noopener noreferrer" title="View Race Result">
+                    <img src={panelData.silks} alt="silks" style={{ height: '24px', marginRight: '10px', cursor: 'pointer' }} />
+                  </a>
+                ) : (
+                  <img src={panelData.silks} alt="silks" style={{ height: '24px', marginRight: '10px' }} />
+                )
+              )}
               <h4>{panelData.number ? `${panelData.number}. ` : ''}{panelData.horse}</h4>
             </div>
             <button onClick={() => setPanelData(null)} className="close-btn">×</button>
@@ -475,14 +483,6 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
             <p><strong>Breeding:</strong> {panelData.breeding}</p>
             <p><strong>Foaled:</strong> {panelData.foaled}</p>
             <p><strong>Jockey:</strong> {panelData.jockey}</p>
-            {panelData.url && (
-              <p>
-                <a href={panelData.url} target="_blank" rel="noopener noreferrer" 
-                   style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
-                  View Race
-                </a>
-              </p>
-            )}
           </div>
         </div>
       )}
