@@ -33,7 +33,7 @@ const CustomDot = (props) => {
   );
 };
 
-const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) => {
+const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing }) => {
   const parseDistanceToFurlongs = (distStr) => {
     if (!distStr || typeof distStr !== 'string') return 0;
     let totalFurlongs = 0;
@@ -92,6 +92,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
   const [distanceBeatenFilter, setDistanceBeatenFilter] = useState(0); // 0 = All, 1 = within 1 length, etc.
   const [monthsFilter, setMonthsFilter] = useState(0); // 0 = All, 3-12 = months back
   const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin for race distance
+  const [goingFilter, setGoingFilter] = useState(false);
 
   // Clean up selection when moving between races to prevent "ghost" filters
   useEffect(() => {
@@ -169,6 +170,13 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
           return;
         }
 
+        // Apply Going Filter (Exact Match)
+        console.log("TODAY GOING " + todayGoing);
+        console.log("PAST GOING " + race.going);
+        if (goingFilter && todayGoing && race.going !== todayGoing) {
+          return;
+        }
+
         // Apply Weeks Filter: Skip races older than the selected timeframe
         const [d, m, y] = race.date.split('/');
         const raceDate = new Date(y, m - 1, d); // Month is 0-indexed
@@ -226,7 +234,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
     });
 
     return sortedData; // Add weeksFilter to dependencies
-  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance, monthsFilter]);
+  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, todayGoing]);
   return (
     <div className="form-chart-container">
       <div className="chart-controls" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -361,6 +369,24 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
               onChange={(e) => setDistMargin(parseInt(e.target.value, 10))}
               style={{ width: '60px', cursor: 'pointer', accentColor: distMargin >= 0 ? 'var(--bg)' : 'var(--accent)' }}
             />
+          </div>
+
+          {/* Going Filter Toggle */}
+          <div 
+            onClick={() => setGoingFilter(!goingFilter)}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              padding: '2px 12px',
+              borderRadius: '20px',
+              border: '1px solid var(--border)',
+              backgroundColor: goingFilter ? 'var(--accent)' : 'transparent',
+              color: goingFilter ? 'var(--bg)' : 'var(--text)',
+              fontSize: '13px',
+              cursor: 'pointer'
+            }}
+          >
+            <span style={{ whiteSpace: 'nowrap' }}>Going: {goingFilter ? todayGoing || 'Match' : 'All'}</span>
           </div>
 
           {/* NEW: Months Filter Slider */}

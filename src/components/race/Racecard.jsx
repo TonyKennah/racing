@@ -220,6 +220,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             hasNext={hasNext}
             hasPrev={hasPrev}
             todayDistance={activeChartRace.distance}
+            todayGoing={activeChartRace.going}
           />
       </Modal>
 
