@@ -75,7 +75,6 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance }) 
   const [panelData, setPanelData] = useState(null);
 
   const handleNodeClick = (payload, horseName) => {
-    console.log("Click Recorded");
     setPanelData({
       horse: horseName,
       url: payload[`${horseName}_url`],
