@@ -104,11 +104,11 @@ const Chatter = ({ onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className={`chat-modal ${isMinimized ? 'minimized' : ''} ${isFlashing ? 'flashing' : ''}`}>
-      <div className="chat-header">
+    <div className={`chat-modal ${isMinimized ? 'minimized' : ''} ${isFlashing ? 'flashing' : ''}`} style={{ cursor: isMinimized ? 'pointer' : 'default' }}>
+      <div className="chat-header" onClick={() => setIsMinimized(!isMinimized)}>
         <span>💬 Chat</span>
         <div className="controls">
-          <button onClick={() => setIsMinimized(!isMinimized)}>{isMinimized ? '▲' : '−'}</button>
+          {isMinimized ? '▲' : '−'}
         </div>
       </div>
 
