@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import TrackWorker from '../obs/TrackWorker';
 
 const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, displayDate, setDisplayDate, formattedDateTime, onShowChat, isChatOpen }) => {
   const dateInputRef = useRef(null);
@@ -20,6 +21,16 @@ const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, dis
       <div className="top-bar">
         {children}
         <div className="top-bar-controls">
+          {/*<TrackWorker />*/}
+
+          <button 
+            className={`filter-btn chat-btn ${isChatOpen ? 'active' : ''}`} 
+            onClick={onShowChat} 
+            title={isChatOpen ? "Close Chat" : "Open Chat"}
+          >
+            💬
+          </button>
+
           <button 
             className={`filter-btn refresh-btn ${refreshCooldown ? 'disabled' : ''}`}
             onClick={onRefresh}
@@ -27,14 +38,6 @@ const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, dis
             title={refreshCooldown ? "Cooldown active" : "Refresh data"}
           >
             ↻
-          </button>
-          
-          <button 
-            className={`filter-btn chat-btn ${isChatOpen ? 'active' : ''}`} 
-            onClick={onShowChat} 
-            title={isChatOpen ? "Close Chat" : "Open Chat"}
-          >
-            💬
           </button>
 
           <div className="donate-container"> 
