@@ -43,8 +43,8 @@ export const useRaces = (displayDate) => {
 
     fetchRaces(false);
     setRefreshCooldown(true);
-    // Re-enable the button after 60 seconds
-    setTimeout(() => setRefreshCooldown(false), 60000);
+    // Re-enable the button after 600 seconds
+    setTimeout(() => setRefreshCooldown(false), 600000);
   }, [refreshCooldown, fetchRaces]);
 
   return { races, loading, error, refreshCooldown, handleManualRefresh };

@@ -10,11 +10,11 @@ const SearchOverlay = ({ races }) => {
     const matches = [];
     races.forEach(race => {
       race.horses?.forEach(horse => {
-        if (horse.name?.toLowerCase().includes(term) || horse.trainer?.toLowerCase().includes(term)) {
+        if (horse.name?.toLowerCase().includes(term) || horse.trainer?.toLowerCase().includes(term)  || horse.jockey?.toLowerCase().includes(term)) {
           matches.push({
             name: horse.name,
             id: `${race.time}${race.place.replace(/\s+/g, '')}`,
-            info: `${horse.trainer} - ${race.time} ${race.place}`
+            info: `${horse.trainer} - ${horse.jockey} - ${race.time} ${race.place}`
           });
         }
       });
