@@ -35,7 +35,7 @@ export function useAppState() {
   );
 
   const filteredRaces = useFilteredRaces(races, filters, currentTime, displayDate);
-  const showNextRaceBanner = useNextRaceBanner(filteredRaces.length, currentTime, filters.follow);
+  const showNextRaceBanner = useNextRaceBanner(filteredRaces.length, currentTime, filters.follow, displayDate);
   
   useAutoScroll(loading, filteredRaces);
 
