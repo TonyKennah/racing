@@ -42,6 +42,7 @@ export function useAppState() {
   return {
     displayDate, setDisplayDate,
     theme, setTheme,
+    showChat, setShowChat,
     races, loading, error, refreshCooldown, handleManualRefresh,
     filters, setFilters,
     activeModal, setActiveModal,
