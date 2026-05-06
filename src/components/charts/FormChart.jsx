@@ -254,172 +254,176 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             </button>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          {/* Horse Selector */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '10px',
-            padding: '2px 12px',
-            borderRadius: '20px',
-            border: '1px solid var(--border)',
-            backgroundColor: selectedHorse.length > 0 ? 'var(--accent)' : 'transparent',
-            color: selectedHorse.length > 0 ? 'var(--bg)' : 'var(--text)',
-            fontSize: '13px'
-          }}>
-            <button 
-              onClick={() => {
-                const allNames = horses
-                  .filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null")
-                  .map(h => h.name);
-                setSelectedHorse(selectedHorse.length === allNames.length ? [] : allNames);
-              }}
-              style={{
-                background: 'none', border: 'none', color: 'inherit', cursor: 'pointer',
-                fontSize: '11px', fontWeight: 'bold', borderRight: '1px solid currentColor',
-                marginRight: '5px', paddingRight: '8px', whiteSpace: 'nowrap'
-              }}
-            >
-              {selectedHorse.length > 0 ? 'Deselect' : 'All'}
-            </button>
-            <select 
-              multiple
-              size={1}
-              value={selectedHorse} 
-              onChange={(e) => {
-                const values = Array.from(e.target.selectedOptions, option => option.value);
-                setSelectedHorse(values);
-              }}
-              style={{ 
-                background: 'white', 
-                color: 'black', 
-                border: 'none', 
-                cursor: 'pointer', 
-                outline: 'none',
-                fontWeight: selectedHorse.length > 0 ? 'bold' : 'normal'
-              }}
-            >
-              {horses
-                .filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null")
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map(h => (
-                  <option key={h.name} value={h.name} style={{ color: LINE_COLORS[horses.indexOf(h) % LINE_COLORS.length] }}>{h.name}</option>
-                ))}
-            </select>
-          </div>
 
-          {/* Position Filter Slider */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '10px',
-            padding: '2px 12px',
-            borderRadius: '20px',
-            border: '1px solid var(--border)',
-            backgroundColor: positionFilter > 0 ? 'var(--accent)' : 'transparent',
-            color: positionFilter > 0 ? 'var(--bg)' : 'var(--text)',
-            fontSize: '13px'
-          }}>
-            <span style={{ whiteSpace: 'nowrap' }}>Pos: {positionFilter === 0 ? 'Off' : `${positionFilter}`}</span>
-            <input 
-              type="range" 
-              min="0" 
-              max="5" // Max 5 positions, adjust as needed
-              step="1" 
-              value={positionFilter} 
-              onChange={(e) => setPositionFilter(parseInt(e.target.value, 10))}
-              style={{ width: '60px', cursor: 'pointer', accentColor: positionFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
-            />
-          </div>
 
-          {/* Distance Beaten Filter Slider */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '10px',
-            padding: '2px 12px',
-            borderRadius: '20px',
-            border: '1px solid var(--border)',
-            backgroundColor: distanceBeatenFilter > 0 ? 'var(--accent)' : 'transparent',
-            color: distanceBeatenFilter > 0 ? 'var(--bg)' : 'var(--text)',
-            fontSize: '13px'
-          }}>
-            <span style={{ whiteSpace: 'nowrap' }}>Btn: {distanceBeatenFilter === 0 ? 'Off' : `<${distanceBeatenFilter}L`}</span>
-            <input 
-              type="range" 
-              min="0" 
-              max="5" // Max 5 lengths, adjust as needed
-              step="1" 
-              value={distanceBeatenFilter} 
-              onChange={(e) => setDistanceBeatenFilter(parseInt(e.target.value, 10))}
-              style={{ width: '60px', cursor: 'pointer', accentColor: distanceBeatenFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
-            />
-          </div>
-
-          {/* Existing Distance Margin Slider */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '10px',
-            padding: '2px 12px',
-            borderRadius: '20px',
-            border: '1px solid var(--border)',
-            backgroundColor: distMargin >= 0 ? 'var(--accent)' : 'transparent',
-            color: distMargin >= 0 ? 'var(--bg)' : 'var(--text)',
-            fontSize: '13px'
-          }}>
-            <span style={{ whiteSpace: 'nowrap' }}>Dist: {distMargin === -1 ? 'Off' : (distMargin === 0 ? '±0f' : `±${distMargin}f`)}</span>
-            <input 
-              type="range" 
-              min="-1" 
-              max="4" // Max 4 furlongs margin, adjust as needed
-              step="1" 
-              value={distMargin} 
-              onChange={(e) => setDistMargin(parseInt(e.target.value, 10))}
-              style={{ width: '60px', cursor: 'pointer', accentColor: distMargin >= 0 ? 'var(--bg)' : 'var(--accent)' }}
-            />
-          </div>
-
-          {/* Going Filter Toggle */}
-          <div 
-            onClick={() => setGoingFilter(!goingFilter)}
-            style={{ 
+        <div className="hide-mobile">
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {/* Horse Selector */}
+            <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
+              gap: '10px',
               padding: '2px 12px',
               borderRadius: '20px',
               border: '1px solid var(--border)',
-              backgroundColor: goingFilter ? 'var(--accent)' : 'transparent',
-              color: goingFilter ? 'var(--bg)' : 'var(--text)',
-              fontSize: '13px',
-              cursor: 'pointer'
-            }}
-          >
-            <span style={{ whiteSpace: 'nowrap' }}>{goingFilter ? todayGoing || 'Match' : 'Going'}</span>
-          </div>
+              backgroundColor: selectedHorse.length > 0 ? 'var(--accent)' : 'transparent',
+              color: selectedHorse.length > 0 ? 'var(--bg)' : 'var(--text)',
+              fontSize: '13px'
+            }}>
+              <button 
+                onClick={() => {
+                  const allNames = horses
+                    .filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null")
+                    .map(h => h.name);
+                  setSelectedHorse(selectedHorse.length === allNames.length ? [] : allNames);
+                }}
+                style={{
+                  background: 'none', border: 'none', color: 'inherit', cursor: 'pointer',
+                  fontSize: '11px', fontWeight: 'bold', borderRight: '1px solid currentColor',
+                  marginRight: '5px', paddingRight: '8px', whiteSpace: 'nowrap'
+                }}
+              >
+                {selectedHorse.length > 0 ? 'Deselect' : 'All'}
+              </button>
+              <select 
+                multiple
+                size={1}
+                value={selectedHorse} 
+                onChange={(e) => {
+                  const values = Array.from(e.target.selectedOptions, option => option.value);
+                  setSelectedHorse(values);
+                }}
+                style={{ 
+                  background: 'white', 
+                  color: 'black', 
+                  border: 'none', 
+                  cursor: 'pointer', 
+                  outline: 'none',
+                  fontWeight: selectedHorse.length > 0 ? 'bold' : 'normal'
+                }}
+              >
+                {horses
+                  .filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null")
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map(h => (
+                    <option key={h.name} value={h.name} style={{ color: LINE_COLORS[horses.indexOf(h) % LINE_COLORS.length] }}>{h.name}</option>
+                  ))}
+              </select>
+            </div>
 
-          {/* NEW: Months Filter Slider */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '10px',
-            padding: '2px 12px',
-            borderRadius: '20px',
-            border: '1px solid var(--border)',
-            backgroundColor: monthsFilter > 0 ? 'var(--accent)' : 'transparent',
-            color: monthsFilter > 0 ? 'var(--bg)' : 'var(--text)',
-            fontSize: '13px'
-          }}>
-            <span style={{ whiteSpace: 'nowrap' }}>Months: {monthsFilter === 0 ? 'Off' : `${monthsFilter}`}</span>
-            <input 
-              type="range" 
-              min="0" 
-              max="4" 
-              step="1" 
-              value={monthsFilter === 0 ? 0 : (15 - monthsFilter) / 3} 
-              onChange={(e) => { const v = parseInt(e.target.value, 10); setMonthsFilter(v === 0 ? 0 : 15 - (v * 3)); }}
-              style={{ width: '60px', cursor: 'pointer', accentColor: monthsFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
-            />
+            {/* Position Filter Slider */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '10px',
+              padding: '2px 12px',
+              borderRadius: '20px',
+              border: '1px solid var(--border)',
+              backgroundColor: positionFilter > 0 ? 'var(--accent)' : 'transparent',
+              color: positionFilter > 0 ? 'var(--bg)' : 'var(--text)',
+              fontSize: '13px'
+            }}>
+              <span style={{ whiteSpace: 'nowrap' }}>Pos: {positionFilter === 0 ? 'Off' : `${positionFilter}`}</span>
+              <input 
+                type="range" 
+                min="0" 
+                max="5" // Max 5 positions, adjust as needed
+                step="1" 
+                value={positionFilter} 
+                onChange={(e) => setPositionFilter(parseInt(e.target.value, 10))}
+                style={{ width: '60px', cursor: 'pointer', accentColor: positionFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
+              />
+            </div>
+
+            {/* Distance Beaten Filter Slider */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '10px',
+              padding: '2px 12px',
+              borderRadius: '20px',
+              border: '1px solid var(--border)',
+              backgroundColor: distanceBeatenFilter > 0 ? 'var(--accent)' : 'transparent',
+              color: distanceBeatenFilter > 0 ? 'var(--bg)' : 'var(--text)',
+              fontSize: '13px'
+            }}>
+              <span style={{ whiteSpace: 'nowrap' }}>Btn: {distanceBeatenFilter === 0 ? 'Off' : `<${distanceBeatenFilter}L`}</span>
+              <input 
+                type="range" 
+                min="0" 
+                max="5" // Max 5 lengths, adjust as needed
+                step="1" 
+                value={distanceBeatenFilter} 
+                onChange={(e) => setDistanceBeatenFilter(parseInt(e.target.value, 10))}
+                style={{ width: '60px', cursor: 'pointer', accentColor: distanceBeatenFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
+              />
+            </div>
+
+            {/* Existing Distance Margin Slider */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '10px',
+              padding: '2px 12px',
+              borderRadius: '20px',
+              border: '1px solid var(--border)',
+              backgroundColor: distMargin >= 0 ? 'var(--accent)' : 'transparent',
+              color: distMargin >= 0 ? 'var(--bg)' : 'var(--text)',
+              fontSize: '13px'
+            }}>
+              <span style={{ whiteSpace: 'nowrap' }}>Dist: {distMargin === -1 ? 'Off' : (distMargin === 0 ? '±0f' : `±${distMargin}f`)}</span>
+              <input 
+                type="range" 
+                min="-1" 
+                max="4" // Max 4 furlongs margin, adjust as needed
+                step="1" 
+                value={distMargin} 
+                onChange={(e) => setDistMargin(parseInt(e.target.value, 10))}
+                style={{ width: '60px', cursor: 'pointer', accentColor: distMargin >= 0 ? 'var(--bg)' : 'var(--accent)' }}
+              />
+            </div>
+
+            {/* Going Filter Toggle */}
+            <div 
+              onClick={() => setGoingFilter(!goingFilter)}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                padding: '2px 12px',
+                borderRadius: '20px',
+                border: '1px solid var(--border)',
+                backgroundColor: goingFilter ? 'var(--accent)' : 'transparent',
+                color: goingFilter ? 'var(--bg)' : 'var(--text)',
+                fontSize: '13px',
+                cursor: 'pointer'
+              }}
+            >
+              <span style={{ whiteSpace: 'nowrap' }}>{goingFilter ? todayGoing || 'Match' : 'Going'}</span>
+            </div>
+
+            {/* NEW: Months Filter Slider */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '10px',
+              padding: '2px 12px',
+              borderRadius: '20px',
+              border: '1px solid var(--border)',
+              backgroundColor: monthsFilter > 0 ? 'var(--accent)' : 'transparent',
+              color: monthsFilter > 0 ? 'var(--bg)' : 'var(--text)',
+              fontSize: '13px'
+            }}>
+              <span style={{ whiteSpace: 'nowrap' }}>Months: {monthsFilter === 0 ? 'Off' : `${monthsFilter}`}</span>
+              <input 
+                type="range" 
+                min="0" 
+                max="4" 
+                step="1" 
+                value={monthsFilter === 0 ? 0 : (15 - monthsFilter) / 3} 
+                onChange={(e) => { const v = parseInt(e.target.value, 10); setMonthsFilter(v === 0 ? 0 : 15 - (v * 3)); }}
+                style={{ width: '60px', cursor: 'pointer', accentColor: monthsFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
+              />
+            </div>
           </div>
         </div>
 
