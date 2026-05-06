@@ -1,3 +1,17 @@
+import React, { useState } from 'react';
+import AuthGuard from './components/security/AuthGuard';
+import { useAppState } from './hooks/useAppState';
+import SkeletonRaceCard from './components/skeletons/SkeletonRaceCard';
+import SkeletonRaceTimeline from './components/skeletons/SkeletonRaceTimeline';
+import RaceTimeline from './components/race/RaceTimeline';
+import Modal from './components/common/Modal';
+import OddsMovementSummary from './components/modals/OddsMovementSummary';
+import FavoriteSelections from './components/modals/FavoriteSelections';
+import Layout from './components/layout/Layout';
+import FilterBar from './components/filters/FilterBar';
+import RaceGrid from './components/race/RaceGrid';
+import Chatter from './components/chat/Chatter';
+import './css/App.css';
 function App() {
   const s = useAppState(); 
   const [showChat, setShowChat] = useState(false);
