@@ -180,7 +180,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             border: '1px solid var(--border)',
             fontSize: '13px'
           }}>
-            <span style={{ whiteSpace: 'nowrap', minWidth: '45px' }}>{SORT_LABELS[sortBy]}</span>
+            <span>{SORT_LABELS[sortBy]}</span>
             <input 
               type="range" 
               min="0" 
