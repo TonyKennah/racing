@@ -14,7 +14,6 @@ import Chatter from './components/chat/Chatter';
 import './css/App.css';
 function App() {
   const s = useAppState(); 
-  const [showChat, setShowChat] = useState(false);
 
   // 🟢 SET TO 'false' TO DISABLE AUTH GUARD
   const AUTH_ACTIVE = false;
@@ -30,8 +29,8 @@ function App() {
         displayDate: s.displayDate, 
         setDisplayDate: s.setDisplayDate,
         formattedDateTime: s.formattedDateTime,
-        onShowChat: () => setShowChat(!showChat),
-        isChatOpen: showChat
+        onShowChat: () => s.setShowChat(!s.showChat),
+        isChatOpen: s.showChat
       }}
       searchRaces={s.loading || s.error ? [] : s.races}
     >
@@ -87,7 +86,7 @@ function App() {
         </>
       )}
 
-      {showChat && <Chatter onClose={() => setShowChat(false)} />}
+      {s.showChat && <Chatter onClose={() => s.setShowChat(false)} />}
     </Layout>
   );
 

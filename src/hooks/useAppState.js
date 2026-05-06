@@ -10,7 +10,7 @@ import { formatDisplayDateTime } from '../utils/dateUtils';
 export function useAppState() {
   const [displayDate, setDisplayDate] = useState(() => new Date());
   const currentTime = useClock();
-  
+  const [showChat, setShowChat] = useState(false);
   const { races, loading, error, refreshCooldown, handleManualRefresh } = useRaces(displayDate);
   
   const [filters, setFilters] = useState({
