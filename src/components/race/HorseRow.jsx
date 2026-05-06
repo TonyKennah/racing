@@ -46,16 +46,16 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
             <span className="horse-name-row">
               <span className="cell-no">{horse.number}.</span>
               <span className="cell-draw">{horse.draw ? `(${horse.draw})` : ''}</span>
-              <span className="cell-form">{horse.form}</span>
+              <span className="cell-form hide-mobile">{horse.form}</span>
               <span className="cell-name"><strong>{horse.name}</strong></span>
-              <span className="cell-lastrun">{horse.lastRun && `${horse.lastRun}`}</span>
-              <span className="cell-age">{horse.age}yo</span>
-              <span className="cell-weight">{horse.weight}</span>
-              <span className="cell-jockey">
+              <span className="cell-lastrun hide-mobile">{horse.lastRun && `${horse.lastRun}`}</span>
+              <span className="cell-age hide-mobile">{horse.age}yo</span>
+              <span className="cell-weight hide-mobile">{horse.weight}</span>
+              <span className="cell-jockey hide-mobile">
                 <strong>J:</strong> {horse.jockey}
               </span>          
             </span>
-            <span className="trainer-row">
+            <span className="trainer-row hide-mobile">
               <span className="cell-owner">
                 <strong>O:</strong> {horse.owner}
               </span>

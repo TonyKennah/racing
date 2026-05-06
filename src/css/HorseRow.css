@@ -200,5 +200,9 @@
     gap: 8px;
     white-space: normal;        /* Ensure text can wrap */
   }
+  
+  .hide-mobile {
+    display: none !important;
+  }
   .cell-jockey { display: block; width: 100%; text-align: left; margin-top: 4px; }
 }
