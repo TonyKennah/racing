@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 const TrackWorker = () => {
   const [liveCount, setLiveCount] = useState(0); // State to hold the number of users
   const workerRef = useRef(null);
-  const servletUrl = "https://www.pluckier.co.uk/utils/tracker";
+  const servletUrl = "https://www.pluckier.co.uk/utils/trackerservice";
   const sessionId = useRef(Math.random().toString(36).substring(2, 10));
 
   useEffect(() => {
