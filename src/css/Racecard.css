@@ -81,7 +81,19 @@
   font-size: 0.7em;
   opacity: 0.5;
 }
+
 .race-anchor-link:hover {
   opacity: 1;
   color: var(--accent);
 }
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .race-detail {
+    display: none !important;
+  }
+}
+

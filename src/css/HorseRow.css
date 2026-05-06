@@ -1,6 +1,6 @@
 .cell-no {
   font-weight: bold;
-  width: 10px;
+  width: 15px;
   color: var(--text-h);
   flex-shrink: 0;
 }

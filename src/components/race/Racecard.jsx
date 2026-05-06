@@ -168,7 +168,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               🔔
             </button>
           </h2>
-          <h5 className="race-detail">{race.detail} {race.going}</h5>
+          <h5 className="race-detail hide-on-mobile">{race.detail} {race.going}</h5>
         </div>
         <div className="race-controls">
           <div style={{ 
