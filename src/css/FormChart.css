@@ -119,7 +119,12 @@
 /* Mobile optimizations */
 @media (max-width: 768px) {
   .modal-header h3 {
-    font-size: 0.85em;
+    font-size: 0.75em;
+  }
+
+  .modal-header {
+    padding: 0px;
+    padding-top: 0px;
   }
 
   .hide-mobile {
