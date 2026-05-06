@@ -215,6 +215,8 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       >
           <FormChart 
             horses={activeChartRace.horses} 
+            raceTime={activeChartRace.time}
+            racePlace={activeChartRace.place}
             onNext={handleNext}
             onPrev={handlePrev}
             hasNext={hasNext}
