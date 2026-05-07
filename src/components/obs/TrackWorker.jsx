@@ -34,7 +34,6 @@ const TrackWorker = () => {
   //if (liveCount === 0) return null;
 
   return (
-    <div className="live-tracker">
     <div className="live-tracker" title="People here now">
       {liveCount} 👀
     </div>
