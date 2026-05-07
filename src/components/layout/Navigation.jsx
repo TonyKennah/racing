@@ -21,7 +21,7 @@ const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, dis
       <div className="top-bar">
         {children}
         <div className="top-bar-controls">
-          {/*<TrackWorker />*/}
+          <TrackWorker />
 
           <button 
             className={`filter-btn chat-btn ${isChatOpen ? 'active' : ''}`} 
