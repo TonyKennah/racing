@@ -142,7 +142,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     <div id={raceId} className="race-card">
       <header className="race-header">
         <div className="race-title-group">
-          <h2>
+          <h2 className="race-title">
             <a href="#home" className="home-link" title="Return to top">
               🏠
             </a>
