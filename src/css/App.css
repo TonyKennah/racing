@@ -219,6 +219,11 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    row-gap: 12px;
+  }
 }
 
 .navigation-section {
@@ -233,12 +238,21 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+
+  @media (max-width: 768px) {
+    flex: 1 0 100%;
+    justify-content: space-around;
+  }
 }
 
 /* Search Bar Styles */
 .search-container {
   flex: 1;
   position: relative;
+
+  @media (max-width: 768px) {
+    flex: 1 0 100%;
+  }
 }
 
 .search-input {

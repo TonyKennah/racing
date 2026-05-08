@@ -74,7 +74,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
           ? "NR" 
           : (horse.odds?.[horse.odds.length - 1] ? (isNaN(horse.odds[horse.odds.length - 1]) ? horse.odds[horse.odds.length - 1] : Number(horse.odds[horse.odds.length - 1])) : "x")}
       </span>
-      <button className="past-button" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
+      <button className="past-button hide-mobile" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
       </div>
 
       {showForm && (
