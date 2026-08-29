@@ -1,74 +1,60 @@
-import React, { useRef } from 'react';
-import TrackWorker from '../obs/TrackWorker';
+import React, { useState } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
-const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, displayDate, setDisplayDate, formattedDateTime, onShowChat, isChatOpen }) => {
-  const dateInputRef = useRef(null);
+const CustomDateInput = React.forwardRef(({ value, onClick }, ref) => (
+  <span
+    className="date-icon"
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClick(e);
+    }}
+    ref={ref}
+    title="Click to change date"
+    style={{ cursor: 'pointer' }}
+  >
+    📅
+  </span>
+));
 
-  const handleOpenDatePicker = () => {
-    if (dateInputRef.current) {
-      if (typeof dateInputRef.current.showPicker === 'function') {
-        dateInputRef.current.showPicker();
-      } else {
-        dateInputRef.current.click();
-      }
-    }
-  };
+CustomDateInput.displayName = 'CustomDateInput';
 
-  const dateInputValue = `${displayDate.getFullYear()}-${String(displayDate.getMonth() + 1).padStart(2, '0')}-${String(displayDate.getDate()).padStart(2, '0')}`;
+const Navigation = ({ displayDate, setDisplayDate, formattedDateTime, summaryTime, detailsContent }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="navigation-section">
-      <div className="top-bar">
-        {children}
-        <div className="top-bar-controls">
-          <TrackWorker />
-
-          <button 
-            className={`filter-btn chat-btn ${isChatOpen ? 'active' : ''}`} 
-            onClick={onShowChat} 
-            title={isChatOpen ? "Close Chat" : "Open Chat"}
-          >
-            💬
-          </button>
-
-          <button 
-            className={`filter-btn refresh-btn ${refreshCooldown ? 'disabled' : ''}`}
-            onClick={onRefresh}
-            disabled={refreshCooldown}
-            title={refreshCooldown ? "Cooldown active" : "Refresh data"}
-          >
-            ↻
-          </button>
-
-          <div className="donate-container"> 
-            <form action="https://www.paypal.com/donate" method="post" target="_blank"><input type="hidden" name="hosted_button_id" value="P9PLRQL24TBAN" /><input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" /><img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" /></form>
-          </div>
-          <div className="theme-toggle-group">
-            <button onClick={() => setTheme('light')} className={`theme-btn ${theme === 'light' ? 'active' : ''}`} title="Light Mode">☀️</button>
-            <button onClick={() => setTheme('dark')} className={`theme-btn ${theme === 'dark' ? 'active' : ''}`} title="Dark Mode">🌙</button>
-          </div>
+      <details className="timeline-details" onToggle={(e) => setIsOpen(e.target.open)}>
+        <summary className="timeline-summary" style={{ listStyle: 'none' }}>
+          <h2 className="date-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', margin: 0 }}>
+            <DatePicker
+              selected={displayDate}
+              onChange={(date) => {
+                if (date) {
+                  if (window.location.hash || window.location.search) {
+                    window.history.replaceState(null, '', window.location.pathname);
+                  }
+                  setDisplayDate(date);
+                }
+              }}
+              dateFormat="dd/MM/yyyy"
+              customInput={<CustomDateInput />}
+              withPortal
+              portalId="root"
+            />
+            <span onClick={(e) => e.preventDefault()} style={{ cursor: 'default' }}>
+              The Racing {formattedDateTime.split(' (')[0]}
+            </span>
+            <span className="summary-time-inline" title={isOpen ? "Close info" : "Info / Settings"} style={{ fontSize: '0.9em', opacity: 0.8, cursor: 'pointer' }}>
+              {isOpen ? '▲' : '☰'} {summaryTime}
+            </span>
+          </h2>
+        </summary>
+        <div className="details-expanded-content" style={{ marginTop: '15px' }}>
+          {detailsContent}
         </div>
-      </div>
-
-      <label htmlFor="main-date-picker">
-        <h2 onClick={handleOpenDatePicker} className="date-header" title="Click to change date">
-          The Racing {formattedDateTime.split(' (')[0]}
-          <span className="date-icon">📅</span>
-        </h2>
-      </label>
-      <input
-        type="date"
-        id="main-date-picker"
-        ref={dateInputRef}
-        value={dateInputValue}
-        onChange={(e) => {
-          if (e.target.value) {
-            const [y, m, d] = e.target.value.split('-').map(Number);
-            setDisplayDate(new Date(y, m - 1, d));
-          }
-        }}
-        className="hidden-date-input"
-      />
+      </details>
     </div>
   );
 };

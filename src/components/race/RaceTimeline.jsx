@@ -40,8 +40,8 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
 
     // Break the detail into two lines if it contains a '(' (e.g., "Handicap Chase (Class 4)")
     const detailParts = (race.detail || '').split('(');
-    const displayDetail = detailParts.length > 1 
-      ? `${detailParts[0].trim()}<br/>(${detailParts.slice(1).join('(')}` 
+    const displayDetail = detailParts.length > 1
+      ? `${detailParts[0].trim()}<br/>(${detailParts.slice(1).join('(')}`
       : race.detail || '';
 
     // Create an HTML string for the tooltip and match the theme
@@ -94,6 +94,7 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
       <Chart
         chartType="Timeline"
         data={data}
+        chartVersion="51"
         height={computedHeight - 40}
         loader={<SkeletonRaceTimeline height={computedHeight - 40} />}
         width="100%"
