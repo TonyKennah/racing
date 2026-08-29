@@ -4,9 +4,6 @@ export const HOT_OWNERS = [
   "John P McManus", "Mrs J Donnelly"
 ];
 
-export const HOT_FOALED = [
-];
-
 export const HOT_TRAINERS = [
   "A P O'Brien", "T D Easterby", "L Russell & M Scudamore",
   "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell",
@@ -20,6 +17,8 @@ export const HOT_TRAINERS = [
   "Lucinda Russell & Michael Scudamore", "Tim Easterby", "Richard & Peter Fahey",
   "Charlie Appleby", "Martin Keighley", "Ben Pauling", "Jonjo & A.J. O'Neill", "Clive Cox", "George Boughey"
 ];
+
+export const HOT_FOALED = [];
 
 export const HOT_JOCKEYS = [];
 
