@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
+import shallow from 'zustand/shallow';
 import { HOT_TRAINERS, HOT_JOCKEYS, HOT_FOALED, HOT_OWNERS } from '../../utils/racingLogic';
 import { useStore } from '../../store/alarmStore';
 
 const TrainerSelections = ({ races, onClose }) => {
-  // Pull all selected values and setters from the store in one selector
-  const {
+  // Pull all selected values and setters from the store using a tuple selector + shallow equality
+  const [
     selectedTrainers,
     setSelectedTrainers,
     selectedJockeys,
@@ -13,16 +14,19 @@ const TrainerSelections = ({ races, onClose }) => {
     setSelectedOwners,
     selectedFoaled,
     setSelectedFoaled
-  } = useStore((state) => ({
-    selectedTrainers: state.selectedTrainers,
-    setSelectedTrainers: state.setSelectedTrainers,
-    selectedJockeys: state.selectedJockeys,
-    setSelectedJockeys: state.setSelectedJockeys,
-    selectedOwners: state.selectedOwners,
-    setSelectedOwners: state.setSelectedOwners,
-    selectedFoaled: state.selectedFoaled,
-    setSelectedFoaled: state.setSelectedFoaled
-  }));
+  ] = useStore(
+    (state) => [
+      state.selectedTrainers,
+      state.setSelectedTrainers,
+      state.selectedJockeys,
+      state.setSelectedJockeys,
+      state.selectedOwners,
+      state.setSelectedOwners,
+      state.selectedFoaled,
+      state.setSelectedFoaled
+    ],
+    shallow
+  );
 
   // Extract distinct values for the four fields in one pass
   const todays = useMemo(() => {
