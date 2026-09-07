@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PastRace from './PastRace';
 import '../../css/HorseRow.css';
 import { useStore } from '../../store/alarmStore';
@@ -37,12 +37,18 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const setSelectedTrainers = useStore((state) => state.setSelectedTrainers);
   const selectedJockeys = useStore((state) => state.selectedJockeys);
   const setSelectedJockeys = useStore((state) => state.setSelectedJockeys);
+  const selectedOwners = useStore((state) => state.selectedOwners);
+  const setSelectedOwners = useStore((state) => state.setSelectedOwners);
+  const selectedFoaled = useStore((state) => state.selectedFoaled);
+  const setSelectedFoaled = useStore((state) => state.setSelectedFoaled);
 
   const handleFiddleClick = (e) => {
     e.stopPropagation(); // Prevent row toggling/collapse
 
     const horseTrainer = horse.trainer ? horse.trainer.trim() : '';
     const horseJockey = horse.jockey ? horse.jockey.trim() : '';
+    const horseOwner = horse.owner ? horse.owner.trim() : '';
+    const horseFoaled = horse.foaled ? horse.foaled.trim() : '';
 
     // Remove trainer from store selections
     let currentTrainers = selectedTrainers;
@@ -59,6 +65,24 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
     }
     const nextJockeys = currentJockeys.filter(j => !horseJockey.includes(j) && !j.includes(horseJockey));
     setSelectedJockeys(nextJockeys);
+
+    // Remove owner from store selections
+    let currentOwners = selectedOwners;
+    if (currentOwners === null) {
+      currentOwners = HOT_OWNERS;
+    }
+    const nextOwners = currentOwners.filter(o => !horseOwner.includes(o) && !o.includes(horseOwner));
+    setSelectedOwners(nextOwners);
+
+    // Remove foaled from store selections
+    let currentFoaled = selectedFoaled;
+    if (currentFoaled === null) {
+      currentFoaled = HOT_FOALED;
+    }
+    const nextFoaled = currentFoaled.filter(f => !horseFoaled.includes(f) && !f.includes(horseFoaled));
+    setSelectedFoaled(nextFoaled);
+
+
   };
 
   const handleTrainerClick = (e) => {
@@ -98,11 +122,11 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const trainerTrimmed = horse.trainer ? horse.trainer.trim() : '';
   const jockeyTrimmed = horse.jockey ? horse.jockey.trim() : '';
 
-  const isTrainerHighlighted = selectedTrainers !== null 
+  const isTrainerHighlighted = selectedTrainers !== null
     ? selectedTrainers.some(t => trainerTrimmed.includes(t) || t.includes(trainerTrimmed))
     : HOT_TRAINERS.some(t => trainerTrimmed.includes(t));
 
-  const isJockeyHighlighted = selectedJockeys !== null 
+  const isJockeyHighlighted = selectedJockeys !== null
     ? selectedJockeys.some(j => jockeyTrimmed.includes(j) || j.includes(jockeyTrimmed))
     : HOT_JOCKEYS.some(j => jockeyTrimmed.includes(j));
 
@@ -207,6 +231,64 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const colorIndex = !isNaN(num) ? (num - 1) % SOFT_COLORS.length : SOFT_COLORS.length - 1;
   const rowBg = `${SOFT_COLORS[colorIndex]}40`; // 25% opacity
 
+
+  const expandSexAndColour = (rawString) => {
+    if (!rawString) return 'N/A';
+
+    // 1. Clean the text, convert to lowercase, and drop trailing artifact bits like " f."
+    const cleanInput = rawString.toLowerCase().replace(/\s*[a-zA-Z]\.$/, '').trim();
+
+    // 2. Define the exact dictionary map matching UK/Irish data definitions
+    const translations = {
+      // Categories
+      gelding: 'Gelding',
+      colt: 'Colt',
+      filly: 'Filly',
+      mare: 'Mare',
+      horse: 'Horse',
+      rig: 'Rig',
+      // Colours
+      b: 'Bay',
+      bay: 'Bay',
+      ch: 'Chestnut',
+      br: 'Brown',
+      gr: 'Grey',
+      g: 'Grey',
+      grey: 'Grey',
+      bl: 'Black',
+      blk: 'Black',
+      ro: 'Roan'
+    };
+
+    // 3. Break individual words apart ("gelding", "ch")
+    const words = cleanInput.split(/\s+/);
+
+    // 4. Translate found abbreviations or fallback to the raw word capitalized
+    const longFormWords = words.map(word => {
+      return translations[word] || (word.charAt(0).toUpperCase() + word.slice(1));
+    });
+
+    // 5. Join words cleanly with a comma separating category and color
+    if (longFormWords.length > 1) {
+      return `${longFormWords[0]}, ${longFormWords.slice(1).join(' ')}`;
+    }
+    return longFormWords[0] || 'N/A';
+  };
+
+
+  const isFieldMatching = (fieldValue, storeArray) => {
+    if (!fieldValue || !storeArray || !Array.isArray(storeArray)) return false;
+
+    // Clean the live horse value: convert to lowercase and strip ALL hidden whitespace characters
+    const cleanField = fieldValue.toLowerCase().replace(/\s+/g, '');
+
+    // Scan the array using a strict normalized lookup
+    return storeArray.some(item => {
+      if (!item) return false;
+      return item.toLowerCase().replace(/\s+/g, '') === cleanField;
+    });
+  };
+
   return (
     <div
       className={`horse-row ${isNR ? 'non-runner' : ''}`}
@@ -229,7 +311,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
                   {highlightFiddle && (
                     <span
                       className="indicator fiddle"
-                      title="Hot Trainer or Jockey - removes hot"
+                      title="Hot Connection - removes hot"
                       onClick={handleFiddleClick}
                       style={{ cursor: 'pointer' }}
                     />
@@ -287,11 +369,51 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
 
       {showForm && (
         <div className="past-races-container">
+
+          {/* 1. Horse Metadata Header Box (Shown Before Past Runs) */}
+          <div className="horse-meta-header" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '10px',
+            padding: '12px',
+            marginBottom: '15px',
+            borderLeft: '4px solid #4a90e2',
+            borderRadius: '4px',
+            fontSize: '0.9rem',
+          }}>
+            <div>
+              <span>Type: </span>
+              <strong>
+                {expandSexAndColour(horse.breeding)}
+              </strong>
+            </div>
+            <div>
+              <span style={{ display: 'block', fontSize: '0.8rem' }}>Owner:</span>
+              <strong style={{
+                color: isFieldMatching(horse.owner, selectedOwners) ? '#ff9f43' : 'var(--text)'
+              }}>
+                {horse.owner || 'N/A'}
+              </strong>
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <span>Breeding: </span>
+              {/* If breeding contains Sadler's Wells, we give it a subtle highlight gold color */}
+              <strong style={{
+                color: isFieldMatching(horse.foaled, selectedFoaled) ? '#ff9f43' : 'var(--text)'
+              }}>
+                {horse.foaled || 'N/A'}
+              </strong>
+            </div>
+          </div>
+
+          {/* 2. Your Existing Past Race Iteration Loop */}
           {horse.past.map((race, idx) => (
             <PastRace key={idx} race={race} adjustedRating={getAdjustedRating(race)} />
           ))}
+
         </div>
       )}
+
     </div>
   );
 };

@@ -22,14 +22,19 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const [sortBy, setSortBy] = useState('avg');
   const [activeChartRace, setActiveChartRace] = useState(race);
 
+  const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
+  const raceKey = currentDateStr ? `${currentDateStr}_${raceId}` : raceId;
+
   const aiMode = useStore((store) => store.aiMode);
   const toggleAi = useStore((store) => store.toggleAi);
-  const wValue = useStore((store) => store.wValue);
-  const dValue = useStore((store) => store.dValue);
-  const gValue = useStore((store) => store.gValue);
-  const setW = useStore((store) => store.setW);
-  const setD = useStore((store) => store.setD);
-  const setG = useStore((store) => store.setG);
+  const wValue = useStore((store) => store.raceSliders?.[raceKey]?.w ?? 0);
+  const dValue = useStore((store) => store.raceSliders?.[raceKey]?.d ?? 0);
+  const gValue = useStore((store) => store.raceSliders?.[raceKey]?.g ?? 0);
+  const setRaceSlider = useStore((store) => store.setRaceSlider);
+
+  const setW = (v) => setRaceSlider(raceKey, 'w', v);
+  const setD = (v) => setRaceSlider(raceKey, 'd', v);
+  const setG = (v) => setRaceSlider(raceKey, 'g', v);
 
   // Math.min(horse.past?.length || 0, 6) caps each individual horse at 6
   const totalPastRuns = race.horses?.reduce((acc, horse) => acc + Math.min(horse.past?.length || 0, 6), 0) || 0;
@@ -181,18 +186,30 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
   const valueRunnersRanked = useMemo(() => {
     if (!highlightValues) return new Map();
-    const runners = race.horses.filter(h => h.isValue);
-    const uniqueRatings = [...new Set(runners.map(getMax))].sort((a, b) => b - a);
+
+    // Use active runners (ignore NR/non-price) so slider changes affect selection
+    const activeRunners = race.horses.filter(h => getLatestOdds(h) !== Infinity);
+
+    // Compute unique peak ratings using current slider-adjusted getMax
+    const uniqueRatings = [...new Set(activeRunners.map(getMax))].sort((a, b) => b - a);
 
     const ranks = new Map();
-    runners.forEach(h => {
+    if (uniqueRatings.length === 0) return ranks;
+
+    const top1 = uniqueRatings[0];
+    const top2 = uniqueRatings[1];
+
+    activeRunners.forEach(h => {
       const rtg = getMax(h);
       const horseId = h.number === 'NR' ? h.name : h.number;
-      if (rtg === uniqueRatings[0]) ranks.set(horseId, 'top');
-      else if (rtg === uniqueRatings[1]) ranks.set(horseId, 'second');
+      if (top1 !== undefined && rtg === top1) ranks.set(horseId, 'top');
+      else if (top2 !== undefined && rtg === top2) ranks.set(horseId, 'second');
     });
+
     return ranks;
-  }, [race.horses, highlightValues, aiMode]);
+  }, [race.horses, highlightValues, aiMode, wValue, dValue, gValue]);
+
+
 
   const massiveSpikeHorseNumber = useMemo(() => {
     const activeRunners = race.horses.filter(h => getLatestOdds(h) !== Infinity);
@@ -223,7 +240,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     }
 
     return (topPeak > 0 && topPeak >= nextPeak * 1.9 && peakDistValid) ? (winner.number === 'NR' ? winner.name : winner.number) : null;
-  }, [race.horses, aiMode]);
+  }, [race.horses, aiMode, wValue, dValue, gValue]);
 
   const selectHorseNumber = useMemo(() => {
     // 1. Filter out Non-Runners and invalid odds immediately
@@ -239,7 +256,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
     // 3. Return the winning horse's number
     return winner.number === 'NR' ? winner.name : winner.number;
-  }, [race.horses, aiMode]);
+  }, [race.horses, aiMode, wValue, dValue, gValue]);
 
 
   const getRaceIcon = (r) => {
@@ -256,8 +273,6 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
     return icons.length > 0 ? icons.join(' ') : '🚫';
   };
-
-  const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
 
   // Navigation logic for the FormChart Modal
   const currentIndex = allRaces.findIndex(r => r.time === activeChartRace.time && r.place === activeChartRace.place);
@@ -336,13 +351,14 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
   return (
     <div id={raceId} className="race-card">
-      <ThreeSliders wValue={wValue} setW={setW} dValue={dValue} setD={setD} gValue={gValue} setG={setG} />
       <header className="race-header">
         <div className="race-title-group">
           <h2 className="race-title">
-            <a href="#home" className="home-link" title="Return to top">
-              🏠
+
+            <a href={`#${raceId}`} className="race-title-link">
+              {race.time} {race.place}
             </a>
+
             <button
               onClick={onToggleAlarm}
               title={isAlarmEnabled ? "Alarm active (4 mins before start)" : "Click to set alarm for this race"}
@@ -351,9 +367,8 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: '1.2rem',
-                marginRight: '10px',
+                marginLeft: '10px',
                 padding: 0,
-                verticalAlign: 'middle',
                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                 filter: isAlarmEnabled ? 'drop-shadow(0 0 5px #ffcc00) brightness(1.1)' : 'grayscale(1) opacity(0.3)',
                 transform: isAlarmEnabled ? 'scale(1.15)' : 'scale(1)'
@@ -361,9 +376,6 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             >
               🔔
             </button>
-            <a href={`#${raceId}`} className="race-title-link">
-              {race.time} {race.place}
-            </a>
 
           </h2>
           <h5 className="race-detail">{getRaceIcon(race)} {race.detail} {race.going} (Runners {race.runners}) FORM:{finalDisplay}</h5>
@@ -432,6 +444,8 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
         </div>
       </header>
 
+      <ThreeSliders wValue={wValue} setW={setW} dValue={dValue} setD={setD} gValue={gValue} setG={setG} />
+
       <Modal
         isOpen={showOdds}
         onClose={() => setShowOdds(false)}
@@ -470,7 +484,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
           return (
             <HorseRow
-              key={`${horse.name}-${horse.number}`}
+              key={`${horse.name}-${horse.number}-${wValue}-${dValue}-${gValue}`}
               horse={horse}
               sortBy={sortBy}
               highlightFiddle={highlightFiddles && horse.isFiddle}

@@ -8,6 +8,7 @@ import RaceTimeline from './components/race/RaceTimeline';
 import Modal from './components/common/Modal';
 import OddsMovementSummary from './components/modals/OddsMovementSummary';
 import TrainerSelections from './components/modals/TrainerSelections';
+import GridDarkSocialShareDropdown from './components/layout/DropShare';
 import Layout from './components/layout/Layout';
 import FilterBar from './components/filters/FilterBar';
 import RaceGrid from './components/race/RaceGrid';
@@ -19,13 +20,14 @@ import TrackWorker from './components/obs/TrackWorker'; // Import TrackWorker
 import SearchOverlay from './components/layout/SearchOverlay'; // Import SearchOverlay
 import './css/App.css';
 import './css/Notifications.css';
+import HelpPage from './components/common/HelpPage';
+import AntiSpamWrapper from './components/security/AntiSpamWrapper'; // Import AntiSpamWrapper
 
 function App() {
   const state = useAppState();
   const [refreshMinutes, setRefreshMinutes] = useState(15);
-  const aiMode = useStore((store) => store.aiMode);
-  const toggleAi = useStore((store) => store.toggleAi);
   const aiNames = { 0: 0, 1: 1, 2: 2 };
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   // Handle the countdown timer for the Auto-Refresh UI
   useEffect(() => {
@@ -80,6 +82,12 @@ function App() {
       setIsNotificationsReleased(false);
     }
   }, [notifications.length, isNotificationsReleased]);
+
+  const clearAllNotifications = () => {
+    notifications.forEach(notification => {
+      removeNotification(notification.id);
+    });
+  };
 
   // Local-safe date string generation (ISO strings use UTC and can cause off-by-one day errors)
   const currentDateStr = state.displayDate instanceof Date
@@ -236,17 +244,6 @@ function App() {
     window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
   };
 
-  // Automatically jump to the first available race when 'Follow' mode is enabled
-  useEffect(() => {
-    if (state.filters.follow && state.filteredRaces.length > 0) {
-      setActiveRaceIndex(0);
-      const firstRace = state.filteredRaces[0];
-
-      // Update hash to ensure the "Single" view and background scroll stay in sync
-      window.location.hash = `${currentDateStr}@${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
-    }
-  }, [state.filters.follow, state.filteredRaces, state.displayDate]);
-
   // 🟢 SET TO 'false' TO DISABLE AUTH GUARD
   const AUTH_ACTIVE = false;
 
@@ -254,55 +251,6 @@ function App() {
   const content = (auth = {}) => {
     const activeRace = state.filteredRaces[activeRaceIndex] || state.filteredRaces[0];
     const activeRaceId = activeRace ? `${activeRace.time}${activeRace.place.replace(/\s+/g, '')}` : null;
-
-    const CpuIcon = () => (
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect width="16" height="16" x="4" y="4" rx="2" />
-        <rect width="6" height="6" x="9" y="9" rx="1" />
-        <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3" />
-      </svg>
-    );
-
-    const ClaudeIcon = () => (
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2a1 1 0 0 1 1 1v4.757l3.364-3.364a1 1 0 1 1 1.414 1.414L14.414 9H19a1 1 0 1 1 0 2h-4.757l3.364 3.364a1 1 0 0 1-1.414 1.414L13 12.414V17a1 1 0 1 1-2 0v-4.757l-3.364 3.364a1 1 0 0 1-1.414-1.414L9.586 11H5a1 1 0 1 1 0-2h4.757L6.393 5.636a1 1 0 0 1 1.414-1.414L11 7.586V3a1 1 0 0 1 1-1z" />
-      </svg>
-    );
-
-    const ChatGptIcon = () => (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        width="24"
-        height="24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        {/* Center Core */}
-        <circle cx="12" cy="12" r="2.5" fill="currentColor" />
-
-        {/* Symmetrical Swirl Loops */}
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(0 12 12)" />
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(60 12 12)" />
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(120 12 12)" />
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(180 12 12)" />
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(240 12 12)" />
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(300 12 12)" />
-      </svg>
-    );
-
-    // 2. Updated clean mapping object utilizing the local SVG components
-    const aiButtonConfig = {
-      0: { icon: <CpuIcon />, color: '#374151', title: "Turn on AI" },
-      1: { icon: <ClaudeIcon />, color: '#F59E0B', title: "Using Claude" },
-      2: { icon: <ChatGptIcon />, color: '#10B981', title: "Using ChatGPT" }
-    };
-
-    const currentConfig = aiButtonConfig[aiMode] || aiButtonConfig[0];
-
 
     return (
       <Layout
@@ -319,6 +267,15 @@ function App() {
                   viewMode={viewMode}
                   currentDateStr={currentDateStr}
                 />
+
+                <button
+                  className={`filter-btn help-btn ${isHelpOpen ? 'active' : ''}`}
+                  onClick={() => setIsHelpOpen(!isHelpOpen)}
+                  title={isHelpOpen ? "Close Help" : "HELP & Guide"}
+                >
+                  💡
+                </button>
+
                 <TrackWorker />
                 <button
                   className={`filter-btn chat-btn ${state.showChat ? 'active' : ''}`}
@@ -328,25 +285,7 @@ function App() {
                   💬
                 </button>
 
-                <button
-                  onClick={() => toggleAi()}
-                  className="race-analytics-btn"
-                  title={currentConfig.title} // Dynamically updates tooltip text too!
-                  style={{
-                    display: 'inline-flex',    // Centers the icon perfectly
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: currentConfig.color,
-                    color: 'white',
-                    padding: '4px 4px',        // Adjusted padding slightly to fit icons nicely
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s ease'
-                  }}
-                >
-                  {currentConfig.icon}
-                </button>
+                <GridDarkSocialShareDropdown url={'https://pluckier.github.io/racing'} title={'Be Luckier, Pick Pluckier 🏇'} />
 
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <button
@@ -403,7 +342,6 @@ function App() {
                 </div>
               </div>
 
-              <RaceTimeline races={state.filteredRaces} theme={state.theme} />
               <FilterBar
                 filters={state.filters}
                 setFilters={state.setFilters}
@@ -411,6 +349,7 @@ function App() {
                 onShowMovement={() => state.setActiveModal('movement')}
                 onShowTrainers={() => state.setActiveModal('trainers')}
               />
+              <RaceTimeline races={state.filteredRaces} theme={state.theme} />
             </>
           )
         }}
@@ -442,8 +381,8 @@ function App() {
                 <button
                   className="race-analytics-btn"
                   disabled={activeRaceIndex === 0}
-                  style={{ 
-                    flex: 1, 
+                  style={{
+                    flex: 1,
                     padding: '21px 0',
                     /* Adds conditional visual styling */
                     opacity: activeRaceIndex === 0 ? 0.5 : 1,
@@ -468,7 +407,7 @@ function App() {
                     minWidth: '10viewMode0px'
                   }}
                 >
-                  {viewMode === 'all' ? 'All 👀' : 'One 👀'}
+                  {viewMode === 'all' ? 'One 👀' : 'All 👀'}
                 </button>
 
                 {/* Counter only renders here below the button if viewMode is 'single' */}
@@ -501,8 +440,8 @@ function App() {
                 <button
                   className="race-analytics-btn"
                   disabled={activeRaceIndex === state.filteredRaces.length - 1}
-                  style={{ 
-                    flex: 1, 
+                  style={{
+                    flex: 1,
                     padding: '21px 0',
                     /* Matches the same visual disabled states */
                     opacity: activeRaceIndex >= state.filteredRaces.length - 1 ? 0.5 : 1,
@@ -516,16 +455,18 @@ function App() {
               )}
             </div>
 
-            {state.showNextRaceBanner && (
-              <div className="next-race-banner">
-                🕒 Race finished. Moved to next scheduled off...
-              </div>
-            )}
+            <Modal
+              isOpen={isHelpOpen}
+              onClose={() => setIsHelpOpen(false)}
+              title="Help, Guide, Icons"
+            >
+              <HelpPage theme={state.theme} />
+            </Modal>
 
             <Modal
               isOpen={!!state.activeModal}
               onClose={() => state.setActiveModal(null)}
-              title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Today's Trainers & Jockeys (Hot 🟠)"}
+              title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Today's Connections (Hot 🟠)"}
             >
               {state.activeModal === 'movement' && (
                 <OddsMovementSummary races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
@@ -573,18 +514,22 @@ function App() {
         <NonRunnerNotifications
           notifications={isNotificationsReleased ? notifications : []}
           onRemove={removeNotification}
+          onClearAll={clearAllNotifications}
         />
       </Layout>
     );
   };
 
-  // 2. Return the UI wrapped ONLY if auth is active
-  if (!AUTH_ACTIVE) return content();
-
   return (
-    <AuthGuard>
-      {(authData) => content(authData)}
-    </AuthGuard>
+    <AntiSpamWrapper>
+      {!AUTH_ACTIVE ? (
+        content()
+      ) : (
+        <AuthGuard>
+          {(authData) => content(authData)}
+        </AuthGuard>
+      )}
+    </AntiSpamWrapper>
   );
 }
 

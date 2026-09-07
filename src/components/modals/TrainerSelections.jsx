@@ -1,462 +1,341 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { HOT_TRAINERS, HOT_JOCKEYS, HOT_FOALED, HOT_OWNERS } from '../../utils/racingLogic';
 import { useStore } from '../../store/alarmStore';
+import '../../css/TrainerSelections.css';
 
-const TrainerSelections = ({ races, onClose }) => {
-  const selectedTrainers = useStore((state) => state.selectedTrainers);
-  const setSelectedTrainers = useStore((state) => state.setSelectedTrainers);
-  
-  const selectedJockeys = useStore((state) => state.selectedJockeys);
-  const setSelectedJockeys = useStore((state) => state.setSelectedJockeys);
+// Safe parser that separates Dam, Broodmare Sire, and Sire explicitly
+const parseFoaled = (str) => {
+  if (!str) return { dam: '', broodmareSire: '', sire: '' };
+  const match = str.match(/D:\s*(.*?)\s*\((.*?)\)\s*S:\s*(.*)/i);
+  return match
+    ? { dam: match[1].trim(), broodmareSire: match[2].trim(), sire: match[3].trim() }
+    : { dam: str.trim(), broodmareSire: '', sire: '' };
+};
 
-  const selectedOwners = useStore((state) => state.selectedOwners);
-  const setSelectedOwners = useStore((state) => state.setSelectedOwners);
+const CONFIG = {
+  trainers: { title: 'Trainers Today', prop: 'trainer', hot: HOT_TRAINERS, setterName: 'setSelectedTrainers', storeKey: 'trainers' },
+  jockeys: { title: 'Jockeys Today', prop: 'jockey', hot: HOT_JOCKEYS, setterName: 'setSelectedJockeys', storeKey: 'jockeys' },
+  owners: { title: 'Owners Today', prop: 'owner', hot: HOT_OWNERS, setterName: 'setSelectedOwners', storeKey: 'owners' },
+  dams: { title: 'Dams Today', prop: 'foaled', hot: HOT_FOALED, setterName: 'setSelectedDams', storeKey: 'dams', isSubParent: 'dam' },
+  broodmareSires: { title: 'Broodmare Sires Today', prop: 'foaled', hot: HOT_FOALED, setterName: 'setSelectedBroodmareSires', storeKey: 'broodmareSires', isSubParent: 'broodmareSire' },
+  sires: { title: 'Sires Today', prop: 'foaled', hot: HOT_FOALED, setterName: 'setSelectedSires', storeKey: 'sires', isSubParent: 'sire' }
+};
 
-  const selectedFoaled = useStore((state) => state.selectedFoaled);
-  const setSelectedFoaled = useStore((state) => state.setSelectedFoaled);
+const CONFIG_ENTRIES = Object.entries(CONFIG);
 
-  // Extract all distinct trainers from today's races
-  const todaysTrainers = useMemo(() => {
-    const trainers = new Set();
-    if (races) {
-      races.forEach(race => {
-        if (race.horses) {
-          race.horses.forEach(horse => {
-            if (horse.trainer) {
-              const trimmed = horse.trainer.trim();
-              if (trimmed) {
-                trainers.add(trimmed);
-              }
-            }
-          });
+const TrainerSelections = ({ races }) => {
+  // 1. Add the state line for tracking independent text filters per category block
+  const [searchQueries, setSearchQueries] = useState({});
+  const [showOnlyActive, setShowOnlyActive] = useState({});
+
+  // Bind directly to global individual tracks in Zustand
+  const trainers = useStore((s) => s.selectedTrainers);
+  const jockeys = useStore((s) => s.selectedJockeys);
+  const owners = useStore((s) => s.selectedOwners);
+  const dams = useStore((s) => s.selectedDams);
+  const broodmareSires = useStore((s) => s.selectedBroodmareSires);
+  const sires = useStore((s) => s.selectedSires);
+
+  const setSelectedTrainers = useStore((s) => s.setSelectedTrainers);
+  const setSelectedJockeys = useStore((s) => s.setSelectedJockeys);
+  const setSelectedOwners = useStore((s) => s.setSelectedOwners);
+  const setSelectedDams = useStore((s) => s.setSelectedDams);
+  const setSelectedBroodmareSires = useStore((s) => s.setSelectedBroodmareSires);
+  const setSelectedSires = useStore((s) => s.setSelectedSires);
+
+  const store = {
+    trainers, jockeys, owners, dams, broodmareSires, sires,
+    setSelectedTrainers, setSelectedJockeys, setSelectedOwners, setSelectedDams, setSelectedBroodmareSires, setSelectedSires
+  };
+
+  // Build lookups for today's active items and parsed lineage maps
+  const { todaysData, tooltips, bloodlineConnections } = useMemo(() => {
+    const sets = { trainers: new Set(), jockeys: new Set(), owners: new Set(), dams: new Set(), broodmareSires: new Set(), sires: new Set() };
+    const tooltipMap = {};
+    const connections = [];
+
+    const addMetadata = (key, value, horseName, raceTime, raceName, racePlace, parsed) => {
+      if (!value) return;
+      if (!tooltipMap[key]) tooltipMap[key] = {};
+      if (!tooltipMap[key][value]) tooltipMap[key][value] = [];
+      // Avoid duplicate horse entries
+      if (!tooltipMap[key][value].some(e => e.horseName === horseName && e.raceTime === raceTime)) {
+        tooltipMap[key][value].push({ horseName, raceTime, raceName, racePlace, ...(parsed || {}) });
+      }
+    };
+
+    races?.forEach(race => {
+      const raceTime = race.time || '';
+      const raceName = race.name || '';
+      const racePlace = race.place || '';
+
+      race.horses?.forEach(horse => {
+        const hName = horse.name || 'Unknown Horse';
+        const tVal = horse.trainer?.trim();
+        const jVal = horse.jockey?.trim();
+        const oVal = horse.owner?.trim();
+
+        if (tVal) { sets.trainers.add(tVal); addMetadata('trainers', tVal, hName, raceTime, raceName, racePlace); }
+        if (jVal) { sets.jockeys.add(jVal); addMetadata('jockeys', jVal, hName, raceTime, raceName, racePlace); }
+        if (oVal) { sets.owners.add(oVal); addMetadata('owners', oVal, hName, raceTime, raceName, racePlace); }
+
+        const rawFoaled = horse.foaled?.trim();
+        if (rawFoaled) {
+          const parsed = parseFoaled(rawFoaled);
+          // Attach the original string so default matching works natively
+          connections.push({ raw: rawFoaled, ...parsed });
+
+          if (parsed.dam) { sets.dams.add(parsed.dam); addMetadata('dams', parsed.dam, hName, raceTime, raceName, racePlace, parsed); }
+          if (parsed.broodmareSire) { sets.broodmareSires.add(parsed.broodmareSire); addMetadata('broodmareSires', parsed.broodmareSire, hName, raceTime, raceName, racePlace, parsed); }
+          if (parsed.sire) { sets.sires.add(parsed.sire); addMetadata('sires', parsed.sire, hName, raceTime, raceName, racePlace, parsed); }
         }
       });
-    }
-    return Array.from(trainers).sort((a, b) => a.localeCompare(b));
+    });
+
+    const sortedData = Object.fromEntries(
+      Object.entries(sets).map(([k, set]) => [k, Array.from(set).sort((a, b) => a.localeCompare(b))])
+    );
+
+    return { todaysData: sortedData, tooltips: tooltipMap, bloodlineConnections: connections };
   }, [races]);
 
-  // Extract all distinct jockeys from today's races
-  const todaysJockeys = useMemo(() => {
-    const jockeys = new Set();
-    if (races) {
-      races.forEach(race => {
-        if (race.horses) {
-          race.horses.forEach(horse => {
-            if (horse.jockey) {
-              const trimmed = horse.jockey.trim();
-              if (trimmed) {
-                jockeys.add(trimmed);
-              }
-            }
-          });
-        }
-      });
-    }
-    return Array.from(jockeys).sort((a, b) => a.localeCompare(b));
-  }, [races]);
+  const getSelectedArray = (key) => store[CONFIG[key].storeKey];
 
-  // Extract all distinct jockeys from today's races
-  const todaysOwners = useMemo(() => {
-    const owners = new Set();
-    if (races) {
-      races.forEach(race => {
-        if (race.horses) {
-          race.horses.forEach(horse => {
-            if (horse.owner) {
-              const trimmed = horse.owner.trim();
-              if (trimmed) {
-                owners.add(trimmed);
-              }
-            }
-          });
-        }
-      });
-    }
-    return Array.from(owners).sort((a, b) => a.localeCompare(b));
-  }, [races]);
+  const getItemSelectionState = (item, key) => {
+    const cfg = CONFIG[key];
+    const selected = getSelectedArray(key);
 
-  //"foaled": "D: Moon Of Love (Kodiac) S: Cotai Glory",
-  // Extract all distinct jockeys from today's races
-  const todaysFoaled = useMemo(() => {
-    const foaled = new Set();
-    if (races) {
-      races.forEach(race => {
-        if (race.horses) {
-          race.horses.forEach(horse => {
-            if (horse.foaled) {
-              const trimmed = horse.foaled.trim();
-              if (trimmed) {
-                foaled.add(trimmed);
-              }
-            }
-          });
-        }
-      });
+    // 1. Resolve Explicit Green Selection Checks First
+    let isChecked = false;
+    if (selected === null) {
+      isChecked = cfg.hot.some(h => item.includes(h));
+    } else {
+      isChecked = selected.includes(item);
     }
-    return Array.from(foaled).sort((a, b) => a.localeCompare(b));
-  }, [races]);
-  
 
-  // Trainer checking logic
-  const isTrainerChecked = (trainer) => {
-    if (selectedTrainers === null) {
-      return HOT_TRAINERS.some(t => trainer.includes(t));
+    if (isChecked) {
+      return { checked: true, highlighted: false };
     }
-    return selectedTrainers.includes(trainer);
+
+    // Only process pink family highlight linking for lineage sub-parents
+    if (!cfg.isSubParent) {
+      return { checked: false, highlighted: false };
+    }
+
+    // 2. Pink Highlight Evaluation: Check if any other relation in this horse's combo is active
+    const activeDams = store.dams || [];
+    const activeBMSires = store.broodmareSires || [];
+    const activeSires = store.sires || [];
+
+    const hasActiveRelative = bloodlineConnections.some(conn => {
+      // Ensure this connection row matches the specific name item being evaluated
+      if (conn[cfg.isSubParent] !== item) return false;
+
+      // Check if Dam is currently checked (either manually or via global defaults match)
+      const isDamActive = store.dams === null
+        ? CONFIG.dams.hot.some(h => conn.raw.includes(h))
+        : store.dams.includes(conn.dam);
+
+      // Check if Broodmare Sire is currently checked
+      const isBMSireActive = store.broodmareSires === null
+        ? CONFIG.broodmareSires.hot.some(h => conn.raw.includes(h))
+        : store.broodmareSires.includes(conn.broodmareSire);
+
+      // Check if Sire is currently checked
+      const isSireActive = store.sires === null
+        ? CONFIG.sires.hot.some(h => conn.raw.includes(h))
+        : store.sires.includes(conn.sire);
+
+      return isDamActive || isBMSireActive || isSireActive;
+    });
+
+    if (hasActiveRelative) {
+      return { checked: false, highlighted: true };
+    }
+
+    return { checked: false, highlighted: false };
   };
 
-  const handleToggleTrainer = (trainer) => {
-    let currentCheckedList;
-    if (selectedTrainers === null) {
-      currentCheckedList = todaysTrainers.filter(t => HOT_TRAINERS.some(hot => t.includes(hot)));
+  const handleToggleItem = (item, key) => {
+    const cfg = CONFIG[key];
+    const selected = getSelectedArray(key);
+    const { setterName, hot } = cfg;
+
+    let current;
+    if (selected === null) {
+      current = todaysData[key].filter(i => hot.some(h => i.includes(h)));
     } else {
-      currentCheckedList = [...selectedTrainers];
+      current = [...selected];
     }
 
-    if (currentCheckedList.includes(trainer)) {
-      setSelectedTrainers(currentCheckedList.filter(t => t !== trainer));
-    } else {
-      setSelectedTrainers([...currentCheckedList, trainer]);
-    }
+    const updated = current.includes(item)
+      ? current.filter(i => i !== item)
+      : [...current, item];
+
+    store[setterName](updated, races);
   };
 
-  // Jockey checking logic
-  const isJockeyChecked = (jockey) => {
-    if (selectedJockeys === null) {
-      return HOT_JOCKEYS.some(j => jockey.includes(j));
-    }
-    return selectedJockeys.includes(jockey);
-  };
 
-  // Jockey checking logic
-  const isOwnerChecked = (owner) => {
-    if (selectedOwners === null) {
-      return HOT_OWNERS.some(o => owner.includes(o));
-    }
-    return selectedOwners.includes(owner);
-  };
 
-  const handleToggleOwner = (owner) => {
-    let currentCheckedList;
-    if (selectedOwners === null) {
-      currentCheckedList = todaysOwners.filter(o => HOT_OWNERS.some(hot => o.includes(hot)));
-    } else {
-      currentCheckedList = [...selectedOwners];
-    }
 
-    if (currentCheckedList.includes(owner)) {
-      setSelectedOwners(currentCheckedList.filter(o => o !== owner));
-    } else {
-      setSelectedOwners([...currentCheckedList, owner]);
-    }
-  };
-
-  // Jockey checking logic
-  const isFoaledChecked = (foaled) => {
-    if (selectedFoaled === null) {
-      return HOT_FOALED.some(f => foaled.includes(f));
-    }
-    return selectedFoaled.includes(foaled);
-  };
-
-  const handleToggleFoaled = (foaled) => {
-    let currentCheckedList;
-    if (selectedFoaled === null) {
-      currentCheckedList = todaysFoaled.filter(f => HOT_FOALED.some(hot => f.includes(hot)));
-    } else {
-      currentCheckedList = [...selectedFoaled];
-    }
-
-    if (currentCheckedList.includes(foaled)) {
-      setSelectedFoaled(currentCheckedList.filter(f => f !== foaled));
-    } else {
-      setSelectedFoaled([...currentCheckedList, foaled]);
-    }
-  };
-
-  const handleToggleJockey = (jockey) => {
-    let currentCheckedList;
-    if (selectedJockeys === null) {
-      currentCheckedList = todaysJockeys.filter(j => HOT_JOCKEYS.some(hot => j.includes(hot)));
-    } else {
-      currentCheckedList = [...selectedJockeys];
-    }
-
-    if (currentCheckedList.includes(jockey)) {
-      setSelectedJockeys(currentCheckedList.filter(j => j !== jockey));
-    } else {
-      setSelectedJockeys([...currentCheckedList, jockey]);
-    }
-  };
+  // 1. Add this single state line right at the very top of your TrainerSelections component body:
+  // const [searchQueries, setSearchQueries] = React.useState({});
 
   return (
     <div className="trainer-selections-container" style={{ padding: '10px 5px', maxHeight: '550px', overflowY: 'auto' }}>
-      
-      {/* Trainers Section */}
-      <details style={{ marginBottom: '24px' }}>
-        <summary style={{
-          color: 'var(--text-h)',
-          fontSize: '1.1rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          paddingBottom: '6px',
-          borderBottom: '1px solid var(--border)',
-          userSelect: 'none',
-          listStylePosition: 'inside'
-        }}>
-          Trainers Today
-        </summary>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-          gap: '12px',
-          marginTop: '15px',
-          paddingRight: '5px'
-        }}>
-          {todaysTrainers.map((trainer) => {
-            const checked = isTrainerChecked(trainer);
-            return (
-              <label
-                key={trainer}
+      {CONFIG_ENTRIES.map(([key, { title, setterName, hot, isSubParent }]) => {
+        // Get the current search text for this specific section, fallback to empty string
+        const currentQuery = searchQueries[key] || '';
+
+        // Filter the items list dynamically on the fly based on what's typed
+        let filteredItems = todaysData[key].filter(item =>
+          item.toLowerCase().includes(currentQuery.toLowerCase())
+        );
+
+        // If Show Only Active is on, further filter to checked or highlighted items
+        if (showOnlyActive[key]) {
+          filteredItems = filteredItems.filter(item => {
+            const { checked, highlighted } = getItemSelectionState(item, key);
+            return checked || highlighted;
+          });
+        }
+
+        return (
+          <details key={key} style={{ marginBottom: '24px' }}>
+            <summary className="category-summary">{title}</summary>
+
+            {/* Search box input container */}
+            <div className="category-search-container" style={{ margin: '10px 0' }}>
+              <input
+                type="text"
+                placeholder={`Search ${title.toLowerCase()}...`}
+                value={currentQuery}
+                onChange={(e) => setSearchQueries(prev => ({ ...prev, [key]: e.target.value }))}
+                className="theSearchInput"
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
-                  border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                  transition: 'all 0.2s ease',
-                  userSelect: 'none',
-                  boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
+                  width: '100%',
+                  padding: '6px 10px',
+                  borderRadius: '4px',
+                  border: '1px solid var(--border)',
+                  backgroundColor: 'var(--bg-card)',
+                  color: 'var(--text)',
+                  fontSize: '14px'
                 }}
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => handleToggleTrainer(trainer)}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer',
-                    accentColor: '#10B981'
-                  }}
-                />
-                <span style={{
-                  color: checked ? 'var(--text-h)' : 'var(--text)',
-                  fontWeight: checked ? '600' : 'normal',
-                  opacity: checked ? 1 : 0.7
-                }}>
-                  {trainer}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </details>
+              />
+            </div>
 
-      {/* Jockeys Section */}
-      <details>
-        <summary style={{
-          color: 'var(--text-h)',
-          fontSize: '1.1rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          marginBottom: '24px',
-          paddingBottom: '6px',
-          borderBottom: '1px solid var(--border)',
-          userSelect: 'none',
-          listStylePosition: 'inside'
-        }}>
-          Jockeys Today
-        </summary>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-          gap: '12px',
-          marginTop: '15px',
-          paddingRight: '5px'
-        }}>
-          {todaysJockeys.map((jockey) => {
-            const checked = isJockeyChecked(jockey);
-            return (
-              <label
-                key={jockey}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
-                  border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                  transition: 'all 0.2s ease',
-                  userSelect: 'none',
-                  boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => handleToggleJockey(jockey)}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer',
-                    accentColor: '#10B981'
-                  }}
-                />
-                <span style={{
-                  color: checked ? 'var(--text-h)' : 'var(--text)',
-                  fontWeight: checked ? '600' : 'normal',
-                  opacity: checked ? 1 : 0.7
-                }}>
-                  {jockey}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </details>
+            <div className="category-buttons">
+              <button type="button" className="theButton" onClick={() => store[setterName]([], races)}>
+                Deselect All
+              </button>
+              <button type="button" className="theButton" onClick={() => {
+                if (isSubParent) {
+                  const restoredDefaults = todaysData[key].filter(item => hot.some(h => item.includes(h)));
+                  store[setterName](restoredDefaults, races);
+                } else {
+                  store[setterName](hot, races);
+                }
+              }}>
+                Set to Defaults
+              </button>
+              <button type="button" className="theButton" onClick={() =>
+                setShowOnlyActive(prev => ({ ...prev, [key]: !prev[key] }))
+              } style={showOnlyActive[key] ? { borderColor: '#10B981', color: '#10B981' } : {}}>
+                {showOnlyActive[key] ? 'Show All' : 'Show Only Active'}
+              </button>
+            </div>
 
+            <div className="check-grid">
+              {filteredItems.map((item) => {
+                const { checked, highlighted } = getItemSelectionState(item, key);
+                const entries = tooltips[key]?.[item] || [];
 
+                // Build labels for the two sibling parent roles (only for lineage categories)
+                const siblingLabels = {
+                  dam: { label: 'Dam', keys: ['broodmareSire', 'sire'], labels: ['BMS', 'Sire'] },
+                  broodmareSire: { label: 'BMS', keys: ['dam', 'sire'], labels: ['Dam', 'Sire'] },
+                  sire: { label: 'Sire', keys: ['dam', 'broodmareSire'], labels: ['Dam', 'BMS'] },
+                };
+                const siblingConfig = isSubParent ? siblingLabels[isSubParent] : null;
 
-      {/* Owners Section */}
-      <details style={{ marginBottom: '24px' }}>
-        <summary style={{
-          color: 'var(--text-h)',
-          fontSize: '1.1rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          paddingBottom: '6px',
-          borderBottom: '1px solid var(--border)',
-          userSelect: 'none',
-          listStylePosition: 'inside'
-        }}>
-          Owners Today
-        </summary>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-          gap: '12px',
-          marginTop: '15px',
-          paddingRight: '5px'
-        }}>
-          {todaysOwners.map((owner) => {
-            const checked = isOwnerChecked(owner);
-            return (
-              <label
-                key={owner}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
-                  border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                  transition: 'all 0.2s ease',
-                  userSelect: 'none',
-                  boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => handleToggleOwner(owner)}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer',
-                    accentColor: '#10B981'
-                  }}
-                />
-                <span style={{
-                  color: checked ? 'var(--text-h)' : 'var(--text)',
-                  fontWeight: checked ? '600' : 'normal',
-                  opacity: checked ? 1 : 0.7
-                }}>
-                  {owner}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </details>
+                let bgColor = 'var(--bg-card)';
+                let borderColor = 'var(--border)';
+                let shadow = 'none';
 
-      {/* Foaled Section */}
-      <details style={{ marginBottom: '24px' }}>
-        <summary style={{
-          color: 'var(--text-h)',
-          fontSize: '1.1rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          paddingBottom: '6px',
-          borderBottom: '1px solid var(--border)',
-          userSelect: 'none',
-          listStylePosition: 'inside'
-        }}>
-          Parents Today
-        </summary>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-          gap: '12px',
-          marginTop: '15px',
-          paddingRight: '5px'
-        }}>
-          {todaysFoaled.map((foaled) => {
-            const checked = isFoaledChecked(foaled);
-            return (
-              <label
-                key={foaled}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
-                  border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                  transition: 'all 0.2s ease',
-                  userSelect: 'none',
-                  boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => handleToggleFoaled(foaled)}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer',
-                    accentColor: '#10B981'
-                  }}
-                />
-                <span style={{
-                  color: checked ? 'var(--text-h)' : 'var(--text)',
-                  fontWeight: checked ? '600' : 'normal',
-                  opacity: checked ? 1 : 0.7
-                }}>
-                  {foaled}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </details>
+                if (checked) {
+                  bgColor = 'var(--accent-bg, var(--bg-card))';
+                  borderColor = '#10B981'; // Green Checked Border
+                  shadow = '0 0 4px rgba(16, 185, 129, 0.2)';
+                } else if (highlighted) {
+                  bgColor = '#6e97c6ff'; // Soft Pink background tint
+                  borderColor = '#FF69B4'; // Hot Pink relation border
+                  shadow = '0 0 4px rgba(255, 105, 180, 0.2)';
+                }
 
+                return (
+                  <label key={item} className="theCheck" style={{
+                    backgroundColor: bgColor,
+                    border: `1px solid ${borderColor}`,
+                    boxShadow: shadow,
+                    transition: 'all 0.2s ease-in-out',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => handleToggleItem(item, key)}
+                        className="check"
+                      />
+                      <span style={{
+                        color: checked ? 'var(--text-h)' : highlighted ? '#C71585' : 'var(--text)',
+                        fontWeight: (checked || highlighted) ? '600' : 'normal',
+                        opacity: (checked || highlighted) ? 1 : 0.7
+                      }}>
+                        {item}
+                      </span>
+                    </div>
+                    {entries.length > 0 && (
+                      <ul style={{
+                        margin: '4px 0 0 28px',
+                        padding: 0,
+                        listStyle: 'none',
+                        fontSize: '0.8rem',
+                        color: highlighted ? '#8B0A50' : 'var(--text-muted, #888)',
+                        width: '90%'
+                      }}>
+                        {entries.map((entry, i) => (
+                          <li key={i} style={{ padding: '1px 0' }}>
+                            {siblingConfig ? (
+                              <>
+                                <span style={{ fontWeight: 500, color: highlighted ? '#8B0A50' : 'var(--text, #ccc)' }}>{entry.horseName}</span>
+                                <span style={{ opacity: 0.7 }}> ({entry.raceTime} {entry.racePlace} {entry.raceName})</span>
+                                <span style={{ marginLeft: 6, fontSize: '0.75rem', opacity: 0.85 }}>
+                                  {siblingConfig.labels[0]}: <em>{entry[siblingConfig.keys[0]] || '?'}</em>
+                                  {' · '}{siblingConfig.labels[1]}: <em>{entry[siblingConfig.keys[1]] || '?'}</em>
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <span>• {entry.horseName}</span>
+                                <span style={{ opacity: 0.7 }}> ({entry.raceTime} {entry.racePlace} {entry.raceName})</span>
+                              </>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+          </details>
+        );
+      })}
     </div>
   );
+
 };
 
 export default TrainerSelections;
