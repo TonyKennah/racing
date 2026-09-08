@@ -1,0 +1,19 @@
+{
+  "short_name": "racing",
+  "name": "Immersive Racing Application",
+  "description": "A high-performance full-screen web experience.",
+  "icons": [
+    {
+      "src": "/racing/favicon.png",
+      "type": "image/png",
+      "sizes": "32x32",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/racing/",
+  "background_color": "#121212",
+  "theme_color": "#000000",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "id": "/racing/"
+}
