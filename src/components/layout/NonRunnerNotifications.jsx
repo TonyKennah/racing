@@ -1,13 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
-const NotificationItem = ({ notification, onRemove }) => {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onRemove(notification.id);
-    }, 8000); // Visible for 8 seconds
-    return () => clearTimeout(timer);
-  }, [notification.id, onRemove]);
-
+const NotificationItem = ({ notification, onAccept, onReject, onDismiss }) => {
   return (
     <div className="nr-notification-item">
       <div className="nr-notification-content">
@@ -16,12 +9,34 @@ const NotificationItem = ({ notification, onRemove }) => {
           <strong>{notification.name}</strong> is now a non-runner in the {notification.race}
         </span>
       </div>
-      <button className="nr-close-btn" onClick={() => onRemove(notification.id)}>×</button>
+      <div className="nr-notification-actions">
+        <button 
+          className="nr-action-btn nr-accept-btn" 
+          onClick={() => onAccept(notification.id)}
+          title="Confirm this horse is a non-runner"
+        >
+          ✅ Accept
+        </button>
+        <button 
+          className="nr-action-btn nr-reject-btn" 
+          onClick={() => onReject(notification.id)}
+          title="Reject - keep this horse active"
+        >
+          ❌ Reject
+        </button>
+        <button 
+          className="nr-close-btn" 
+          onClick={() => onDismiss(notification.id)}
+          title="Dismiss without deciding"
+        >
+          ×
+        </button>
+      </div>
     </div>
   );
 };
 
-const NonRunnerNotifications = ({ notifications, onRemove, onClearAll }) => {
+const NonRunnerNotifications = ({ notifications, onAccept, onReject, onDismiss, onClearAll }) => {
   if (!notifications.length) return null;
 
   return (
@@ -31,7 +46,9 @@ const NonRunnerNotifications = ({ notifications, onRemove, onClearAll }) => {
         <NotificationItem
           key={notification.id}
           notification={notification}
-          onRemove={onRemove}
+          onAccept={onAccept}
+          onReject={onReject}
+          onDismiss={onDismiss}
         />
       ))}
 
