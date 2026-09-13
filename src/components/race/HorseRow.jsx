@@ -1,24 +1,35 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import PastRace from './PastRace';
 import '../../css/HorseRow.css';
-import { useStore } from '../../store/alarmStore';
+import { useStore } from '../../store/store';
 import { SOFT_COLORS } from '../../constants/chartConstants';
 import { HOT_TRAINERS, HOT_JOCKEYS } from '../../utils/racingLogic';
 
-const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSelect, wValue = 0, dValue = 0, gValue = 0, todayDistance = '', todayGoing = '' }) => {
+const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sortBy, highlightFiddle, highlightValue, highlightSelect, wValue = 0, dValue = 0, gValue = 0, todayDistance = '', todayGoing = '', raceTime = '', racePlace = '', pendingNonRunners = new Set(), approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
   const [showForm, setShowForm] = useState(false);
 
   const pastRuns = horse.past || [];
 
   const oddsArr = horse.odds || [];
   const currentOdds = oddsArr[oddsArr.length - 1];
-  const previousOdds = oddsArr[oddsArr.length - 2];
-  const isNR = currentOdds === "null" || currentOdds === "NR";
+
+  // Priority chain: Rejected > Approved > Pending (keep active) > Feed
+  const horseKey = `${horse.name}@${raceTime}${racePlace}`;
+  const isRejected = rejectedNonRunners.has(horseKey);  // user vetoed — force active
+  const isApproved = approvedNonRunners.has(horseKey);  // user confirmed — force greyed
+  const isPending = pendingNonRunners.has(horseKey);    // alert pending — keep active until decided
+  const feedIsNR = currentOdds === "null" || currentOdds === "NR";
+  const isNR = isRejected ? false : isApproved ? true : isPending ? false : feedIsNR;
+
+  const validOddsList = oddsArr.filter(o => o && o !== "null" && o !== "NR" && !isNaN(o));
+  const activeOdds = validOddsList[validOddsList.length - 1];
+  const prevActiveOdds = validOddsList[validOddsList.length - 2];
 
   let oddsArrow = null;
-  if (!isNR && currentOdds && previousOdds && previousOdds !== "null" && previousOdds !== "NR") {
-    const cur = parseFloat(currentOdds);
-    const prev = parseFloat(previousOdds);
+  if (!isNR && activeOdds && prevActiveOdds) {
+    const cur = parseFloat(activeOdds);
+    const prev = parseFloat(prevActiveOdds);
     if (!isNaN(cur) && !isNaN(prev)) {
       if (cur < prev) {
         oddsArrow = <span className="odds-arrow arrow-up" title={`Shortened from ${prev}`}>▲</span>;
@@ -41,6 +52,30 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const setSelectedOwners = useStore((state) => state.setSelectedOwners);
   const selectedFoaled = useStore((state) => state.selectedFoaled);
   const setSelectedFoaled = useStore((state) => state.setSelectedFoaled);
+
+  const notedHorses = useStore((state) => state.notedHorses) || [];
+  const toggleNotedHorse = useStore((state) => state.toggleNotedHorse);
+  const isNoted = notedHorses.some(h => (h.id || `${h.name}@${h.time}${h.place}`) === horseKey);
+
+  const handleNumberClick = (e) => {
+    e.stopPropagation();
+    toggleNotedHorse({
+      id: horseKey,
+      number: horse.number,
+      name: horse.name,
+      time: raceTime,
+      place: racePlace,
+      trainer: horse.trainer ? horse.trainer.trim() : '',
+      jockey: horse.jockey ? horse.jockey.trim() : '',
+      draw: horse.draw,
+      form: horse.form,
+      weight: horse.weight,
+      age: horse.age,
+      silks: horse.silks,
+      currentOdds: isNR ? "NR" : (activeOdds || (oddsArr[oddsArr.length - 1] !== "null" && oddsArr[oddsArr.length - 1] !== "NR" ? oddsArr[oddsArr.length - 1] : '')),
+      addedAt: Date.now()
+    });
+  };
 
   const handleFiddleClick = (e) => {
     e.stopPropagation(); // Prevent row toggling/collapse
@@ -253,6 +288,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
       ch: 'Chestnut',
       br: 'Brown',
       gr: 'Grey',
+      g: 'Grey',
       grey: 'Grey',
       bl: 'Black',
       blk: 'Black',
@@ -289,7 +325,14 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   };
 
   return (
-    <div
+    <motion.div
+      layout="position"
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        mass: 0.8
+      }}
       className={`horse-row ${isNR ? 'non-runner' : ''}`}
       style={{ backgroundColor: rowBg }}
     >
@@ -299,7 +342,14 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
             {horse.silks && <img src={horse.silks} alt="silks" className="horse-silks" />}
           </div>
           <div className="horse-primary-data">
-            <span className="cell-no">{horse.number}.</span>
+            <span
+              className={`cell-no ${isNoted ? 'noted' : ''}`}
+              onClick={handleNumberClick}
+              title={isNoted ? "Noted horse — click to remove from notes" : "Click horse number to add to notes"}
+              style={{ cursor: 'pointer' }}
+            >
+              {horse.number}.
+            </span>
             <span className="cell-draw hide-mobile hide-mobile-medium">{horse.draw ? `(${horse.draw})` : ''}</span>
             <span className="cell-form hide-mobile hide-mobile-medium">{horse.form}</span>
             <span className="cell-name">
@@ -332,35 +382,49 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
         <div className="horse-personnel-column hide-mobile hide-mobile-medium">
           <div
             className="jockey-row"
-            onClick={handleJockeyClick}
-            title={isJockeyHighlighted ? "Click to remove jockey from highlights" : "Click to highlight jockey"}
+            title={"Jockey"}
             style={{
               textAlign: 'right',
               whiteSpace: 'nowrap',
-              cursor: 'pointer',
               fontWeight: isJockeyHighlighted ? 'bold' : 'normal'
             }}
           >
-            <strong>J:</strong> {horse.jockey}
+            <strong
+              onClick={handleJockeyClick}
+              title={isJockeyHighlighted ? "Click to remove jockey from highlights" : "Click to highlight jockey"}
+              style={
+                {
+                  color: isJockeyHighlighted ? 'orange' : 'inherit',
+                  cursor: 'pointer'
+                }}>J
+            </strong>:{horse.jockey}
+            {isSoleRide && '*'}
           </div>
           <div
             className="trainer-row"
-            onClick={handleTrainerClick}
-            title={isTrainerHighlighted ? "Click to remove trainer from highlights" : "Click to highlight trainer"}
+            title={"Trainer"}
             style={{
               textAlign: 'right',
               whiteSpace: 'nowrap',
-              cursor: 'pointer',
               fontWeight: isTrainerHighlighted ? 'bold' : 'normal'
             }}
           >
-            <strong>T:</strong> {horse.trainer}
+            <strong
+              onClick={handleTrainerClick}
+              title={isTrainerHighlighted ? "Click to remove trainer from highlights" : "Click to highlight trainer"}
+              style={{
+                cursor: 'pointer',
+                color: isTrainerHighlighted ? 'orange' : 'inherit'
+              }}>T
+            </strong>
+            :{horse.trainer}
+            {isSoleTrainerRunner && '*'}
             {horse.breeding && <span className="cell-breeding"> • <strong>B:</strong> {horse.breeding}</span>}
           </div>
         </div>
         <span className="avg-rating"> {displayRating !== null ? displayRating : '-'}</span>
         <span className="odds-value">
-          {isNR ? "NR" : (currentOdds || "x")}
+          {isNR ? "NR" : (activeOdds || "x")}
           {oddsArrow}
         </span>
         <button className="past-button hide-mobile hide-mobile-medium" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
@@ -413,7 +477,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
         </div>
       )}
 
-    </div>
+    </motion.div>
   );
 };
 

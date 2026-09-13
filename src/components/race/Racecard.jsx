@@ -4,8 +4,9 @@ import FormChart from '../charts/FormChart';
 import OddsChart from '../charts/OddsChart';
 import Modal from '../common/Modal';
 import '../../css/RaceCard.css';
-import { useStore } from '../../store/alarmStore';
+import { useStore } from '../../store/store';
 import ThreeSliders from '../charts/Sliders';
+import { getFormEmoji } from '../../constants/chartConstants';
 
 const SORT_MODES = ['odds', 'last', 'avg', 'all', 'high'];
 const SORT_LABELS = {
@@ -13,10 +14,10 @@ const SORT_LABELS = {
   avg: 'Avg3',
   last: '1Run',
   high: 'High',
-  all: 'All'
+  all: '\u00A0\u00A0All\u00A0\u00A0'
 };
 
-const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm, viewMode, currentDateStr }) => {
+const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm, viewMode, currentDateStr, pendingNonRunners = new Set(), approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
   const [showChart, setShowChart] = useState(false);
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
@@ -46,21 +47,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     : 0;
 
   // 2. Determine which emoji to use based on the tier
-  let emoji = "";
-
-  if (formPercentage >= 0 && formPercentage <= 33) {
-    emoji = " ❌";
-  } else if (formPercentage >= 34 && formPercentage <= 55) {
-    emoji = " ⚠️";
-  } else if (formPercentage >= 56 && formPercentage <= 74) {
-    emoji = " 👎";
-  } else if (formPercentage >= 75 && formPercentage <= 87) {
-    emoji = " 👍";
-  } else if (formPercentage >= 88 && formPercentage <= 99) {
-    emoji = " 👌";
-  } else if (formPercentage === 100) {
-    emoji = " ✅💯";
-  }
+  const emoji = getFormEmoji(formPercentage);
 
   // 3. Create final output string
   const finalDisplay = `${formPercentage}%${emoji}`;
@@ -160,16 +147,31 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     return past.reduce((acc, r) => acc + getAdjustedRating(h, r), 0) / past.length;
   };
 
-  const getLatestOdds = (h) => {
+  const isHorseNR = (h) => {
+    const horseKey = `${h.name}@${race.time}${race.place}`;
+    if (rejectedNonRunners.has(horseKey)) return false;
+    if (approvedNonRunners.has(horseKey)) return true;
+    if (pendingNonRunners.has(horseKey)) return false;
     const odds = h.odds || [];
     const last = odds[odds.length - 1];
-    return (last && last !== "null" && last !== "NR" && !isNaN(last)) ? parseFloat(last) : Infinity;
+    return last === "null" || last === "NR";
+  };
+
+  const getLatestOdds = (h) => {
+    if (isHorseNR(h)) return Infinity;
+    const odds = h.odds || [];
+    const last = odds[odds.length - 1];
+    if (last && last !== "null" && last !== "NR" && !isNaN(last)) {
+      return parseFloat(last);
+    }
+    const prevValid = [...odds].reverse().find(o => o && o !== "null" && o !== "NR" && !isNaN(o));
+    return prevValid ? parseFloat(prevValid) : Infinity;
   };
 
   const sortedHorses = useMemo(() =>
     [...race.horses].sort((a, b) => {
-      const isNRA = getLatestOdds(a) === Infinity;
-      const isNRB = getLatestOdds(b) === Infinity;
+      const isNRA = isHorseNR(a);
+      const isNRB = isHorseNR(b);
 
       // Always push non-runners to the bottom
       if (isNRA !== isNRB) return isNRA ? 1 : -1;
@@ -181,7 +183,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       if (sortBy === 'odds') return getLatestOdds(a) - getLatestOdds(b);
       return Number(a.number) - Number(b.number);
     }),
-    [race.horses, sortBy, aiMode, wValue, dValue, gValue]
+    [race.horses, sortBy, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]
   );
 
   const valueRunnersRanked = useMemo(() => {
@@ -207,7 +209,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     });
 
     return ranks;
-  }, [race.horses, highlightValues, aiMode, wValue, dValue, gValue]);
+  }, [race.horses, highlightValues, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]);
 
 
 
@@ -240,7 +242,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     }
 
     return (topPeak > 0 && topPeak >= nextPeak * 1.9 && peakDistValid) ? (winner.number === 'NR' ? winner.name : winner.number) : null;
-  }, [race.horses, aiMode, wValue, dValue, gValue]);
+  }, [race.horses, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]);
 
   const selectHorseNumber = useMemo(() => {
     // 1. Filter out Non-Runners and invalid odds immediately
@@ -256,7 +258,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
     // 3. Return the winning horse's number
     return winner.number === 'NR' ? winner.name : winner.number;
-  }, [race.horses, aiMode, wValue, dValue, gValue]);
+  }, [race.horses, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]);
 
 
   const getRaceIcon = (r) => {
@@ -299,6 +301,26 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     setActiveChartRace(race); // Reset to this card's race when opening
     setShowChart(true);
   };
+
+  const trainerCounts = {};
+  allRaces.forEach(race => {
+    race.horses?.forEach(h => {
+      const trainerName = h.trainer ? h.trainer.trim() : '';
+      if (trainerName) {
+        trainerCounts[trainerName] = (trainerCounts[trainerName] || 0) + 1;
+      }
+    });
+  });
+
+  const jockeyCounts = {};
+  allRaces.forEach(race => {
+    race.horses?.forEach(h => {
+      const jockeyName = h.jockey ? h.jockey.trim() : '';
+      if (jockeyName) {
+        jockeyCounts[jockeyName] = (jockeyCounts[jockeyName] || 0) + 1;
+      }
+    });
+  });
 
   const CpuIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -351,12 +373,11 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
   return (
     <div id={raceId} className="race-card">
-      <ThreeSliders wValue={wValue} setW={setW} dValue={dValue} setD={setD} gValue={gValue} setG={setG} />
       <header className="race-header">
         <div className="race-title-group">
           <h2 className="race-title">
 
-            <a href={`#${raceId}`} className="race-title-link">
+            <a href={currentDateStr ? `#${currentDateStr}@${raceId}` : `#${raceId}`} className="race-title-link">
               {race.time} {race.place}
             </a>
 
@@ -445,12 +466,21 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
         </div>
       </header>
 
+      <ThreeSliders wValue={wValue} setW={setW} dValue={dValue} setD={setD} gValue={gValue} setG={setG} />
+
       <Modal
         isOpen={showOdds}
         onClose={() => setShowOdds(false)}
         title={`Odds Movement: ${race.time} ${race.place}`}
       >
-        <OddsChart horses={race.horses} />
+        <OddsChart
+          horses={race.horses}
+          raceTime={race.time}
+          racePlace={race.place}
+          pendingNonRunners={pendingNonRunners}
+          approvedNonRunners={approvedNonRunners}
+          rejectedNonRunners={rejectedNonRunners}
+        />
       </Modal>
 
       <Modal
@@ -470,6 +500,9 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
           todayGoing={activeChartRace.going}
           viewMode={viewMode} // Pass down viewMode
           currentDateStr={currentDateStr} // Pass down currentDateStr
+          pendingNonRunners={pendingNonRunners}
+          approvedNonRunners={approvedNonRunners}
+          rejectedNonRunners={rejectedNonRunners}
         />
       </Modal>
 
@@ -481,10 +514,18 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
           const isValue = highlightValues && horse.isValue;
           const isSelect = highlightSelects && horseId === selectHorseNumber;
 
+          const currentTrainer = horse.trainer ? horse.trainer.trim() : '';
+          const isSoleRunner = trainerCounts[currentTrainer] === 1;
+
+          const currentJockey = horse.jockey ? horse.jockey.trim() : '';
+          const isSoleRide = jockeyCounts[currentJockey] === 1;
+
           return (
             <HorseRow
-              key={`${horse.name}-${horse.number}-${wValue}-${dValue}-${gValue}`}
+              key={`${raceId}-${horse.number || 'NR'}-${horse.name}`}
               horse={horse}
+              isSoleTrainerRunner={isSoleRunner}
+              isSoleRide={isSoleRide}
               sortBy={sortBy}
               highlightFiddle={highlightFiddles && horse.isFiddle}
               highlightValue={
@@ -497,6 +538,11 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               gValue={gValue}
               todayDistance={race.distance}
               todayGoing={race.going}
+              raceTime={race.time}
+              racePlace={race.place}
+              pendingNonRunners={pendingNonRunners}
+              approvedNonRunners={approvedNonRunners}
+              rejectedNonRunners={rejectedNonRunners}
             />
           );
         })}

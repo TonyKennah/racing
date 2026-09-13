@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { HOT_TRAINERS, HOT_JOCKEYS, HOT_OWNERS } from '../utils/racingLogic';
 
 // Internal parser matching your component logic exactly
 const parseFoaled = (str) => {
@@ -12,11 +13,13 @@ const parseFoaled = (str) => {
 
 export const useStore = create(
     persist(
-        (set, get) => ({
+        (set) => ({
             // =================================================================
             // 1. STATE DEFINITIONS
             // =================================================================
             alarms: [],
+            // Noted horses list
+            notedHorses: [],
             // 0 = Off, 1 = Basic/Mode A, 2 = Advanced/Mode B
             aiMode: 0,
 
@@ -28,12 +31,13 @@ export const useStore = create(
             // Per-race slider values { [raceKey]: { w: 0, d: 0, g: 0 } }
             raceSliders: {},
 
-            // Selected trainers list (defaults to null)
-            selectedTrainers: null,
-            // Selected jockeys list (defaults to null)
-            selectedJockeys: null,
-            // Selected owners list (defaults to null)
-            selectedOwners: null,
+            // Selected trainers list — seeded from HOT_TRAINERS on first load;
+            // persist middleware will restore any previously saved user selections.
+            selectedTrainers: HOT_TRAINERS,
+            // Selected jockeys list — seeded from HOT_JOCKEYS on first load
+            selectedJockeys: HOT_JOCKEYS,
+            // Selected owners list — seeded from HOT_OWNERS on first load
+            selectedOwners: HOT_OWNERS,
 
             // Legacy selected foaled list (automatically updated & synced)
             selectedFoaled: null,
@@ -55,6 +59,39 @@ export const useStore = create(
             })),
 
             clearAlarms: () => set({ alarms: [] }),
+
+            // =================================================================
+            // 2b. NOTED HORSES ACTIONS
+            // =================================================================
+            toggleNotedHorse: (horse) => set((state) => {
+                const current = state.notedHorses || [];
+                const horseId = horse.id || `${horse.name}@${horse.time}${horse.place}`;
+                const exists = current.some(h => (h.id || `${h.name}@${h.time}${h.place}`) === horseId);
+                if (exists) {
+                    return {
+                        notedHorses: current.filter(h => (h.id || `${h.name}@${h.time}${h.place}`) !== horseId)
+                    };
+                }
+                return {
+                    notedHorses: [...current, { ...horse, id: horseId }]
+                };
+            }),
+
+            addNotedHorse: (horse) => set((state) => {
+                const current = state.notedHorses || [];
+                const horseId = horse.id || `${horse.name}@${horse.time}${horse.place}`;
+                const exists = current.some(h => (h.id || `${h.name}@${h.time}${h.place}`) === horseId);
+                if (exists) return state;
+                return {
+                    notedHorses: [...current, { ...horse, id: horseId }]
+                };
+            }),
+
+            removeNotedHorse: (id) => set((state) => ({
+                notedHorses: (state.notedHorses || []).filter(h => (h.id || `${h.name}@${h.time}${h.place}`) !== id)
+            })),
+
+            clearNotedHorses: () => set({ notedHorses: [] }),
 
             // =================================================================
             // 3. AI TOGGLE ACTIONS
@@ -156,6 +193,13 @@ export const useStore = create(
                     }
                 }
             })),
+
+            clearSliders: () => set({
+                wValue: 0,
+                dValue: 0,
+                gValue: 0,
+                raceSliders: {}
+            }),
         }),
         {
             name: 'alarm-storage',

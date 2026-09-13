@@ -1,24 +1,24 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useClock } from './useClock';
 import { useRaces } from './useRaces';
 import { useTheme } from './useTheme';
 import { useFilteredRaces } from './useFilteredRaces';
-import { useNextRaceBanner } from './useNextRaceBanner';
 import { useAutoScroll } from './useAutoScroll';
 import { formatDisplayDateTime } from '../utils/dateUtils';
-import { useStore } from '../store/alarmStore';
+import { useStore } from '../store/store';
 
 export function useAppState() {
   const [displayDate, setDisplayDate] = useState(() => {
     const hash = decodeURIComponent(window.location.hash.substring(1));
     if (hash.includes('@')) {
       const datePart = hash.split('@')[0];
-      const parsed = new Date(datePart);
-      if (!isNaN(parsed.getTime())) return parsed;
+      const parts = datePart.split('-').map(Number);
+      if (parts.length === 3 && !parts.some(isNaN)) {
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
     }
     return new Date();
   });
-  const currentTime = useClock();
+  const currentTime = new Date();
   const [showChat, setShowChat] = useState(false);
   const { races, loading, error, handleManualRefresh, lastRefreshTime } = useRaces(displayDate);
 
@@ -30,7 +30,21 @@ export function useAppState() {
     fiddle: false
   });
 
+  const clearSliders = useStore(state => state.clearSliders);
   const refreshFoaled = useStore(state => state.refreshFoaled);
+
+  useEffect(() => {
+    setFilters(prev => {
+      // Safety optimization: Only trigger a state change if places are actually selected
+      if (prev.places.length === 0) return prev;
+
+      return {
+        ...prev,
+        places: [] // Clear the selected venues array cleanly
+      };
+    });
+    clearSliders();
+  }, [displayDate, clearSliders]);
 
   const [theme, setTheme] = useTheme();
   const [activeModal, setActiveModal] = useState(null); // 'movement', 'favorites', or null
@@ -47,11 +61,13 @@ export function useAppState() {
   }, [currentTime, lastRefreshTime, handleManualRefresh]);
 
   useEffect(() => {
-    if (!refreshFoaled) return;
-    if (!Array.isArray(races)) return;
-    // Recompute legacy 'selectedFoaled' for the newly-loaded races
+    if (!refreshFoaled || !Array.isArray(races)) return;
+
     refreshFoaled(races);
-  }, [races, refreshFoaled]);
+
+    // ✅ FIX: Stringify the array so React checks the actual data values 
+    // instead of checking the unstable memory references.
+  }, [JSON.stringify(races), refreshFoaled]);
 
   const formattedDateTime = useMemo(() =>
     formatDisplayDateTime(displayDate, currentTime),
@@ -63,8 +79,7 @@ export function useAppState() {
     [races]
   );
 
-  const filteredRaces = useFilteredRaces(races, filters, currentTime, displayDate);
-  const showNextRaceBanner = useNextRaceBanner(filteredRaces.length, currentTime, filters.follow, displayDate);
+  const filteredRaces = useFilteredRaces(races, filters);
 
   useAutoScroll(loading, filteredRaces);
 
@@ -75,6 +90,6 @@ export function useAppState() {
     races, loading, error,
     filters, setFilters, lastRefreshTime,
     activeModal, setActiveModal,
-    formattedDateTime, uniquePlaces, filteredRaces, showNextRaceBanner
+    formattedDateTime, uniquePlaces, filteredRaces
   };
 }

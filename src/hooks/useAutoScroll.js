@@ -7,31 +7,28 @@ export function useAutoScroll(loading, filteredRaces) {
     if (!loading && filteredRaces.length > 0 && !hasScrolled.current) {
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      
+
       const nextRace = filteredRaces.find(r => r.time >= timeStr);
-      
+
       if (nextRace) {
         setTimeout(() => {
-          const hash = window.location.hash.substring(1);
-          const hashedElement = hash ? document.getElementById(hash) : null;
+          const hash = decodeURIComponent(window.location.hash.substring(1));
+          const targetId = hash.includes('@') ? hash.split('@')[1] : hash;
+          const hashedElement = targetId ? document.getElementById(targetId) : null;
 
           if (hashedElement) {
             hashedElement.scrollIntoView({ behavior: 'auto', block: 'start' });
             hasScrolled.current = true;
           } else {
-            const [h, m] = nextRace.time.split(':').map(Number);
-            const nextRaceTime = new Date(now);
-            nextRaceTime.setHours(h, m, 0, 0);
-            const diffMs = nextRaceTime - now;
+            // REMOVED: Time difference calculation and 10-minute validation block
 
-            // Only auto-scroll if the next race is within the next 10 minutes
-            if (diffMs >= 0 && diffMs <= 10 * 60 * 1000) {
-              const id = `${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
-              const element = document.getElementById(id);
-              if (element) {
-                element.scrollIntoView({ behavior: 'auto', block: 'start' });
-                hasScrolled.current = true;
-              }
+            // Directly target the next available race
+            const id = `${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
+            const element = document.getElementById(id);
+
+            if (element) {
+              element.scrollIntoView({ behavior: 'auto', block: 'start' });
+              hasScrolled.current = true;
             }
           }
         }, 600);

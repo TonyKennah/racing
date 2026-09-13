@@ -8,13 +8,14 @@ import RaceTimeline from './components/race/RaceTimeline';
 import Modal from './components/common/Modal';
 import OddsMovementSummary from './components/modals/OddsMovementSummary';
 import TrainerSelections from './components/modals/TrainerSelections';
+import NotesModal from './components/modals/NotesModal';
 import GridDarkSocialShareDropdown from './components/layout/DropShare';
 import Layout from './components/layout/Layout';
 import FilterBar from './components/filters/FilterBar';
 import RaceGrid from './components/race/RaceGrid';
 import RaceCard from './components/race/Racecard';
 import Chatter from './components/chat/Chatter';
-import { useStore } from './store/alarmStore';
+import { useStore } from './store/store';
 import NonRunnerNotifications from './components/layout/NonRunnerNotifications';
 import TrackWorker from './components/obs/TrackWorker'; // Import TrackWorker
 import SearchOverlay from './components/layout/SearchOverlay'; // Import SearchOverlay
@@ -56,6 +57,7 @@ function App() {
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
   const [raceNumberInput, setRaceNumberInput] = useState('1');
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
+  const [showNonRunnerNotifications, setShowNonRunnerNotifications] = useState(false);
 
   useEffect(() => {
     const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -73,15 +75,23 @@ function App() {
     }
   };
 
-  const { notifications, removeNotification } = useNonRunnerNotifications(state.races, state.displayDate);
-  const [isNotificationsReleased, setIsNotificationsReleased] = useState(false);
+  const {
+    notifications,
+    pendingNonRunners,
+    approvedNonRunners,
+    rejectedNonRunners,
+    acceptNotification,
+    rejectNotification,
+    clearAll,
+  } = useNonRunnerNotifications(state.races, state.displayDate);
 
-  // Automatically reset the release flag once all current notifications are cleared or timed out
+  // Auto-close the panel once the user has dealt with every notification,
+  // so new non-runners from the next refresh won't appear without a click.
   useEffect(() => {
-    if (isNotificationsReleased && notifications.length === 0) {
-      setIsNotificationsReleased(false);
+    if (notifications.length === 0) {
+      setShowNonRunnerNotifications(false);
     }
-  }, [notifications.length, isNotificationsReleased]);
+  }, [notifications.length]);
 
   // Local-safe date string generation (ISO strings use UTC and can cause off-by-one day errors)
   const currentDateStr = state.displayDate instanceof Date
@@ -158,71 +168,111 @@ function App() {
     return () => clearInterval(interval);
   }, [enabledAlarms, state.races, removeAlarm]);
 
-  // Only attach hashchange listener; don't scroll on effect re-run
+  // Keep refs updated so listeners always access latest values without stale closures
+  const filteredRacesRef = useRef(state.filteredRaces);
+  filteredRacesRef.current = state.filteredRaces;
+
+  const currentDateStrRef = useRef(currentDateStr);
+  currentDateStrRef.current = currentDateStr;
+
+  const setDisplayDateRef = useRef(state.setDisplayDate);
+  setDisplayDateRef.current = state.setDisplayDate;
+
+  const viewModeRef = useRef(viewMode);
+  viewModeRef.current = viewMode;
+
+  const loadingRef = useRef(state.loading);
+  loadingRef.current = state.loading;
+
+  // Listen for hash changes (e.g. user navigation, timeline clicks, Prev/Next)
   useEffect(() => {
     const handleHashSync = () => {
-      if (state.loading) return;
+      if (loadingRef.current) return;
 
       const hash = decodeURIComponent(window.location.hash.substring(1));
-
-      if (!hash) {
-        if (state.filteredRaces.length > 0) {
-          let selectedRace = state.filteredRaces[0];
-
-          // Find the next race if display date is today
-          const now = new Date();
-          const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-          if (currentDateStr === todayStr) {
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
-            const upcomingRace = state.filteredRaces.find(r => {
-              if (!r.time) return false;
-              const [hours, minutes] = r.time.split(':').map(Number);
-              return (hours * 60 + minutes) >= currentMinutes;
-            });
-            if (upcomingRace) {
-              selectedRace = upcomingRace;
-            }
-          }
-
-          const targetId = `${selectedRace.time}${selectedRace.place.replace(/\s+/g, '')}`;
-          window.location.hash = `${currentDateStr}@${targetId}`;
-        }
-        return;
-      }
+      const races = filteredRacesRef.current || [];
+      if (races.length === 0) return;
 
       let raceId = hash;
       if (hash.includes('@')) {
         const [datePart, idPart] = hash.split('@');
         raceId = idPart;
 
-        if (datePart && datePart !== currentDateStr) {
+        if (datePart && datePart !== currentDateStrRef.current) {
           const [y, m, d] = datePart.split('-').map(Number);
-          state.setDisplayDate(new Date(y, m - 1, d));
-          return;
+          if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+            setDisplayDateRef.current(new Date(y, m - 1, d));
+            return;
+          }
         }
       }
 
-      const index = state.filteredRaces.findIndex(r =>
+      const index = races.findIndex(r =>
         `${r.time}${r.place.replace(/\s+/g, '')}` === raceId
       );
 
       if (index !== -1) {
         setActiveRaceIndex(index);
       }
+
+      if (viewModeRef.current === 'all') {
+        setTimeout(() => {
+          const el = document.getElementById(raceId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
     };
 
     window.addEventListener('hashchange', handleHashSync);
-    handleHashSync();
     return () => window.removeEventListener('hashchange', handleHashSync);
-  }, [viewMode, state.loading, state.displayDate, state.setDisplayDate, currentDateStr, state.filteredRaces]);
+  }, []);
 
-  // Ensure index stays in bounds if filters reduce the number of races
+  // Sync active race index and hash whenever filteredRaces or currentDateStr updates
   useEffect(() => {
-    if (activeRaceIndex >= state.filteredRaces.length && state.filteredRaces.length > 0) {
-      setActiveRaceIndex(state.filteredRaces.length - 1);
+    if (state.loading || state.filteredRaces.length === 0) return;
+
+    const hash = decodeURIComponent(window.location.hash.substring(1));
+    let raceId = hash;
+    if (hash.includes('@')) {
+      const [, idPart] = hash.split('@');
+      raceId = idPart;
     }
-  }, [state.filteredRaces.length, activeRaceIndex]);
+
+    const foundIndex = state.filteredRaces.findIndex(r =>
+      `${r.time}${r.place.replace(/\s+/g, '')}` === raceId
+    );
+
+    if (foundIndex !== -1) {
+      setActiveRaceIndex(foundIndex);
+    } else {
+      // If current hash is not in filtered races (e.g. venue filter selected, or initial load),
+      // choose the upcoming race (if today) or the first available race
+      let selectedRace = state.filteredRaces[0];
+      let selectedIndex = 0;
+
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+      if (currentDateStr === todayStr) {
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const upcomingIdx = state.filteredRaces.findIndex(r => {
+          if (!r.time) return false;
+          const [hours, minutes] = r.time.split(':').map(Number);
+          return (hours * 60 + minutes) >= currentMinutes;
+        });
+        if (upcomingIdx !== -1) {
+          selectedRace = state.filteredRaces[upcomingIdx];
+          selectedIndex = upcomingIdx;
+        }
+      }
+
+      setActiveRaceIndex(selectedIndex);
+      const targetId = `${selectedRace.time}${selectedRace.place.replace(/\s+/g, '')}`;
+      window.location.hash = `${currentDateStr}@${targetId}`;
+    }
+  }, [state.filteredRaces, currentDateStr, state.loading]);
 
   useEffect(() => {
     setRaceNumberInput(String(activeRaceIndex + 1));
@@ -237,17 +287,6 @@ function App() {
     const race = state.filteredRaces[num - 1];
     window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
   };
-
-  // Automatically jump to the first available race when 'Follow' mode is enabled
-  useEffect(() => {
-    if (state.filters.follow && state.filteredRaces.length > 0) {
-      setActiveRaceIndex(0);
-      const firstRace = state.filteredRaces[0];
-
-      // Update hash to ensure the "Single" view and background scroll stay in sync
-      window.location.hash = `${currentDateStr}@${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
-    }
-  }, [state.filters.follow, state.filteredRaces, state.displayDate]);
 
   // 🟢 SET TO 'false' TO DISABLE AUTH GUARD
   const AUTH_ACTIVE = false;
@@ -294,18 +333,14 @@ function App() {
 
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <button
-                    className={`filter-btn refresh-btn ${isNotificationsReleased ? 0 : notifications.length > 0 ? 'active' : 'disabled'}`}
-                    disabled={isNotificationsReleased ? 0 : notifications.length === 0}
-                    onClick={() => setIsNotificationsReleased(true)}
-                    style={{ cursor: (isNotificationsReleased ? 0 : notifications.length > 0) ? 'pointer' : 'default' }}
-                    title={
-                      (isNotificationsReleased ? 0 : notifications.length > 0)
-                        ? `Show ${isNotificationsReleased ? 0 : notifications.length} non-runners`
-                        : (refreshMinutes ? `Auto Refresh ${refreshMinutes}m` : "Auto Refresh")
-                    }
+                    className={`filter-btn refresh-btn ${notifications.length > 0 ? 'active' : 'disabled'}`}
+                    disabled={notifications.length === 0}
+                    style={{ cursor: notifications.length > 0 ? 'pointer' : 'default' }}
+                    title={notifications.length > 0 ? `Non Runner Alerts ${refreshMinutes}m` : 'No Non Runner Alerts'}
+                    onClick={() => setShowNonRunnerNotifications(prev => !prev)}
                   >
                     ↻
-                    {(isNotificationsReleased ? 0 : notifications.length > 0) && (
+                    {notifications.length > 0 && (
                       <span style={{
                         position: 'absolute',
                         top: '-8px',
@@ -320,7 +355,7 @@ function App() {
                         zIndex: 2,
                         pointerEvents: 'none'
                       }}>
-                        {(isNotificationsReleased ? 0 : notifications.length)}
+                        {notifications.length}
                       </span>
                     )}
                   </button>
@@ -347,14 +382,16 @@ function App() {
                 </div>
               </div>
 
-              <RaceTimeline races={state.filteredRaces} theme={state.theme} />
               <FilterBar
                 filters={state.filters}
                 setFilters={state.setFilters}
                 uniquePlaces={state.uniquePlaces}
+                races={state.races}
+                onShowNotes={() => state.setActiveModal('notes')}
                 onShowMovement={() => state.setActiveModal('movement')}
                 onShowTrainers={() => state.setActiveModal('trainers')}
               />
+              <RaceTimeline races={state.filteredRaces} theme={state.theme} currentDateStr={currentDateStr} />
             </>
           )
         }}
@@ -460,12 +497,6 @@ function App() {
               )}
             </div>
 
-            {state.showNextRaceBanner && (
-              <div className="next-race-banner">
-                🕒 Race finished. Moved to next scheduled off...
-              </div>
-            )}
-
             <Modal
               isOpen={isHelpOpen}
               onClose={() => setIsHelpOpen(false)}
@@ -477,13 +508,22 @@ function App() {
             <Modal
               isOpen={!!state.activeModal}
               onClose={() => state.setActiveModal(null)}
-              title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Today's Connections (Hot 🟠)"}
+              title={
+                state.activeModal === 'movement'
+                  ? "Card-wide Odds Movement"
+                  : state.activeModal === 'notes'
+                  ? "Noted Horses"
+                  : "Today's Connections (Hot 🟠)"
+              }
             >
               {state.activeModal === 'movement' && (
-                <OddsMovementSummary races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
+                <OddsMovementSummary races={state.filteredRaces} onClose={() => state.setActiveModal(null)} currentDateStr={currentDateStr} />
               )}
               {state.activeModal === 'trainers' && (
                 <TrainerSelections races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
+              )}
+              {state.activeModal === 'notes' && (
+                <NotesModal onClose={() => state.setActiveModal(null)} currentDateStr={currentDateStr} />
               )}
             </Modal>
 
@@ -500,6 +540,9 @@ function App() {
                     onToggleAlarm={() => toggleAlarm(activeRaceId)}
                     viewMode={viewMode}
                     currentDateStr={currentDateStr}
+                    pendingNonRunners={pendingNonRunners}
+                    approvedNonRunners={approvedNonRunners}
+                    rejectedNonRunners={rejectedNonRunners}
                   />
                 ) : (
                   <div className="no-data" style={{ textAlign: 'center', padding: '20px' }}>No races match filters.</div>
@@ -514,6 +557,9 @@ function App() {
                   toggleAlarm={toggleAlarm}
                   viewMode={viewMode}
                   currentDateStr={currentDateStr}
+                  pendingNonRunners={pendingNonRunners}
+                  approvedNonRunners={approvedNonRunners}
+                  rejectedNonRunners={rejectedNonRunners}
                 />
               </div>
             )}
@@ -522,10 +568,14 @@ function App() {
 
         {state.showChat && <Chatter onClose={() => state.setShowChat(false)} />}
 
-        <NonRunnerNotifications
-          notifications={isNotificationsReleased ? notifications : []}
-          onRemove={removeNotification}
-        />
+        {showNonRunnerNotifications && (
+          <NonRunnerNotifications
+            notifications={notifications}
+            onAccept={acceptNotification}
+            onReject={rejectNotification}
+            onClearAll={clearAll}
+          />
+        )}
       </Layout>
     );
   };
