@@ -40,11 +40,13 @@ const HelpPage = ({ theme: currentTheme }) => {
         { id: 'help-toolbar', emoji: '🧭', label: 'Toolbar' },
         { id: 'help-timeline', emoji: '⏱️', label: 'Timeline' },
         { id: 'help-annotations', emoji: '🏷️', label: 'Annotations' },
-        { id: 'help-connections', emoji: '🔥', label: 'Hot Connections' },
-        { id: 'help-class', emoji: '👑', label: 'Classification' },
+        { id: 'help-connections', emoji: '🔥', label: 'Hot' },
+        { id: 'help-class', emoji: '👑', label: 'Icons' },
         { id: 'help-form', emoji: '📊', label: 'Form %' },
         { id: 'help-sliders', emoji: '🎚️', label: 'Sliders' },
         { id: 'help-sort', emoji: '🔀', label: 'Sort By' },
+        { id: 'help-suggestions', emoji: '⚡', label: 'Suggest' },
+        { id: 'help-notes', emoji: '📝', label: 'Notes' },
         { id: 'help-ai', emoji: '🤖', label: 'AI Models' },
         { id: 'help-charts', emoji: '📈', label: 'Charts' },
         { id: 'help-horse', emoji: '🏇', label: 'Horse Row' },
@@ -145,7 +147,7 @@ const HelpPage = ({ theme: currentTheme }) => {
 
             {/* Section: Hot Connections */}
             <Section id="help-connections" emoji="🔥" title="Hot Connections & Pedigree Panel">
-                <p>Click the <strong>🔥 Connections</strong> button in the filter bar to open <em>Today's Connections</em> modal. This panel lets you manage exactly which connections and bloodlines are flagged across all racecards.</p>
+                <p>Click the <strong>🔥 Hot</strong> button in the filter bar to open <em>Today's Connections</em> modal. This panel lets you manage exactly which connections and bloodlines are flagged across all racecards.</p>
                 <p>We have pre-selected some Trainers and Owners that are notable.  Horses connected to these get the orange square 🟨 annotation on the racecard.</p>
                 <ul>
                     <li>
@@ -248,6 +250,14 @@ const HelpPage = ({ theme: currentTheme }) => {
                 <p>Toggling AI dynamically updates all ratings, averages, peak scores, and sort ordering in real time.</p>
             </Section>
 
+            <Section id="help-suggestions" emoji="⚡" title="Market &amp; Form Suggestions">
+                <p>The ⚡ button on a race card opens the “Favoured Suggestions” modal. It shows a concise, algorithm‑driven shortlist of horses that the system believes have the strongest form or trainer advantage for the day’s race. The list is ordered by the latest odds and includes a market‑insight line summarising which horse(s) the market currently favours.</p>
+            </Section>
+
+            <Section id="help-notes" emoji="📝" title="Runners Notes">
+                <p>Click a number on a horse to add it into your Notes (like a stable).  The notes 📝 button is shown above the timeline and lists all noted horses.  These notes will be remembered for future racing.</p>
+            </Section>
+
             {/* Section 7: Odds and Past Performance Charts */}
             <Section id="help-charts" emoji="📈" title="Odds & Past Performance Charts">
                 <p>Deep-dive visual analytics are available via the chart buttons in each race header:</p>
@@ -291,7 +301,13 @@ const HelpPage = ({ theme: currentTheme }) => {
             {/* Version footer */}
             <div className="help-version">
                 <p>Version: 3.0</p>
-                <p>Last Updated: 07 Aug 2026 00:51 BST</p>
+                <p>Last Updated: 14 Oct 2026 23:17 BST</p>
+                <p>
+                    Visit our <a href="https://pluckier.github.io/tips" target="_blank" rel="noopener noreferrer">Tips Site</a>
+                </p>
+                <p>
+                    Or hit lucky <a href="https://pluckier.github.io/tricasts" target="_blank" rel="noopener noreferrer">Tricasts</a>
+                </p>
             </div>
 
         </div>

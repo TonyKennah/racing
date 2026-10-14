@@ -6,6 +6,7 @@ import SkeletonRaceCard from './components/skeletons/SkeletonRaceCard';
 import SkeletonRaceTimeline from './components/skeletons/SkeletonRaceTimeline';
 import RaceTimeline from './components/race/RaceTimeline';
 import Modal from './components/common/Modal';
+import SystemRacesModal from './components/modals/SystemRacesModal';
 import OddsMovementSummary from './components/modals/OddsMovementSummary';
 import TrainerSelections from './components/modals/TrainerSelections';
 import NotesModal from './components/modals/NotesModal';
@@ -23,6 +24,75 @@ import './css/App.css';
 import './css/Notifications.css';
 import HelpPage from './components/common/HelpPage';
 import AntiSpamWrapper from './components/security/AntiSpamWrapper'; // Import AntiSpamWrapper
+
+
+
+function speakRace(time, place) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    console.warn('Web Speech API (speechSynthesis) is not supported in this browser.');
+    return;
+  }
+
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(`Post time, ${time}, at, ${place}`);
+
+    // CRITICAL FIX 1: Explicitly tell the engine to use US English if specific voice fails
+    utterance.lang = 'en-US';
+
+    // Fetch the loaded system voices
+    const voices = window.speechSynthesis.getVoices();
+
+    // Option A: Target a specific high-quality voice directly by name
+    let selectedVoice = voices.find(voice => voice.name === 'Google US English');
+
+    // Option B: Fallback to a native Microsoft US voice if Google isn't available
+    if (!selectedVoice) {
+      selectedVoice = voices.find(voice => voice.name === 'Microsoft Zira - English (United States)');
+    }
+
+    // Option C: Generic fallback for any available US English voice
+    if (!selectedVoice) {
+      selectedVoice = voices.find(voice => voice.lang === 'en-US' || voice.lang.startsWith('en-US'));
+    }
+
+    // Apply the voice if we found an American one
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
+    window.speechSynthesis.speak(utterance);
+  } catch (err) {
+    console.error('Speech synthesis failed:', err);
+  }
+}
+
+
+function playAudioWithRetry(src, retries = 3, delay = 1000, onEnded = null) {
+  const audio = new Audio(src);
+
+  if (onEnded) {
+    audio.addEventListener('ended', onEnded, { once: true });
+  }
+
+  audio.play().catch((error) => {
+    // Check if we have retries left
+    if (retries > 0) {
+      console.warn(`Audio playback failed. Retrying in ${delay}ms... (${retries} retries left)`, error);
+
+      setTimeout(() => {
+        // Appending a timestamp forces the browser to bypass any broken connections or bad cache
+        const freshSrc = `${src}?t=${Date.now()}`;
+        playAudioWithRetry(freshSrc, retries - 1, delay * 1.5, onEnded);
+      }, delay);
+    } else {
+      console.error(`Audio failed to play after multiple attempts for source: ${src}`);
+      if (onEnded) {
+        onEnded();
+      }
+    }
+  });
+}
 
 function App() {
   const state = useAppState();
@@ -56,24 +126,8 @@ function App() {
   const [viewMode, setViewMode] = useState('single'); // 'all' (Grid) or 'single'
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
   const [raceNumberInput, setRaceNumberInput] = useState('1');
-  const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
   const [showNonRunnerNotifications, setShowNonRunnerNotifications] = useState(false);
-
-  useEffect(() => {
-    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
-  }, []);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      });
-    } else if (document.exitFullscreen) {
-      document.exitFullscreen();
-    }
-  };
+  const [showSystem, setShowSystem] = useState(false);
 
   const {
     notifications,
@@ -110,24 +164,6 @@ function App() {
     }
   };
 
-  function playAudioWithRetry(src, retries = 3, delay = 1000) {
-    const audio = new Audio(src);
-
-    audio.play().catch((error) => {
-      // Check if we have retries left
-      if (retries > 0) {
-        console.warn(`Audio playback failed. Retrying in ${delay}ms... (${retries} retries left)`, error);
-
-        setTimeout(() => {
-          // Appending a timestamp forces the browser to bypass any broken connections or bad cache
-          const freshSrc = `${src}?t=${Date.now()}`;
-          playAudioWithRetry(freshSrc, retries - 1, delay * 1.5);
-        }, delay);
-      } else {
-        console.error(`Audio failed to play after multiple attempts for source: ${src}`);
-      }
-    });
-  }
 
 
   // Global timer to check for upcoming races with enabled alarms
@@ -152,8 +188,10 @@ function App() {
           // 2. Are we inside the 2-minute alarm trigger window?
           if (now.getTime() >= triggerTime && now.getTime() < raceDate.getTime()) {
 
-            // 3. Play the audio file with automatic retry logic
-            playAudioWithRetry('music.mp3');
+            // 3. Play the audio file with automatic retry logic, then announce race details
+            playAudioWithRetry('music.mp3', 3, 1000, () => {
+              speakRace(race.time, race.place);
+            });
 
             // 4. FIXED: Instantly remove it from the store as requested.
             removeAlarm(id);
@@ -361,13 +399,22 @@ function App() {
                   </button>
                 </div>
 
+
                 <button
-                  onClick={toggleFullscreen}
-                  className={`filter-btn ${isFullscreen ? 'active' : ''}`}
-                  title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                  onClick={() => setShowSystem(true)}
+                  className="filter-btn"
+                  title="System: Show R horses"
                 >
-                  {isFullscreen ? '⛶ Window' : '⛶ Full'}
+                  System
                 </button>
+
+                <Modal
+                  isOpen={showSystem}
+                  onClose={() => setShowSystem(false)}
+                  title="Racing Analysis"
+                >
+                  <SystemRacesModal races={state.races} displayDate={state.displayDate} />
+                </Modal>
 
                 <div className="donate-container">
                   <form action="https://www.paypal.com/donate" method="post" target="_blank">
@@ -512,8 +559,8 @@ function App() {
                 state.activeModal === 'movement'
                   ? "Card-wide Odds Movement"
                   : state.activeModal === 'notes'
-                  ? "Noted Horses"
-                  : "Today's Connections (Hot 🟠)"
+                    ? "Noted Horses"
+                    : "Today's Connections (Hot 🟠)"
               }
             >
               {state.activeModal === 'movement' && (
@@ -523,7 +570,7 @@ function App() {
                 <TrainerSelections races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
               )}
               {state.activeModal === 'notes' && (
-                <NotesModal onClose={() => state.setActiveModal(null)} currentDateStr={currentDateStr} />
+                <NotesModal onClose={() => state.setActiveModal(null)} currentDateStr={currentDateStr} races={state.filteredRaces} />
               )}
             </Modal>
 

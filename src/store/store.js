@@ -47,6 +47,19 @@ export const useStore = create(
             selectedBroodmareSires: null,
             selectedSires: null,
 
+            // Bloodline matching mode ('or' | 'and')
+            bloodlineMode: 'or',
+            // SystemRacesModal filter state
+            onlyHandicaps: false,
+            minRestrict: 0,
+            maxRestrict: 0,
+            minPastRuns: 0,
+            maxLighterPastRuns: -1,
+            distBeatenEnabled: false,
+            maxDistBeaten: 5,
+            distanceMatchEnabled: false,
+            distanceMargin: 0,
+
             // =================================================================
             // 2. ALARM ACTIONS
             // =================================================================
@@ -64,27 +77,23 @@ export const useStore = create(
             // 2b. NOTED HORSES ACTIONS
             // =================================================================
             toggleNotedHorse: (horse) => set((state) => {
-                const current = state.notedHorses || [];
-                const horseId = horse.id || `${horse.name}@${horse.time}${horse.place}`;
-                const exists = current.some(h => (h.id || `${h.name}@${h.time}${h.place}`) === horseId);
-                if (exists) {
-                    return {
-                        notedHorses: current.filter(h => (h.id || `${h.name}@${h.time}${h.place}`) !== horseId)
-                    };
-                }
-                return {
-                    notedHorses: [...current, { ...horse, id: horseId }]
-                };
-            }),
+    const current = state.notedHorses || [];
+    const horseId = horse.id || `${horse.name}@${horse.time}${horse.place}`;
+    const exists = current.some(h => h.id === horseId);
+    if (exists) {
+        return { notedHorses: current.filter(h => h.id !== horseId) };
+    }
+    // Store minimal data: id and name
+    return { notedHorses: [...current, { id: horseId, name: horse.name }] };
+}),
 
             addNotedHorse: (horse) => set((state) => {
                 const current = state.notedHorses || [];
                 const horseId = horse.id || `${horse.name}@${horse.time}${horse.place}`;
-                const exists = current.some(h => (h.id || `${h.name}@${h.time}${h.place}`) === horseId);
+                const exists = current.some(h => h.id === horseId);
                 if (exists) return state;
-                return {
-                    notedHorses: [...current, { ...horse, id: horseId }]
-                };
+                // Store minimal data
+                return { notedHorses: [...current, { id: horseId, name: horse.name }] };
             }),
 
             removeNotedHorse: (id) => set((state) => ({
@@ -112,6 +121,18 @@ export const useStore = create(
             setSelectedTrainers: (trainers) => set({ selectedTrainers: trainers }),
             setSelectedJockeys: (jockeys) => set({ selectedJockeys: jockeys }),
             setSelectedOwners: (owners) => set({ selectedOwners: owners }),
+
+            setBloodlineMode: (mode) => set({ bloodlineMode: mode }),
+            // SystemRacesModal filter setters
+            setOnlyHandicaps: (v) => set({ onlyHandicaps: v }),
+            setMinRestrict: (v) => set({ minRestrict: v }),
+            setMaxRestrict: (v) => set({ maxRestrict: v }),
+            setMinPastRuns: (v) => set({ minPastRuns: v }),
+            setMaxLighterPastRuns: (v) => set({ maxLighterPastRuns: v }),
+            setDistBeatenEnabled: (v) => set({ distBeatenEnabled: v }),
+            setMaxDistBeaten: (v) => set({ maxDistBeaten: v }),
+            setDistanceMatchEnabled: (v) => set({ distanceMatchEnabled: v }),
+            setDistanceMargin: (v) => set({ distanceMargin: v }),
 
             // Left intact for direct overrides if legacy code updates it from outside
             setSelectedFoaled: (foaled) => set({ selectedFoaled: foaled }),
