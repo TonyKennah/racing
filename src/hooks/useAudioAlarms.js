@@ -1,11 +1,43 @@
 import { useRef, useEffect, useCallback } from 'react';
 
+// Shared fallback cache for the selected UK male voice across the module
+let cachedMaleVoice = null;
+
 /**
- * Speaks the race post time and venue using Web Speech API with American voice fallbacks.
- *
+ * Searches for and caches the Google UK English Male voice or a British male alternative.
+ */
+function getMaleUKVoice() {
+  if (cachedMaleVoice) return cachedMaleVoice;
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length === 0) return null;
+
+  // Tiered fallback strategy targeting British MALE voices
+  const voice =
+    // Option A: Your exact preferred Google UK Male voice
+    voices.find(v => v.name === 'Google UK English Male') ||
+    // Option B: Standard Microsoft Windows Male UK voice (George)
+    voices.find(v => v.name === 'Microsoft George - English (United Kingdom)') ||
+    // Option C: Any UK voice containing the keyword "male" (case-insensitive)
+    voices.find(v => (v.lang === 'en-GB' || v.lang.startsWith('en-GB')) && v.name.toLowerCase().includes('male')) ||
+    // Option D: System default UK voice if no explicit male voice is found
+    voices.find(v => v.lang === 'en-GB' || v.lang.startsWith('en-GB'));
+
+  if (voice) {
+    cachedMaleVoice = voice;
+  }
+  return voice;
+}
+
+/**
+ * Speaks the race post time and venue using Web Speech API with British male voice fallbacks.
+ * 
  * @param {string} time - Race post time (e.g. "14:30")
  * @param {string} place - Racecourse venue (e.g. "Ascot")
  */
+let activeUtterance = null;
+
 export function speakRace(time, place) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     console.warn('Web Speech API (speechSynthesis) is not supported in this browser.');
@@ -14,77 +46,25 @@ export function speakRace(time, place) {
 
   try {
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(`Post time, ${time}, at, ${place}`);
 
-    // Explicitly tell the engine to use US English if specific voice fails
-    utterance.lang = 'en-US';
+    // 1. Assign to the module-level variable so it escapes local garbage collection
+    activeUtterance = new SpeechSynthesisUtterance(`Post time, ${time}, at, ${place}`);
 
-    // Fetch the loaded system voices
-    const voices = window.speechSynthesis.getVoices();
-
-    // Option A: Target a specific high-quality voice directly by name
-    let selectedVoice = voices.find(voice => voice.name === 'Google US English');
-
-    // Option B: Fallback to a native Microsoft US voice if Google isn't available
-    if (!selectedVoice) {
-      selectedVoice = voices.find(voice => voice.name === 'Microsoft Zira - English (United States)');
-    }
-
-    // Option C: Generic fallback for any available US English voice
-    if (!selectedVoice) {
-      selectedVoice = voices.find(voice => voice.lang === 'en-US' || voice.lang.startsWith('en-US'));
-    }
-
-    // Apply the voice if we found an American one
+    activeUtterance.lang = 'en-GB';
+    const selectedVoice = getMaleUKVoice();
     if (selectedVoice) {
-      utterance.voice = selectedVoice;
+      activeUtterance.voice = selectedVoice;
     }
 
-    window.speechSynthesis.speak(utterance);
+    // 2. Clear the reference only AFTER it safely finishes or errors out
+    activeUtterance.onend = () => { activeUtterance = null; };
+    activeUtterance.onerror = () => { activeUtterance = null; };
+
+    window.speechSynthesis.speak(activeUtterance);
   } catch (err) {
     console.error('Speech synthesis failed:', err);
+    activeUtterance = null;
   }
-}
-
-/**
- * Plays audio with automatic retry logic on failure.
- *
- * @param {string} src - Audio source URL
- * @param {number} retries - Number of retry attempts left
- * @param {number} delay - Delay in ms before next retry
- * @param {Function|null} onEnded - Callback executed when audio completes or retries exhaust
- * @returns {HTMLAudioElement|null}
- */
-export function playAudioWithRetry(src, retries = 3, delay = 1000, onEnded = null) {
-  if (typeof Audio === 'undefined') {
-    if (onEnded) onEnded();
-    return null;
-  }
-
-  const audio = new Audio(src);
-
-  if (onEnded) {
-    audio.addEventListener('ended', onEnded, { once: true });
-  }
-
-  audio.play().catch((error) => {
-    if (retries > 0) {
-      console.warn(`Audio playback failed. Retrying in ${delay}ms... (${retries} retries left)`, error);
-
-      setTimeout(() => {
-        // Appending a timestamp forces the browser to bypass any broken connections or bad cache
-        const freshSrc = `${src}?t=${Date.now()}`;
-        playAudioWithRetry(freshSrc, retries - 1, delay * 1.5, onEnded);
-      }, delay);
-    } else {
-      console.error(`Audio failed to play after multiple attempts for source: ${src}`);
-      if (onEnded) {
-        onEnded();
-      }
-    }
-  });
-
-  return audio;
 }
 
 /**
@@ -92,6 +72,23 @@ export function playAudioWithRetry(src, retries = 3, delay = 1000, onEnded = nul
  */
 export function useAudioAlarms() {
   const timeoutsRef = useRef([]);
+
+  // Initialise/update speech synthesis voices safely using event listeners
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    // Trigger voice discovery immediately
+    getMaleUKVoice();
+
+    const handleVoicesChanged = () => {
+      getMaleUKVoice();
+    };
+
+    window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+    };
+  }, []);
 
   const safePlayAudio = useCallback((src, retries = 3, delay = 1000, onEnded = null) => {
     function attemptPlay(currentSrc, remainingRetries, currentDelay) {
@@ -102,24 +99,36 @@ export function useAudioAlarms() {
 
       const audio = new Audio(currentSrc);
 
-      if (onEnded) {
-        audio.addEventListener('ended', onEnded, { once: true });
-      }
+      // Track cleanups to avoid memory leaks on element error/retries
+      const cleanup = () => {
+        audio.removeEventListener('ended', handleEnded);
+        audio.src = '';
+        audio.load();
+      };
+
+      const handleEnded = () => {
+        cleanup();
+        if (onEnded) onEnded();
+      };
+
+      audio.addEventListener('ended', handleEnded, { once: true });
 
       audio.play().catch((error) => {
+        cleanup(); // Wipe out the failed element immediately
+
         if (remainingRetries > 0) {
           console.warn(`Audio playback failed. Retrying in ${currentDelay}ms... (${remainingRetries} retries left)`, error);
 
           const timerId = setTimeout(() => {
             const freshSrc = `${src}?t=${Date.now()}`;
+            // FIXED: onEnded is now tunneled into the recursive cycle properly
             attemptPlay(freshSrc, remainingRetries - 1, currentDelay * 1.5);
           }, currentDelay);
+
           timeoutsRef.current.push(timerId);
         } else {
           console.error(`Audio failed to play after multiple attempts for source: ${src}`);
-          if (onEnded) {
-            onEnded();
-          }
+          if (onEnded) onEnded();
         }
       });
 
@@ -137,6 +146,7 @@ export function useAudioAlarms() {
     });
   }, [safePlayAudio]);
 
+  // Handle active timeouts and speech speech synthesis cuts on component unmount
   useEffect(() => {
     return () => {
       timeoutsRef.current.forEach(id => clearTimeout(id));
@@ -151,11 +161,7 @@ export function useAudioAlarms() {
     };
   }, []);
 
-  return {
-    playAudioWithRetry: safePlayAudio,
-    speakRace,
-    triggerRaceAlarm
-  };
+  return { playAudioWithRetry: safePlayAudio, speakRace, triggerRaceAlarm };
 }
 
 export default useAudioAlarms;
