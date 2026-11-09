@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import HorseRow from './HorseRow';
 import FormChart from '../charts/FormChart';
 import OddsChart from '../charts/OddsChart';
+import HorseRaceSimulator from '../charts/Simulator';
 import Modal from '../common/Modal';
 import '../../css/Racecard.css';
 import { useStore } from '../../store/store';
@@ -20,6 +21,7 @@ const SORT_LABELS = {
 
 const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm, viewMode, currentDateStr, pendingNonRunners = new Set(), approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
   const [showChart, setShowChart] = useState(false);
+  const [showSim, setShowSim] = useState(false);
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
   const [activeChartRace, setActiveChartRace] = useState(race);
@@ -192,14 +194,14 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     [race.horses, sortBy, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]
   );
 
-  const getFavouredSelections = (horses) => {
+  const getFavouredSelections = (race, horses) => {
     // Filter active runners first
     const activeRunners = (horses || []).filter(h => {
       const lastOdd = h.odds?.[h.odds.length - 1];
       return lastOdd !== "null" && lastOdd !== "NR" && !isHorseNR(h);
     });
 
-    const totalRunners = activeRunners.length;
+    const totalRunners = race?.runners ?? 0;
     if (totalRunners === 0) return [];
 
     // Determine the count based on the number of active runners today
@@ -322,7 +324,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const showSuggestions = (selectedRace) => {
     const targetRace = selectedRace || race;
     setActiveChartRace(targetRace);
-    const list = getFavouredSelections(targetRace.horses, 3);
+    const list = getFavouredSelections(targetRace, targetRace.horses, 3);
     setSuggestions(list);
     setIsOpen(true);
   };
@@ -429,7 +431,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       const prevRace = allRaces[currentIndex - 1];
       setActiveChartRace(prevRace);
       if (isOpen) {
-        setSuggestions(getFavouredSelections(prevRace.horses, 3));
+        setSuggestions(getFavouredSelections(prevRace, prevRace.horses, 3));
       }
       window.location.hash = `${currentDateStr}@${prevRace.time}${prevRace.place.replace(/\s+/g, '')}`;
     }
@@ -440,10 +442,15 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       const nextRace = allRaces[currentIndex + 1];
       setActiveChartRace(nextRace);
       if (isOpen) {
-        setSuggestions(getFavouredSelections(nextRace.horses, 3));
+        setSuggestions(getFavouredSelections(nextRace, nextRace.horses, 3));
       }
       window.location.hash = `${currentDateStr}@${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
     }
+  };
+
+  const openSim = () => {
+    setActiveChartRace(race); // Reset to this card's race when opening
+    setShowSim(true);
   };
 
   const openChart = () => {
@@ -524,6 +531,12 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
   const currentConfig = aiButtonConfig[aiMode] || aiButtonConfig[0];
 
+  const detailLength = (getRaceIcon(race) + " " + race.detail + " " + race.going + " Runners " + race.runners + " FORM: " + finalDisplay).length || 0;
+  const dynamicFontSize =
+    detailLength > 200 ? '10px' :  // For absolute monsters (212+ chars) to stay on 2 lines
+      detailLength > 141 ? '11px' : // For standard long text (150-210 chars)
+        '15px';   // Your crisp standard layout text size
+
 
   return (
     <div id={raceId} className="race-card">
@@ -546,6 +559,27 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               }}
             >
               🔔
+            </button>
+            <button
+              type="button"
+              onClick={openSim}
+              title="Open Race Simulator"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                padding: 0,
+                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              🏇
             </button>
             <button
               type="button"
@@ -591,7 +625,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             </a>
 
           </h2>
-          <h5 className="race-detail">{getRaceIcon(race)} {race.detail} {race.going} (Runners {race.runners}) FORM:{finalDisplay}</h5>
+          <h5 style={{ fontSize: dynamicFontSize }} className="race-detail">{getRaceIcon(race)} {race.detail} {race.going} (Runners {race.runners}) FORM:{finalDisplay}</h5>
         </div>
         <div className="race-controls">
           <div style={{
@@ -806,6 +840,26 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       </Modal>
 
       <ThreeSliders wValue={wValue} setW={setW} dValue={dValue} setD={setD} gValue={gValue} setG={setG} />
+
+      <Modal
+        isOpen={showSim}
+        onClose={() => setShowSim(false)}
+        title={`GO: ${activeChartRace.time} ${activeChartRace.place}`}
+      >
+        <HorseRaceSimulator
+          race={activeChartRace}
+          horses={activeChartRace.horses}
+          raceTime={activeChartRace.time}
+          racePlace={activeChartRace.place}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          hasNext={hasNext}
+          hasPrev={hasPrev}
+          pendingNonRunners={pendingNonRunners}
+          approvedNonRunners={approvedNonRunners}
+          rejectedNonRunners={rejectedNonRunners}
+        />
+      </Modal>
 
       <Modal
         isOpen={showOdds}

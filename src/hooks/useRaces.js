@@ -26,30 +26,52 @@ export function useRaces(displayDate) {
         lastDateRef.current = displayDate;
       }
 
-
       const day = String(displayDate.getDate()).padStart(2, '0');
       const month = String(displayDate.getMonth() + 1).padStart(2, '0');
       const year = displayDate.getFullYear();
       const dateString = `${day}-${month}-${year}`;
 
-      try {
-        const response = await fetch(`https://www.pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' });
-        if (!response.ok) throw new Error('Races for this date are not available');
+      let data = null;
 
-        const data = await response.json();
-        setRaces(data);
-        setLastRefreshTime(Date.now());
-      } catch (err) {
-        console.error("Fetch failure:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      const MS = 15 * 60 * 1000;
+      const delayToken = Math.floor(Date.now() / MS);
+      const cacheBuster = `?v=${delayToken}`;
+
+      // STRATEGY A: Attempt the compressed .json.gz file first
+      try {
+        const response = await fetch(`https://pluckier-cdn.tonykennah.workers.dev/${dateString}-races.json.gz${cacheBuster}`, { cache: 'no-store' });
+
+        if (!response.ok) {
+          // This manually jumps directly down to the catch block
+          throw new Error(`Races for ${dateString} are not available yet in the storage bucket (HTTP ${response.status}).`);
+        }
+
+        // 2. Clear out manual decompression streams! The browser unzips this automatically 
+        // due to your 'Content-Encoding: gzip' metadata header rules.
+        data = await response.json();
+        console.log('Successfully loaded the auto-decompressed data');
+      } catch (error) {
+        // STRATEGY B: Fallback to the uncompressed .json file if Gzip fails
+        console.warn('Fetch failed, trying uncompressed JSON fallback...', error);
+
+        const fallbackResponse = await fetch(`https://pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' });
+        if (!fallbackResponse.ok) throw new Error('Races for this date are not available in any format');
+
+        data = await fallbackResponse.json();
+        console.log('Successfully loaded uncompressed fallback data');
       }
-    } catch (outerError) {
-      console.error("Outer logical failure:", outerError);
+
+      // If either strategy successfully populated the data variable, update state
+      setRaces(data);
+      setLastRefreshTime(Date.now());
+
+    } catch (err) {
+      console.error("Fetch pipeline failure:", err);
+      setError(err.message);
+    } finally {
       setLoading(false);
     }
-  }, [dateKey, displayDate]); // Corrected: Comma separates function and dependency array
+  }, [dateKey, displayDate]);
 
 
   // 3. Effect A: Initial data fetch on mount or when the date changes
