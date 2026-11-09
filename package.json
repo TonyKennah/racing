@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --base=/racing/",
+    "build": "vite build --base=./",
     "lint": "eslint .",
     "test": "node --test \"tests/**/*.test.js\"",
     "preview": "vite preview",
