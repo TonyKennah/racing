@@ -44,7 +44,7 @@ const Chatter = ({ onClose }) => {
 
     // Initialize Worker if it doesn't exist
     if (!workerRef.current) {
-      workerRef.current = new Worker('heartbeatWorker.js');
+      workerRef.current = new Worker('/heartbeatWorker.js');
       workerRef.current.onmessage = () => {
         if (socket.current?.readyState === WebSocket.OPEN) {
           socket.current.send("PING");
