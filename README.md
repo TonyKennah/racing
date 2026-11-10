@@ -44,6 +44,8 @@ The application is optimized for social platforms:
 - **Visualization:** Recharts
 - **Deployment:** GitHub Pages
 
+<img width="1408" height="768" alt="arch" src="https://github.com/user-attachments/assets/47fb257a-6ef2-40ae-9d41-1524d51e154d" />
+
 ## 💻 Local Development
 
 To run this project locally:
