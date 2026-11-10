@@ -40,9 +40,10 @@ const Chatter = ({ onClose }) => {
   const connectWebSocket = () => {
     if (!isJoined) return;
 
-    socket.current = new WebSocket(`wss://www.pluckier.co.uk/utils/chatservice/racing/${username}`);
+    // 1. Point straight to your active Durable Object worker endpoint
+    socket.current = new WebSocket(`wss://chatbox.tonykennah.workers.dev/parties/chat/default?_pk_name=${encodeURIComponent(username)}`);
 
-    // Initialize Worker if it doesn't exist
+
     if (!workerRef.current) {
       workerRef.current = new Worker('/heartbeatWorker.js');
       workerRef.current.onmessage = () => {
@@ -54,26 +55,37 @@ const Chatter = ({ onClose }) => {
     workerRef.current.postMessage('START');
 
     socket.current.onmessage = (event) => {
-      if (event.data === "PONG") {
-        return;
-      }
-
-      if (typeof event.data === 'string' && event.data.startsWith('USERLIST:')) {
-        return;
-      }
+      if (event.data === "PING" || event.data === "PONG") return;
 
       try {
         const data = JSON.parse(event.data);
-        setMessages((prev) => [...prev, data]);
+
+        // FIX: If it has content and user directly, it's a message from someone else
+        if (data.content && data.user) {
+          const formattedMsg = {
+            type: 'CHAT',
+            user: data.user,
+            text: data.content
+          };
+          setMessages((prev) => [...prev, formattedMsg]);
+        }
+        // Handle the initial room history load dump on connect
+        else if (data.messages && Array.isArray(data.messages)) {
+          const history = data.messages.map((m) => ({
+            type: 'CHAT',
+            user: m.user,
+            text: m.content
+          }));
+          setMessages(history);
+        }
       } catch (e) {
-        console.error("Error parsing message JSON", e);
+        console.error("Error parsing message payload JSON", e);
       }
     };
 
+
     socket.current.onclose = () => {
       workerRef.current?.postMessage('STOP');
-
-      // Auto-reconnect after 5 seconds if still joined
       setTimeout(() => {
         if (isJoined) connectWebSocket();
       }, 5000);
@@ -95,11 +107,21 @@ const Chatter = ({ onClose }) => {
   const sendMessage = (e) => {
     e.preventDefault();
     if (input.trim() && socket.current?.readyState === WebSocket.OPEN) {
-      const payload = JSON.stringify({ type: 'CHAT', user: username, text: input });
+      const payload = JSON.stringify({
+        type: "add", // Keeps Partykit happy so it saves to history
+        id: Math.random().toString(36).substring(2, 10),
+        content: input,
+        user: username,
+        role: "user"
+      });
+
+      // FIX: Removed the manual setMessages() push from here!
       socket.current.send(payload);
       setInput('');
     }
   };
+
+
 
   if (!isOpen) return null;
 
@@ -127,8 +149,9 @@ const Chatter = ({ onClose }) => {
                 />
                 <button type="submit">Join</button>
               </form>
-              <div class="discord-banner dark-theme">
-                ... or <a href="https://discord.gg/Zs6TgGKxJR" target="_blank" rel="noreferrer" class="discord-btn-dark">Join Discord</a>
+              {/* FIX: Swapped out standard 'class' for React 'className' properties */}
+              <div className="discord-banner dark-theme">
+                ... or <a href="https://discord.gg/Zs6TgGKxJR" target="_blank" rel="noreferrer" className="discord-btn-dark">Join Discord</a>
                 for results, advice, suggestions, racing commands and more.
               </div>
             </div>
