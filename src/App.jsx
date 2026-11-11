@@ -148,7 +148,7 @@ function App() {
                   💬
                 </button>
 
-                <GridDarkSocialShareDropdown url={'https://pluckier.github.io/racing'} title={'Be Luckier, Pick Pluckier 🏇'} />
+                <GridDarkSocialShareDropdown url={'https://racing.pluckier.co.uk'} title={'Be Luckier, Pick Pluckier 🏇'} />
 
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <button
