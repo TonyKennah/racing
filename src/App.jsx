@@ -99,6 +99,17 @@ function App() {
   // 🟢 SET TO 'false' TO DISABLE AUTH GUARD
   const AUTH_ACTIVE = false;
 
+  // strip the token from the URL, only when AUTH_ACTIVE is false
+  useEffect(() => {
+    if (!AUTH_ACTIVE) {  // Only run when AuthGuard is off
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('token')) {
+        url.searchParams.delete('token');
+        window.history.replaceState({}, '', url.pathname + url.search);
+      }
+    }
+  }, []);
+
   // Define UI in a single block
   const content = () => {
     const activeRace = state.filteredRaces[activeRaceIndex] || state.filteredRaces[0];
