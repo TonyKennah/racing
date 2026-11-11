@@ -4,7 +4,7 @@ A modern web application showing today's horse racing entries from the UK & Irel
 
 ## 🚀 Hosted Site
 
-You need a "[pluckier](https://www.pluckier.co.uk)" login to check out the live application: [https://racing.pluckier.co.uk](https://racing.pluckier.co.uk)
+You currently don't need a "[pluckier](https://www.pluckier.co.uk)" login to check out the live application: [https://racing.pluckier.co.uk](https://racing.pluckier.co.uk)
 
 ## ✨ Key Features
 
