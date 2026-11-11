@@ -7,7 +7,7 @@ const TrackWorker = () => {
   const sessionId = useRef(Math.random().toString(36).substring(2, 10));
 
   useEffect(() => {
-    workerRef.current = new Worker('trackerWorker.js');
+    workerRef.current = new Worker('/trackerWorker.js');
 
     // Listen for messages coming back from trackerWorker.js
     workerRef.current.onmessage = (event) => {
