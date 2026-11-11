@@ -31,6 +31,9 @@ The application implements a robust security layer using an `AuthGuard` pattern:
 - **Third-Party Integration:** Seamless authentication flow through a centralized login service.
 - **Session Persistence & Validation:** Secure cookie handling with periodic background session pings to the `authservice` to ensure account validity.
 
+[See blog]([https://tonykennah.github.io/racing/](https://blog.pluckier.co.uk/blog/serverless/))
+
+
 ## 📈 SEO & Social Sharing
 
 The application is optimized for social platforms:
